@@ -84,7 +84,7 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		
 		try {
 			// Get file from nas SFTP method
-			file = new File(path+fileName);
+			file = sfptProp.getFile(path, fileName);
 			
 			br = new BufferedReader(new FileReader(file));
 			
