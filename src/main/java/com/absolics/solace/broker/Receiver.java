@@ -3,9 +3,12 @@ package com.absolics.solace.broker;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.absolics.service.FileReadExcutor;
 import com.absolics.solace.broker.Receiver.MessageListener;
 import com.absolics.solace.util.ImportQueueList;
 import com.solacesystems.jcsmp.BytesXMLMessage;
@@ -33,6 +36,8 @@ public class Receiver implements Runnable {
     private String module_name;
 	private String thread_name;
 	private String queue_name;
+	
+	private FileReadExcutor fileReadExcutor = new FileReadExcutor();
 
     public Receiver(JCSMPSession session, String queueName, String module_name, String thread_name) {    	
     	this.session = session;
@@ -106,6 +111,7 @@ public class Receiver implements Runnable {
 					log.info("message body: {}", ((TextMessage) message).getText());
 					
 					// Call FileReadExcutor
+					fileReadExcutor.fileParsingStart(new JSONObject(((TextMessage) message).getText()));
 					
 				} else {
 					
@@ -123,6 +129,8 @@ public class Receiver implements Runnable {
 					String str = new String(byteMsg);
 
 					log.info("message body: {}", str.toString());
+					
+					fileReadExcutor.fileParsingStart(new JSONObject(str));
 				}
 
 				message.ackMessage(); // manual ack mode 일 경우 명시적 추가

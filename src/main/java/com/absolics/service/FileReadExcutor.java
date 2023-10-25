@@ -18,10 +18,16 @@ public class FileReadExcutor {
 	@Autowired
 	private FileParser parser;
 
-	public boolean fileParsingStart(JSONObject data) {
+	
+	/**
+	 * path 정보를 JsonOBJ로 받아서 추출 
+	 * 추후 파일 유형 및 타입 정보를 받을 수 있기 위해 JSONObj 로 사용, 필요하다면 Param 변경 가능
+	 **/
+	public boolean fileParsingStart(JSONObject path) {
+		
 		try {
-			if (data != null) {
-				if ( parser.toParsing(data.getString("filePath"), data.getString("fileName")
+			if (path != null) {
+				if ( parser.toParsing(path.getString("filePath"), path.getString("fileName")
 						, propMng.getParsingRule() ) ) {
 					log.info("# @@ parsing success !! ");
 				}
