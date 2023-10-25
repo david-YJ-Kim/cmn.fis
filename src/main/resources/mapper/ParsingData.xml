@@ -1,10 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.absolics.mapper.ParsingDataMapper">
-	<insert id="inserParsingData" parameterType="list">
+	<insert id="inserParsingInspectData" parameterType="list">
+		INSERT INTO %TABLE%	(			
+				SITE_ID,
+				PROD_DEF_ID,
+				PROC_DEF_ID,
+				PROC_SGMT_ID,
+			<if test = " EQP_ID != null or eqp_id != null ">
+				EQP_ID,
+			</if>
+			<if test = " LOT_ID != null or lot_id != null ">
+				LOT_ID,
+			</if>
+			<if test = " PROD_MTRL_ID != null or prod_mtrl_id != null ">
+				PROD_MTRL_ID,
+			</if>
+				SUB_PROD_MTRL_ID,
+				MTRL_FACE_CD,
+				INSP_REPT_CNT,
+				X_VAL,
+				Y_VAL,
+				GRD_ID,
+				DFCT_ID,
+				DFCT_X_VAL,
+				DFCT_Y_VAL,
+				INSP_DT,
+				IMG_FILE_NM,
+				REVIEW_IMG_FILE_NM,
+				INSP_FILE_NM,
+				ATTR_1,
+				ATTR_2,
+				ATTR_N,
+				CRT_DT
+			)
+			VALUES (
+			<foreach collection="list" item="list" separator=",">
+				#{data},
+			</foreach>
+			)
+	</insert>
+	
+	<insert id="inserParsingInstrumentationData" parameterType="list">
 		INSERT INTO %TABLE%	(
-				,
-				REG_DT
+				SITE_ID,
+				PROD_DEF_ID,
+				PROC_DEF_ID,
+				PROC_SGMT_ID,
+			<if test = " EQP_ID != null or eqp_id != null ">
+				EQP_ID,
+			</if>
+			<if test = " LOT_ID != null or lot_id != null ">
+				LOT_ID,
+			</if>
+			<if test = " PROD_MTRL_ID != null or prod_mtrl_id != null ">
+				PROD_MTRL_ID,
+			</if>
+				MTRL_FACE_CD,
+				INSP_REPT_CNT,
+				X_VAL,
+				Y_VAL,
+				Z_VAL,
+				DCITEM_ID,
+				RSLT_VAL,
+				IMG_FILE_NM,
+				INSP_FILE_NM,
+				ATTR_1,
+				ATTR_2,
+				ATTR_N,
+				CRT_DT
 			)
 			VALUES (
 			<foreach collection="list" item="list" separator=",">

@@ -2,44 +2,44 @@ package com.absolics.dao;
 
 public class ParsingDataDao {
 	
-	private String strClmnName;
+	private String eqpName;
 	
-	private String strContent;
+	private String fileType;
 	
-	private int intClmnName;
+	private String prsClmnName;
 	
-	private int intCentent;
+	private String mppClmnName;
 
-	public String getStrClmnName() {
-		return strClmnName;
+	public String getEqpName() {
+		return eqpName;
 	}
 
-	public void setStrClmnName(String strClmnName) {
-		this.strClmnName = strClmnName;
+	public void setEqpName(String eqpName) {
+		this.eqpName = eqpName;
 	}
 
-	public String getStrContent() {
-		return strContent;
+	public String getFileType() {
+		return fileType;
 	}
 
-	public void setStrContent(String strContent) {
-		this.strContent = strContent;
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
 	}
 
-	public int getIntClmnName() {
-		return intClmnName;
+	public String getPrsClmnName() {
+		return prsClmnName;
 	}
 
-	public void setIntClmnName(int intClmnName) {
-		this.intClmnName = intClmnName;
+	public void setPrsClmnName(String prsClmnName) {
+		this.prsClmnName = prsClmnName;
 	}
 
-	public int getIntCentent() {
-		return intCentent;
+	public String getMppClmnName() {
+		return mppClmnName;
 	}
 
-	public void setIntCentent(int intCentent) {
-		this.intCentent = intCentent;
+	public void setMppClmnName(String mppClmnName) {
+		this.mppClmnName = mppClmnName;
 	}
 	
 	

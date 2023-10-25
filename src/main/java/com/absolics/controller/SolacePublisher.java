@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.absolics.config.SessionConfiguration;
+import com.absolics.config.SolaceConfiguration;
 import com.absolics.solace.util.PubEventHandler;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPException;
@@ -17,13 +17,13 @@ import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
 @Component
-public class SolaceInterfacePub implements Runnable{
+public class SolacePublisher implements Runnable{
 	
-	private static final Logger log = LoggerFactory.getLogger(SolaceInterfacePub.class);
+	private static final Logger log = LoggerFactory.getLogger(SolacePublisher.class);
 	
 	private JCSMPProperties properties = new JCSMPProperties();
 
-    private static SolaceInterfacePub instance;
+    private static SolacePublisher instance;
     private JCSMPSession session;    
     private Topic topic;
     
@@ -80,7 +80,7 @@ public class SolaceInterfacePub implements Runnable{
 		try {			
 			//SpringJCSMPFactory 생성
 //			springJcsmpFactory = new SpringJCSMPFactory(properties);
-			properties = SessionConfiguration.getSessionConfiguration().getProperty("PUB");
+			properties = SolaceConfiguration.getSessionConfiguration().getProperty("PUB");
 			//SpringJCSMPFactory를 이용한 JCSMPSession 생성(JCSMPFactory 사용하는 것과 동일 -> session = JCSMPFactory.onlyInstance().createSession(properties);)
 			session = JCSMPFactory.onlyInstance().createSession(properties);
 			//session 연결 - Application별로 최소 연결 권장(쓰레드를 사용할 경우 공유 사용 권장)
@@ -98,10 +98,10 @@ public class SolaceInterfacePub implements Runnable{
 		}
 	}
 	
-	public static SolaceInterfacePub getInstance() throws JCSMPException {
+	public static SolacePublisher getInstance() throws JCSMPException {
         // Create the instance if it doesn't exist
         if (instance == null) {
-            instance = new SolaceInterfacePub();
+            instance = new SolacePublisher();
         }
         return instance;
     }

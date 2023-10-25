@@ -18,11 +18,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.absolics.config.SessionConfiguration;
-import com.absolics.solace.util.SempInfo;
-import com.absolics.solace.util.SempInfo.PrintingMessageHandler;
-import com.absolics.solace.util.SempInfo.PrintingPubCallback;
-import com.absolics.solace.util.SempInfo.PrintingSessionEventHandler;
+import com.absolics.config.SolaceConfiguration;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.CapabilityType;
 import com.solacesystems.jcsmp.Consumer;
@@ -40,7 +36,7 @@ public class ImportQueueList extends SempInfo {
 	private Consumer cons;
 	private XMLMessageProducer prod;
 	private ArrayList<String> queueList = new ArrayList<String>();
-	private SessionConfiguration sesscionConf;
+	private SolaceConfiguration sesscionConf;
 
 	public ImportQueueList() {
 //		sesscionConf = SolaceSessionConfig.createSessionConfiguration(env);
@@ -48,7 +44,7 @@ public class ImportQueueList extends SempInfo {
 	}
 
 	void run() {
-		sesscionConf = SessionConfiguration.getSessionConfiguration();
+		sesscionConf = SolaceConfiguration.getSessionConfiguration();
 
 		session = SolaceUtils.newSession(sesscionConf, new PrintingSessionEventHandler(), null);
 
@@ -63,12 +59,12 @@ public class ImportQueueList extends SempInfo {
 			
 			final String SEMP_TOPIC_STRING = String.format("#SEMP/%s/SHOW", routerName);
 			final Topic SEMP_TOPIC = JCSMPFactory.onlyInstance().createTopic(SEMP_TOPIC_STRING);
-			Map<String,String> extraArguments = SessionConfiguration.getSessionConfiguration().getArgBag();
+			Map<String,String> extraArguments = SolaceConfiguration.getSessionConfiguration().getArgBag();
 			String sempVersion = extraArguments.containsKey("-sv") ? sempVersion = extraArguments.get("-sv") : SEMP_VERSION_TR;
 			final String SEMP_SHOW_QUEUES = "<rpc semp-version=\""
 											+ sempVersion
 											+ "\"><show><queue><name>"
-											+SessionConfiguration.getSessionConfiguration().getModuleName()
+											+SolaceConfiguration.getSessionConfiguration().getModuleName()
 											+"*</name><count/><num-elements>100</num-elements></queue></show></rpc>";
 			final String MORECOOKIE_START = "<more-cookie>";
 			final String MORECOOKIE_END = "</more-cookie>";

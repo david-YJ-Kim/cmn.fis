@@ -9,16 +9,22 @@ public class ParsingRuleDao {
 	
 	private String fileType;
 	
-	private String filepath;
+	private String targetFileMovePath;
 	
-	private String fileCulomnInfo;
+	private String[] parsingTitleInfo;
 	
-	private int psStartRow;
+	private String[] parsingRowInfo;
 	
-	private int psEndRow;
+	private String parsingTitleName;
 	
-	private String additionRow;
-
+	private String fileColumName;
+	
+	private String mappColumnName;
+	
+	private String psRowinfo;
+	
+	private int[] rowNums;
+	
 	public String getEqpName() {
 		return eqpName;
 	}
@@ -43,44 +49,68 @@ public class ParsingRuleDao {
 		this.fileType = fileType;
 	}
 
-	public String getFilepath() {
-		return filepath;
+	public String getTargetFileMovePath() {
+		return targetFileMovePath;
 	}
 
-	public void setFilepath(String filepath) {
-		this.filepath = filepath;
-	}
-
-	public String getFileCulomnInfo() {
-		return fileCulomnInfo;
-	}
-
-	public void setFileCulomnInfo(String fileCulomnInfo) {
-		this.fileCulomnInfo = fileCulomnInfo;
-	}
-
-	public int getPsStartRow() {
-		return psStartRow;
-	}
-
-	public void setPsStartRow(int psStartRow) {
-		this.psStartRow = psStartRow;
-	}
-
-	public int getPsEndRow() {
-		return psEndRow;
-	}
-
-	public void setPsEndRow(int psEndRow) {
-		this.psEndRow = psEndRow;
-	}
-
-	public String getAdditionRow() {
-		return additionRow;
-	}
-
-	public void setAdditionRow(String additionRow) {
-		this.additionRow = additionRow;
+	public void setTargetFileMovePath(String targetFileMovePath) {
+		this.targetFileMovePath = targetFileMovePath;
 	}
 	
+	public String[] getParsingTitleInfo() {
+		return parsingTitleInfo;
+	}
+
+	public void setParsingTitleInfo(String[] parsingTitleInfo) {
+		this.parsingTitleInfo = parsingTitleInfo;
+	}
+	
+	public String[] getParsingRowInfo() {
+		return parsingRowInfo;
+	}
+
+	public void setParsingRowInfo(String[] parsingRowInfo) {
+		this.parsingRowInfo = parsingRowInfo;
+	}
+	
+	public String getParsingTitleName() {
+		return parsingTitleName;
+	}
+
+	public void setParsingTitleName(String parsingTitleName) {
+		this.parsingTitleName = parsingTitleName;
+	}
+
+	public String getFileColumName() {
+		return fileColumName;
+	}
+
+	public void setFileColumName(String fileColumName) {
+		this.fileColumName = fileColumName;
+	}
+
+	public String getMappColumnName() {
+		return mappColumnName;
+	}
+
+	public void setMappColumnName(String mappColumnName) {
+		this.mappColumnName = mappColumnName;
+	}
+
+	public int[] getRowNums() {
+		return rowNums;
+	}
+
+	public void setRowNums(int[] rowNums) {
+		this.rowNums = rowNums;
+	}
+
+	public String getPsRowinfo() {
+		return psRowinfo;
+	}
+
+	public void setPsRowinfo(String psRowinfo) {
+		this.psRowinfo = psRowinfo;
+	}
+
 }

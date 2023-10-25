@@ -11,8 +11,8 @@ import com.solacesystems.jcsmp.JCSMPChannelProperties;
 import com.solacesystems.jcsmp.JCSMPProperties;
 
 @Component
-public class SessionConfiguration {
-	private static SessionConfiguration instance;
+public class SolaceConfiguration {
+	private static SolaceConfiguration instance;
 	Environment env;
 	
 	@Value("${solace.java.host")
@@ -39,12 +39,12 @@ public class SessionConfiguration {
 	@Value("${solace.java.module-name}")
     private String moduleName;
 	
-	public SessionConfiguration(Environment env) {
+	public SolaceConfiguration(Environment env) {
 		this.env = env;
 		instance = this;
 	}
 	
-	public static SessionConfiguration getSessionConfiguration() {
+	public static SolaceConfiguration getSessionConfiguration() {
 		return instance;
 	}
 	

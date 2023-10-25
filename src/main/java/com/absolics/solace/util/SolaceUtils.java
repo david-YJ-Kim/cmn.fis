@@ -3,7 +3,7 @@ package com.absolics.solace.util;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.absolics.config.SessionConfiguration;
+import com.absolics.config.SolaceConfiguration;
 import com.solacesystems.jcsmp.InvalidPropertiesException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
@@ -23,7 +23,7 @@ public class SolaceUtils {
 	 * @param extra (optional) extra session properties not covered in sc
 	 * @return a new JCSMPSession instance
 	 */
-	public static JCSMPSession newSession(SessionConfiguration sc, SessionEventHandler evtHdlr, Map<String, Object> extra) {
+	public static JCSMPSession newSession(SolaceConfiguration sc, SessionEventHandler evtHdlr, Map<String, Object> extra) {
 		JCSMPProperties properties = new JCSMPProperties();
 
 		properties.setProperty(JCSMPProperties.HOST, sc.getHost());

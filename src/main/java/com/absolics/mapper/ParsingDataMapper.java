@@ -1,5 +1,16 @@
 package com.absolics.mapper;
 
-public class ParsingDataMapper {
+import java.util.List;
+import java.util.Map;
 
+public class ParsingDataMapper {
+	
+	/**
+	 * Insert to Parsing Data
+	 * @param map Map<String, Object>
+	 * @return boolean
+	 **/
+	
+//	boolean inserParsingInspectData(List<Map<String, Object>> data);
+//	boolean inserParsingInstrumentationData(List<Map<String, Object>> data);
 }

@@ -8,14 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.absolics.solace.broker.Receiver;
-import com.absolics.config.SessionConfiguration;
+import com.absolics.config.SolaceConfiguration;
 import com.absolics.solace.util.ImportQueueList;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 
-public class SolaceInterfaceSub implements Runnable{
-	private static final Logger log = LoggerFactory.getLogger(SolaceInterfacePub.class);
+public class SolaceSubscriber implements Runnable{
+	private static final Logger log = LoggerFactory.getLogger(SolacePublisher.class);
 
 	private JCSMPProperties properties = new JCSMPProperties();
 	
@@ -44,7 +44,7 @@ public class SolaceInterfaceSub implements Runnable{
     		for(String queue_name : queueList) {
     			log.debug("@@ Queue list # - "+queue_name);
     			
-    			properties = SessionConfiguration.getSessionConfiguration().getProperty("SUB");
+    			properties = SolaceConfiguration.getSessionConfiguration().getProperty("SUB");
 
         		//SpringJCSMPFactory를 이용한 JCSMPSession 생성(JCSMPFactory 사용하는 것과 동일 -> session = JCSMPFactory.onlyInstance().createSession(properties);)
     			session = JCSMPFactory.onlyInstance().createSession(properties);
@@ -55,8 +55,8 @@ public class SolaceInterfaceSub implements Runnable{
 //    			final Queue queue = JCSMPFactory.onlyInstance().createQueue(queue_name);
     			
     	    	
-    			new Thread(new Receiver(session, queue_name, SessionConfiguration.getSessionConfiguration().getModuleName(),
-    					"Receiver-"+SessionConfiguration.getSessionConfiguration().getModuleName()+"-"+queue_name)).start();
+    			new Thread(new Receiver(session, queue_name, SolaceConfiguration.getSessionConfiguration().getModuleName(),
+    					"Receiver-"+SolaceConfiguration.getSessionConfiguration().getModuleName()+"-"+queue_name)).start();
     		}
     		
 //	    	latch.await();
