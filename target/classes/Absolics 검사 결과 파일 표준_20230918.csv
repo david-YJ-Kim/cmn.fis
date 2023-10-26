@@ -1,0 +1,50 @@
+﻿설비로 발송하는 정보,,,,,,,,,,설비에서 생성하는 데이터,,,,,,,,,,,,
+라인 정보,"제품 코드
+(Lot의 제품 정보)","Process Flow
+(Routing ID)","공정 코드
+(동일 설비로 Lot 이 
+서로 다른 공정을 진행함)",설비 ID,LOT ID,"Panel ID
+단, Quarter 와 Unit 으로 진행하는
+검사기는 Quarter ID 와 Unit ID","하위 제품 ID
+
+Panel 단위 검사에서는 Unit ID 지칭
+단, ID 인식이 안되는 경우에는 Panel ID 와 X, Y 좌표를 조합하여 HOST 시스템에서 조합 가능","검사 작업면
+
+TOP : 상면
+BOT : 하면","검사 반복 회차
+
+동일 Lot 과 Panel 이 해당 공정에서 같은 설비로 여러 번 검사하는 경우 반복회차 증가","Unit 의 Panel 內
+위치 정보 (X 좌표)
+
+(1,1) (2,1) (3,1)
+(1,2) (2,2) (3,2)
+(1,3) (2,3) (3,3)","Unit 의 Panel 內
+위치 정보 (Y 좌표)
+
+(1,1) (2,1) (3,1)
+(1,2) (2,2) (3,2)
+(1,3) (2,3) (3,3)",등급 코드,"DEFECT CODE
+
+(Absolics 담당자와 Code Define 필요. 검사 설비별로 검출(식별) 가능한 Defect Mode 전달 요망)","해당 Unit 에서 검출한
+Defect Point 좌표 (X)
+
+동일 Unit 내에서 Defect Code 와 Defect Point 가 동일한 검사 결과가 있을 수 있는 지 확인 요망","해당 Unit 에서 검출한
+Defect Point 좌표 (Y)
+
+동일 Unit 내에서 Defect Code 와 Defect Point 가 동일한 검사 결과가 있을 수 있는 지 확인 요망",검사 시간,"불량 이미지 파일명
+
+(파일 경로와 파일명까지 Full Name)","불량 이미지 파일명
+
+(파일 경로와 파일명까지 Full Name)","검사 데이터 원본 파일명
+
+(파일 경로와 파일명까지 Full Name)","검사 공정/설비별 특화 추가 속성
+(해당 공정 담당 Eng'r 가 HOST 시스템에서 자주 조회해야 하거나 Business logic 연동이 필요한 데이터)",,
+SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N
+[SAMPLE] 단순 예시입니다. 실제 데이터와 비교하여 작성 필요,,,,,,,,,,,,,,,,,,,,,,
+SVM,P23-09-001,R000001,P000001,AM-YG-09-01,A23800010,FC23800001,FC23800001-03-05,TOP,1,03,05,NG,DFCT_A001,52300,43300,2023-09-18 10:18:54,{ROOT}\AM-YG-09-01\A23800010\P000001\FC23800001-TOP-20230918100522.jpg,{ROOT}\AM-YG-09-01\A23800010\P000001\FC23800001-TOP-REVIEW-20230918100522.jpg,{ROOT}\AM-YG-09-01\A23800010\P000001\FC23800001-TOP-20230918100522.csv,NON,OK,NON
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
