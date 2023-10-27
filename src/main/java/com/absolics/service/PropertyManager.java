@@ -5,10 +5,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.absolics.dao.ParsingRuleDao;
 import com.absolics.mapper.ParsingRuleMapper;
 
+@Service
 public class PropertyManager {
 	
 	private static final PropertyManager instance = new PropertyManager();

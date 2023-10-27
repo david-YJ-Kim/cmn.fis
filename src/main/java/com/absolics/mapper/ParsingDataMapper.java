@@ -3,7 +3,7 @@ package com.absolics.mapper;
 import java.util.List;
 import java.util.Map;
 
-public class ParsingDataMapper {
+public interface ParsingDataMapper {
 	
 	/**
 	 * Insert to Parsing Data

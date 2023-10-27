@@ -15,12 +15,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.absolics.config.SFTPProperty;
 import com.absolics.dao.ParsingDataDao;
 import com.absolics.dao.ParsingRuleDao;
 import com.absolics.mapper.ParsingRuleMapper;
 
+@Service
 public class FileParser {//extends JpaRepository<String, Object>{
 	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
 	

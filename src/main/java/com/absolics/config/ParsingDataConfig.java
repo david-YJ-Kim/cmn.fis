@@ -9,6 +9,7 @@ public class ParsingDataConfig {
 	@Value("${spring.datasource.data}")
 	private String driveName;
 	
+	
 	private String userName;
 	
 	private String passWord;

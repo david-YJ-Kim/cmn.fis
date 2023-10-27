@@ -42,3 +42,10 @@ nas:
     user-name:
     user-passwd: 
     remote-target-dir: 
+   
+
+psd:
+  url: jdbc:oracle:thin:@0.0.0.0:1522:ORCL
+  username: sys
+  password: 
+  

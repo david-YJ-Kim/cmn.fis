@@ -31,7 +31,6 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 		
 		new Thread(new SolaceSubscriber()).run();
 		
-		
 	}
 	
 	@Bean
