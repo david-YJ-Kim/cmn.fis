@@ -35,7 +35,7 @@ public class SolaceConfiguration {
 	
 	@Value("${solace.java.retries-per-host}")
     private int retriesPerHost;
-		
+			
 	@Value("${solace.java.module-name}")
     private String moduleName;
 	
@@ -70,6 +70,7 @@ public class SolaceConfiguration {
 
 		chProp.setReconnectRetries(getReconnnectRetries()); // 세션 다운 시 재 연결 트라이 횟수
 		chProp.setConnectRetriesPerHost(getRetriesPerHost()); // 세션 리트라이 간격
+		chProp.getReconnectRetryWaitInMillis();
 		properties.setProperty(JCSMPChannelProperties.RECONNECT_RETRIES, chProp);
 
 		return properties;
@@ -102,7 +103,7 @@ public class SolaceConfiguration {
 	public int getRetriesPerHost() {
 		return retriesPerHost;
 	}
-
+	
 	public String getModuleName() {
 		return moduleName;
 	}

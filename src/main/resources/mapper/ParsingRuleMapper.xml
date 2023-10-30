@@ -43,22 +43,9 @@
 		SELECT
 			EQP_NM							as eqpName
 			,FILE_FM_TP						as fileFormatType
-			,FILE_TP						as fileType
-			,PS_TTL_NM						
-			,FILE_CLM_NM
-			,MPP_CLM_NM
-			
-			IFP.EQP_NM						
-			,IFP.FILE_FM_TP					
-			,IFP.FILE_TP					as fileType
-			,IFP.TG_FILE_PT					as filePath
-			,ARRAY( LISTAGG( IFP.FILE_CLM_INFO ) )
-			,LISTAGG( IFP.PRS_TTL_INFO, ',' ) WITHIN GROUP (ORDER BY IFP.PRS_TTL_INFO)
-											as fileCulomnInfo
-			,LISTAGG( IFP.PRS_ROW_INFO, ',' ) WITHIN GROUP (ORDER BY IFP.PRS_ROW_INFO)
-											as fileCulomnInfo
-			,IFM.FILE_CLM_NM				as fileColum
-			,IFM.MPP_CLM_NM					as mappColumn
+			,FILE_TP						as fileType			
+			,FILE_CLM_NM					as fileColumnName
+			,MPP_CLM_NM						as mappingColumnNamen
 		FROM
 			IF_PARSING_DATA_MAPPIN_INFO
 	</select>

@@ -12,28 +12,30 @@ logging:
     
 spring:
   datasource:
-    data:
-     jdbc:oracle:thin:@localhost:1521:xe
-    username: user
-    password: pw
-    driver-class-name:
-      oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
+    username: mesadm
+    password: absolics12#
+    driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     properties:
       hibernate:
+        jdbc:
+          lob:
+            non_contextual_create: true
         dialect: org.hibernate.dialect.Oracle12cDialect
     
 solace:
   java:
     host: 52.79.64.176:55555
-    msg-vpn: default
+    msg-vpn: MES
     client-username: default
-    client-password: 
+    client-password: admin
     client-name: MOS-File-Interface-System
-    reconnnect-retries: 5
+    reconnnect-retries: 20
     retries-per-host: 5
+    reconnect-retry-wait: 3000 ms
     module-name: test
-
+    
     
 nas:
   sftp: 

@@ -6,13 +6,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ParsingDataConfig {
 	
-	@Value("${spring.datasource.data}")
-	private String driveName;
+	@Value("${spring.datasource.url}")
+	private String driveUrl;
 	
-	
+	@Value("${spring.datasource.username}")
 	private String userName;
 	
+	@Value("${spring.datasource.password}")
 	private String passWord;
 	
+	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
 }

@@ -141,10 +141,25 @@ public class Receiver implements Runnable {
 		
         @Override
         public void onException(JCSMPException exception) {
-//        	consumer.stop();
-//        	consumer.close();
+        	
+        	if (consumer.isClosed()) {
+				try {
+					consumer.start();
+				} catch (JCSMPException e) {
+					// TODO Auto-generated catch block
+					log.error("## Error : Closed Consumer > reStart Consume" , e);
+				}
+        	} else if (session.isClosed()) {
+        		try {
+        			session.connect();
+				} catch (JCSMPException e) {
+					// TODO Auto-generated catch block
+					log.error("## Error : Closed Session > reConnecte session" , e);
+				}
+        	}
+        	
         	exception.getStackTrace();
-        	latch.countDown();
+//        	latch.countDown();
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'onException'");
         }
