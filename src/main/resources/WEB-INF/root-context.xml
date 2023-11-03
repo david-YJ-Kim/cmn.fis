@@ -16,10 +16,10 @@
 
 	<bean id="dataSource" 
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-		<property name="url" value="${psd.url}"/>
-		<property name="username" value="${psd.username}"/>
-		<property name="password" value="${psd.password}"/>
+		<property name="driverClassName" value="%{spring.datasource.deiver-class-name}"/>
+		<property name="url" value="${spring.datasource.url}"/>
+		<property name="username" value="${spring.datasource.username}"/>
+		<property name="password" value="${spring.datasource.password}"/>
 	</bean>	
 		
 	<!-- 2. Mybatis DB 프로그램에서 사용할 객체 -->
@@ -34,4 +34,7 @@
 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
 		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>	
+	
+	
+	
 </beans>

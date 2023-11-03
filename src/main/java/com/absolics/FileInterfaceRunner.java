@@ -1,5 +1,7 @@
 package com.absolics;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.absolics.config.SFTPProperty;
 import com.absolics.config.SolaceConfiguration;
@@ -50,6 +53,11 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	@Bean
 	public SFTPProperty getsftpProperty() {
 		return SFTPProperty.getSftpProperty();
+	}
+	
+	@Bean
+	public JdbcTemplate jdbcTemplat(DataSource datasSource) {
+		return new JdbcTemplate(datasSource);
 	}
 
 }

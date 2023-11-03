@@ -1,7 +1,7 @@
-package com.absolics.dao;
+package com.absolics.vo;
 
-public class ParsingDataDao {
-	
+public class ParsingDataVo {	
+	// enum 등록, 
 	private String siteId;
 	private String prodDefId;
 	private String procDefId;
@@ -17,7 +17,7 @@ public class ParsingDataDao {
 	private String zValue;
 	private String dcitemId;
 	private String rsltVal;
-	private String groupId;
+	private String grdId;
 	private String dfctId;
 	private String dfctXvalue;
 	private String dfctYvalue;
@@ -28,6 +28,8 @@ public class ParsingDataDao {
 	private String attr1;
 	private String attr2;
 	private String attrN;
+	private String prcsState;
+
 	
 	public String getSiteId() {
 		return siteId;
@@ -119,11 +121,11 @@ public class ParsingDataDao {
 	public void setRsltVal(String rsltVal) {
 		this.rsltVal = rsltVal;
 	}
-	public String getGroupId() {
-		return groupId;
+	public String getGrdId() {
+		return grdId;
 	}
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
+	public void setGrdId(String grdId) {
+		this.grdId = grdId;
 	}
 	public String getDfctId() {
 		return dfctId;
@@ -185,6 +187,11 @@ public class ParsingDataDao {
 	public void setAttrN(String attrN) {
 		this.attrN = attrN;
 	}
-	
-	
+	public String getPrcsState() {
+		return prcsState;
+	}
+	public void setPrcsState(String prcsState) {
+		this.prcsState = prcsState;
+	}
+		
 }

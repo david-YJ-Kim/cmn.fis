@@ -12,25 +12,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.absolics.config.SFTPProperty;
-import com.absolics.dao.ParsingDataDao;
-import com.absolics.dao.ParsingRuleDao;
-import com.absolics.mapper.ParsingRuleMapper;
+import com.absolics.storage.ParsingRuleStorage;
+import com.absolics.vo.ParsingDataVo;
+import com.absolics.vo.ParsingRuleVo;
 
 @Service
 public class FileParser {//extends JpaRepository<String, Object>{
 	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
-	
-	@Autowired
-	ParsingRuleMapper parsingDataMapper;
-	
-	@Autowired
-	private PropertyManager propMng;
 	
 	@Autowired
 	private SFTPProperty sfptProp;
@@ -44,8 +39,11 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		
 		FileParser filePs = new FileParser();
 		
+		JSONObject result = null;
 		try {
-			if ( filePs.toParsing(path, fileNm1, null) )
+			
+			result = filePs.toParsing(path, fileNm1, null);
+			if ( result != null )
 				log.info("## read success!!");
 			else
 				log.info("## fail read!!!");
@@ -57,21 +55,18 @@ public class FileParser {//extends JpaRepository<String, Object>{
 	
 	
 	// 
-	public boolean toParsing(String path, String fileName, List<Map<String, Object>> list
+	public JSONObject toParsing(String path, String fileName, List<ParsingRuleVo> list
 							) throws IOException {
 		
 		// call file parsing		
-		List<Map<String, String>> prsDatas = parsCsvLine(path, fileName);
+		List<Map<String, String>> prsDatas = this.parsCsvLine(path, fileName);
 		
 		log.info("return Data : "+ prsDatas.toString());
 		
 		// save data to storage
-//		String trgInfo = insertParsingData(prsDatas, fileType, psDt);
+		JSONObject rstObj = new JSONObject();
 		
-		// send Solace message 
-		
-		
-		return true;
+		return rstObj;
 	}
 	
 	// csv file 전체 data 읽어 옴
@@ -82,11 +77,14 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		BufferedReader br = null;
 		
 		List<Map<String, String>> parsDt = null;
+		List<ParsingDataVo> parsededList = null;
+		
 		String[] colNm = null;
 		
 		try {
 			// Get file from nas SFTP method
-			file = sfptProp.getFile(path, fileName);
+//			file = sfptProp.getFile(path, fileName);
+			// 변경할 것, 
 			
 			br = new BufferedReader(new FileReader(file));
 			
@@ -140,15 +138,5 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		
 		return null;
 	}
-		
-//	private boolean insertParsingData(List<Map<String, Object>> datas, String fileType) {
-//		
-//		if (fileType.equals("ISP")) // inspect data
-//			parsingDataMapper.inserParsingInspectData(datas);
-//		else 
-//			parsingDataMapper.inserParsingInstrumentationData(datas);
-//		
-//		return false;
-//	}
 	
 }

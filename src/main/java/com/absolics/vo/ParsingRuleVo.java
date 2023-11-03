@@ -1,19 +1,23 @@
-package com.absolics.dao;
+package com.absolics.vo;
 
 
-public class ParsingRuleDao {
+public class ParsingRuleVo {
 
 	private String eqpName;
 	
-	private char fileFormatType;
+	private String fileFormatType;
 	
 	private String fileType;
 	
 	private String targetFileMovePath;
 	
-	private String[] parsingTitleInfo;
+	private String parsingTitleInfo;
 	
-	private String[] parsingRowInfo;
+	private String[] parsingTitleInfos;
+	
+	private String parsingRowInfo;
+	
+	private int[] parsingRowInfos;
 	
 	private String parsingTitleName;
 	
@@ -25,6 +29,8 @@ public class ParsingRuleDao {
 	
 	private int[] rowNums;
 	
+	public ParsingRuleVo() {}
+	
 	public String getEqpName() {
 		return eqpName;
 	}
@@ -33,11 +39,11 @@ public class ParsingRuleDao {
 		this.eqpName = eqpName;
 	}
 
-	public char getFileFormatType() {
+	public String getFileFormatType() {
 		return fileFormatType;
 	}
 
-	public void setFileFormatType(char fileFormatType) {
+	public void setFileFormatType(String fileFormatType) {
 		this.fileFormatType = fileFormatType;
 	}
 
@@ -57,20 +63,36 @@ public class ParsingRuleDao {
 		this.targetFileMovePath = targetFileMovePath;
 	}
 	
-	public String[] getParsingTitleInfo() {
+	public String[] getParsingTitleInfos() {
+		return parsingTitleInfos;
+	}
+
+	public void setParsingTitleInfo(String[] parsingTitleInfos) {
+		this.parsingTitleInfos = parsingTitleInfos;
+	}
+	
+	public String getParsingTitleInfo() {
 		return parsingTitleInfo;
 	}
 
-	public void setParsingTitleInfo(String[] parsingTitleInfo) {
+	public void setParsingTitleInfo(String parsingTitleInfo) {
 		this.parsingTitleInfo = parsingTitleInfo;
 	}
-	
-	public String[] getParsingRowInfo() {
+
+	public String getParsingRowInfo() {
 		return parsingRowInfo;
 	}
 
-	public void setParsingRowInfo(String[] parsingRowInfo) {
+	public void setParsingRowInfo(String parsingRowInfo) {
 		this.parsingRowInfo = parsingRowInfo;
+	}
+
+	public int[] getParsingRowInfos() {
+		return parsingRowInfos;
+	}
+
+	public void setParsingRowInfos(int[] parsingRowInfos) {
+		this.parsingRowInfos = parsingRowInfos;
 	}
 	
 	public String getParsingTitleName() {

@@ -24,16 +24,25 @@ public class FileReadExcutor {
 	 * path 정보를 JsonOBJ로 받아서 추출 
 	 * 추후 파일 유형 및 타입 정보를 받을 수 있기 위해 JSONObj 로 사용, 필요하다면 Param 변경 가능
 	 **/
-	public boolean fileParsingStart(JSONObject path) {
-		
+	public void fileParsingStart(JSONObject path) {
+		JSONObject rstObj = null;
 		try {
-			if (path != null) {
-				if ( parser.toParsing(path.getString("filePath"), path.getString("fileName")
-						, propMng.getParsingRule() ) ) {
+			if (path.get("filePath") != null) {
+				// FileManager 에서 get file 후 Parser로 던짐 parser는 resultList 를 repository 에 저장 된 결과 return 
+				// 결과 값 Msg 로 송신 여기서.
+				rstObj=  parser.toParsing(path.getString("filePath"), path.getString("fileName"), propMng.getParsingRule());
+				if ( rstObj != null ) {
 					log.info("# @@ parsing success !! ");
+					
+					//TODO  회신 내용 Solace Sender 로 메세지 송신
+					
+				} else {
+					rstObj = new JSONObject();
+					//TODO jsonobject set to error msg : 파싱  요청 후 저장 회신 값이 없음 에 대한 내용 작성 또는 throws exception 발생!
 				}
 			} else {
-				return false;
+				rstObj = new JSONObject();
+				//TODO jsonobject set to error msg : filepathe 값이 없어 파일 파싱 불가능 에러 설정 후 회신
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -42,18 +51,8 @@ public class FileReadExcutor {
 			// TODO Auto-generated catch block
 			log.error("## FileReadExcutor - fileParsingStart - JSONException : ", e);
 		}
-		
-		return true;
-		
+						
 	}
-	 
-	/**
-	 * file parsing method
-	 **/
-//	private void parsing(String filePath, String fileName, int sNum, int eNum) { 
-//		HashMap<String, Object> inserMap = null;
-//	
-//		boolean result = parsingService.insertParsingData(inserMap);
-//	}
+	
 	
 }

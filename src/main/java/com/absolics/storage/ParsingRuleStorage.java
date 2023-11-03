@@ -1,9 +1,14 @@
-package com.absolics.mapper;
+package com.absolics.storage;
 
 import java.util.List;
 import java.util.Map;
 
-public interface ParsingRuleMapper {
+import org.springframework.stereotype.Repository;
+
+import com.absolics.vo.ParsingRuleVo;
+
+@Repository
+public interface ParsingRuleStorage {
 	
 	/**
 	 * Insert to Parsing Data
@@ -12,12 +17,12 @@ public interface ParsingRuleMapper {
 	 **/
 	
 	// 한개의 쿼리에서 parsing info, mapping info 한꺼번에 Join 및 파싱 하여 ListMap으로 return 
-	List<Map<String, Object>> initParsingRuleData();
+	List<ParsingRuleVo> initParsingRuleData();
 	
 	// parsing 기준 정보만 return
-	List<Map<String, Object>> initParsingFileRule();
+	List<ParsingRuleVo> initParsingFileRule();
 	
 	// insert mapping 정보만 return 
-	List<Map<String, Object>> initParsingMappingRule();
+	List<ParsingRuleVo> initParsingMappingRule();
 	
 }

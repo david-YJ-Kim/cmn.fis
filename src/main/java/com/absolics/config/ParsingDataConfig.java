@@ -17,4 +17,5 @@ public class ParsingDataConfig {
 	
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
+	
 }
