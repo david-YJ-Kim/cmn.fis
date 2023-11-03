@@ -1,16 +1,10 @@
 package com.absolics.solace.broker;
 
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.absolics.service.FileReadExcutor;
-import com.absolics.solace.broker.Receiver.MessageListener;
-import com.absolics.solace.util.ImportQueueList;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
 import com.solacesystems.jcsmp.EndpointProperties;
@@ -21,14 +15,12 @@ import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.Queue;
-import com.solacesystems.jcsmp.SDTMap;
 import com.solacesystems.jcsmp.TextMessage;
 import com.solacesystems.jcsmp.XMLMessageListener;
 
 public class Receiver implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(Receiver.class);
 	
-	private CountDownLatch latch;
     private JCSMPSession session;
     private Queue queue;
     private EndpointProperties endPointProps;
@@ -37,6 +29,7 @@ public class Receiver implements Runnable {
 	private String thread_name;
 	private String queue_name;
 	
+	// FileReadExcutor
 	private FileReadExcutor fileReadExcutor = new FileReadExcutor();
 
     public Receiver(JCSMPSession session, String queueName, String module_name, String thread_name) {    	
@@ -100,28 +93,14 @@ public class Receiver implements Runnable {
         		
 				if (message instanceof TextMessage) {
 					
-					SDTMap map = message.getProperties();
-					if (map != null) {
-						log.info("user properties start ---------------");
-						log.info("MSG_ID # " + map.getString("messageId")); // Custom property
-						log.info("user properties   end ---------------");
-					}
-					
 					log.info("messageId: {}", message.getMessageId()); // Solace message 내장 property(messageId)
 					log.info("message body: {}", ((TextMessage) message).getText());
 					
-					// Call FileReadExcutor
+					// FileReadExcutor 구동
 					fileReadExcutor.fileParsingStart(new JSONObject(((TextMessage) message).getText()));
 					
 				} else {
-					
-					SDTMap map = message.getProperties();
-					if (map != null) {
-						log.info("user properties start ---------------");
-						log.info("MSG_ID # " + map.getString("messageId"));
-						log.info("user properties   end ---------------");
-					}
-
+										
 					log.info("messageId: {}", message.getMessageId());
 					log.info("destination: {}", message.getDestination());
 
@@ -156,10 +135,10 @@ public class Receiver implements Runnable {
 					// TODO Auto-generated catch block
 					log.error("## Error : Closed Session > reConnecte session" , e);
 				}
+        	} else {
+        		log.error("## Solace Sub onException : " , exception);
         	}
         	
-        	exception.getStackTrace();
-//        	latch.countDown();
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'onException'");
         }

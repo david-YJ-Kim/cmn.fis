@@ -19,7 +19,53 @@ import com.jcraft.jsch.SftpException;
 @Service
 public class FileManager {
 	private static final Logger log = LoggerFactory.getLogger(FileManager.class);
+			
+	public boolean moveToFile(String filePath, String fileName, File file) {
 		
+		// TODO remove filePath+fileName
+		try {
+			
+			SFTPProperty.getSftpProperty().getChannel().put(new FileInputStream(file), filePath+fileName);
+			return true;
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			log.error("## FileNotFoundException : ", e);
+		} catch (SftpException e) {
+			// TODO Auto-generated catch block
+			log.error("## SftpException : ", e);
+		}
+		
+		return false;
+	}
+	
+	public File getFile(String path, String fileName) {
+				
+		try {
+			// TODO : FileStream 을파일로 변환해서 return 한다.
+			SFTPProperty.getSftpProperty().getChannel().get(path+fileName);
+			
+		} catch (SftpException e) {
+			// TODO Auto-generated catch block
+			log.error("## SftpException : ", e);
+		}
+		
+		return null;
+	}
+	
+	public boolean deleteFile(String path, String fileName) {
+		try {
+			
+			SFTPProperty.getSftpProperty().getChannel().rm(path + "/" + fileName);
+			return true;
+			
+		} catch (SftpException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 	public static void main(String args[]) {
 		String path = "/home/snis";
 		String fileName = "Absolics 계측 결과 파일 표준_20230918_test.xlsx";
@@ -65,55 +111,4 @@ public class FileManager {
         }
         
 	}
-	
-	public boolean moveToFile(String filePath, String fileName, File file) {
-		
-		// TODO remove filePath+fileName
-		// Wirte defaultFilePath
-		try {
-			
-			SFTPProperty.getSftpProperty().getChannel().put(new FileInputStream(file), filePath+fileName);
-			return true;
-			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			log.error("## FileNotFoundException : ", e);
-		} catch (SftpException e) {
-			// TODO Auto-generated catch block
-			log.error("## SftpException : ", e);
-		}
-		
-		return false;
-	}
-	
-	public File getFile(String path, String fileName) {
-				
-		try {
-//			channel.get(path + "/" + fileName, new FileOutputStream(localPath));
-			SFTPProperty.getSftpProperty().getChannel().get(path+fileName);	
-//		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-//			log.error("## FileNotFoundException : ", e);
-		} catch (SftpException e) {
-			// TODO Auto-generated catch block
-			log.error("## SftpException : ", e);
-		}
-		
-		return null;
-	}
-	
-	public boolean deleteFile(String path, String fileName) {
-		try {
-			
-			SFTPProperty.getSftpProperty().getChannel().rm(path + "/" + fileName);
-			return true;
-			
-		} catch (SftpException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return false;
-	}
-	
-	
 }

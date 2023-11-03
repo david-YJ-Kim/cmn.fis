@@ -1,7 +1,10 @@
 package com.absolics.vo;
 
-public class ParsingDataVo {	
-	// enum 등록, 
+public class ParsingDataVo {
+	/**
+	 * 파싱 데이터 입력 객체
+	 **/
+
 	private String siteId;
 	private String prodDefId;
 	private String procDefId;

@@ -18,8 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.absolics.config.SFTPProperty;
-import com.absolics.storage.ParsingRuleStorage;
 import com.absolics.vo.ParsingDataVo;
 import com.absolics.vo.ParsingRuleVo;
 
@@ -28,9 +26,9 @@ public class FileParser {//extends JpaRepository<String, Object>{
 	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
 	
 	@Autowired
-	private SFTPProperty sfptProp;
+	private FileManager fileMng;
 	
-	
+	// TODO : File 파싱만 해서 결과를 return 한다. 
 	
 	public static void main(String args[]) throws IOException{
 		String path = "D:\\work-spaces\\work-space-3.9.11\\FileParsingInterface\\src\\main\\resources\\";
@@ -61,15 +59,18 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		// call file parsing		
 		List<Map<String, String>> prsDatas = this.parsCsvLine(path, fileName);
 		
-		log.info("return Data : "+ prsDatas.toString());
+		log.debug("return Data : "+ prsDatas.toString());
 		
-		// save data to storage
+		// TODO : 파싱 데이터를 익스큐터로 전달
+		
 		JSONObject rstObj = new JSONObject();
+		// TODO :  
 		
 		return rstObj;
 	}
 	
-	// csv file 전체 data 읽어 옴
+	// csv file 전체 data 어읽 옴
+	// TODO : 문의 : 어노테이션 확인해서 공유 하기
 	@SuppressWarnings("finally")
 	private List<Map<String, String>> parsCsvLine(String path, String fileName) throws IOException{
 		
@@ -83,7 +84,7 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		
 		try {
 			// Get file from nas SFTP method
-//			file = sfptProp.getFile(path, fileName);
+			file = fileMng.getFile(path, fileName);
 			// 변경할 것, 
 			
 			br = new BufferedReader(new FileReader(file));
@@ -91,7 +92,7 @@ public class FileParser {//extends JpaRepository<String, Object>{
 			if ( file != null )	log.info("Check File exist - "+file.getPath()+file.getName());
 			if ( br != null ) log.info("Check reader exist - "+br.toString());
 			
-			Charset.forName("UTF-8");
+			Charset.forName("UTF-8");	 // TODO 문의 : 확인 - 상위 단계에서 미리 설정해 놓을 수 있는지
 			String line = "";
 			
 			parsDt = new ArrayList<Map<String, String>>();

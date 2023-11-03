@@ -15,12 +15,15 @@ import com.absolics.config.SFTPProperty;
 import com.absolics.config.SolaceConfiguration;
 import com.absolics.controller.SolacePublisher;
 import com.absolics.controller.SolaceSubscriber;
+import com.absolics.service.PropertyManager;
 
 public class FileInterfaceRunner implements ApplicationListener<ApplicationStartedEvent>{
 	private static final Logger log = LoggerFactory.getLogger(FileInterfaceSystemApplication.class);
 	
 	@Value("${property.type}")
 	private String propertyType;
+	
+	private PropertyManager propMng = PropertyManager.getInstance();
 	
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -29,10 +32,14 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	
 	private void startFileInterface(){
 		
+		// MOS 로 메세지 송신 할 Publisher 실행
 		SolacePublisher pub = new SolacePublisher();
 		pub.run();
 		
+		// File Info 수신 부  구동
 		new Thread(new SolaceSubscriber()).run();
+		
+		propMng.initParsingRuleData();
 		
 	}
 	
