@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import com.absolics.storage.ParsingRuleStorage;
 import com.absolics.vo.ParsingRuleVo;
 
-@Service
+@Repository
 public class PasingRuleDataService implements ParsingRuleStorage {
 	private static final Logger logger = LoggerFactory.getLogger(PasingRuleDataService.class);
 
