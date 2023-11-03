@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.absolics.config.SFTPProperty;
 import com.absolics.config.SolaceConfiguration;
+import com.absolics.controller.PropertyController;
 import com.absolics.controller.SolacePublisher;
 import com.absolics.controller.SolaceSubscriber;
 import com.absolics.service.PropertyManager;
@@ -22,9 +23,7 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	
 	@Value("${property.type}")
 	private String propertyType;
-	
-	private PropertyManager propMng = PropertyManager.getInstance();
-	
+
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent event) {
 		startFileInterface();
@@ -39,8 +38,8 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 		// File Info 수신 부  구동
 		new Thread(new SolaceSubscriber()).run();
 		
-		propMng.initParsingRuleData();
-		
+		PropertyController prop = new PropertyController(); 
+		prop.initParsingRuleData();
 	}
 	
 	@Bean
@@ -60,6 +59,10 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	@Bean
 	public SFTPProperty getsftpProperty() {
 		return SFTPProperty.getSftpProperty();
+	}
+	
+	@Bean PropertyManager getPropertyManager() {
+		return PropertyManager.getPropertyManager();
 	}
 	
 	@Bean

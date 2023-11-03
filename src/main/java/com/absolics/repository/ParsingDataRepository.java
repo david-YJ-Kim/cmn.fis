@@ -1,4 +1,4 @@
-package com.absolics.storage;
+package com.absolics.repository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.absolics.service.PropertyManager;
 import com.absolics.vo.ParsingDataVo;
 
 @Repository
@@ -23,70 +24,9 @@ public class ParsingDataRepository {
 	@Autowired
 	private JdbcTemplate jdbctmplat;
 	
-	@Value("${rule.sql.parsing}")
-	private String inserParsingInspectData = "INSERT INTO CN_FIS_EDM_TMP (	\r\n"
-			+ "				SITE_ID,\r\n"
-			+ "				PROD_DEF_ID,\r\n"
-			+ "				PROC_DEF_ID,\r\n"
-			+ "				PROC_SGMT_ID,\r\n"
-			+ "				EQP_ID,\r\n"
-			+ "				LOT_ID,\r\n"
-			+ "				PROD_MTRL_ID,\r\n"
-			+ "				SUB_PROD_MTRL_ID,\r\n"
-			+ "				MTRL_FACE_CD,\r\n"
-			+ "				INSP_REPT_CNT,\r\n"
-			+ "				X_VAL,\r\n"
-			+ "				Y_VAL,\r\n"
-			+ "				GRD_ID,\r\n"
-			+ "				DFCT_ID,\r\n"
-			+ "				DFCT_X_VAL,\r\n"
-			+ "				DFCT_Y_VAL,\r\n"
-			+ "				INSP_DT,\r\n"
-			+ "				IMG_FILE_NM,\r\n"
-			+ "				REVIEW_IMG_FILE_NM,\r\n"
-			+ "				INSP_FILE_NM,\r\n"
-			+ "				ATTR_1,\r\n"
-			+ "				ATTR_2,\r\n"
-			+ "				ATTR_N,\r\n"
-			+ "				CRT_DT,\r\n"
-			+ "				PRCS_STATE\r\n"
-			+ "			) VALUES ("
-			+ "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)";
-	
-	@Value("${rule.sql.mapping}")
-	private String inserParsingInstrumentationData = "INSERT INTO CN_FIS_EDM_TMP	(\r\n"
-			+ "				SITE_ID,\r\n"
-			+ "				PROD_DEF_ID,\r\n"
-			+ "				PROC_DEF_ID,\r\n"
-			+ "				PROC_SGMT_ID,\r\n"
-			+ "				EQP_ID,\r\n"
-			+ "				LOT_ID,\r\n"
-			+ "				PROD_MTRL_ID,\r\n"
-			+ "				MTRL_FACE_CD,\r\n"
-			+ "				INSP_REPT_CNT,\r\n"
-			+ "				X_VAL,\r\n"
-			+ "				Y_VAL,\r\n"
-			+ "				Z_VAL,\r\n"
-			+ "				DCITEM_ID,\r\n"
-			+ "				RSLT_VAL,\r\n"
-			+ "				IMG_FILE_NM,\r\n"
-			+ "				INSP_FILE_NM,\r\n"
-			+ "				ATTR_1,\r\n"
-			+ "				ATTR_2,\r\n"
-			+ "				ATTR_N,\r\n"
-			+ "				CRT_DT\r\n"
-			+ "				PRCS_STATE\r\n"
-			+ "			) VALUES ("
-			+ "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP, ?)";
-	
-	
-	
 //	public JSONObject insertParsingData(String fileType,List<ParsingDataVo> insertDatas) {
 //		
 //		TransactionStatus status = this.batchInsert(fileType, insertDatas);
-//	
-//		
-//		
 //		JSONObject result = new JSONObject();
 //		
 //		return result;
@@ -100,7 +40,7 @@ public class ParsingDataRepository {
 		try {
 			if (fileType.equals("검사")) {
 //				ret = jdbctmplat.batchUpdate(inserParsingInspectData, insertDatas);
-				jdbctmplat.batchUpdate(inserParsingInspectData,
+				jdbctmplat.batchUpdate(PropertyManager.getPropertyManager().getInserParsingInspectDataSql(),
 						new BatchPreparedStatementSetter() {							
 							@Override
 							public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -143,7 +83,7 @@ public class ParsingDataRepository {
 				// TODO : 입력 중 오류 방생 시 Rollback 은 신규 thread 생성 하여, 입력 중이던 파일의 모든 데이터를 삭제 처리 
 			} else {
 //				ret = jdbctmplat.batchUpdate(inserParsingInstrumentationData, insertDatas);
-				jdbctmplat.batchUpdate(inserParsingInstrumentationData,
+				jdbctmplat.batchUpdate(PropertyManager.getPropertyManager().getInserParsingInstrumentationDataSql(),
 						new BatchPreparedStatementSetter() {							
 							@Override
 							public void setValues(PreparedStatement ps, int i) throws SQLException {
