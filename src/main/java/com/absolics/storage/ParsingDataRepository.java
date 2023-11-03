@@ -1,4 +1,4 @@
-package com.absolics.service;
+package com.absolics.storage;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -12,11 +12,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.absolics.storage.ParsingDataStorage;
 import com.absolics.vo.ParsingDataVo;
 
 @Repository
-public class ParsingDataService implements ParsingDataStorage  {
+public class ParsingDataRepository implements ParsingDataStorage  {
 
 	@Autowired
 	private JdbcTemplate jdbctmplat;

@@ -1,4 +1,4 @@
-package com.absolics.service;
+package com.absolics.storage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,12 +11,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.absolics.storage.ParsingRuleStorage;
 import com.absolics.vo.ParsingRuleVo;
 
 @Repository
-public class PasingRuleDataService implements ParsingRuleStorage {
-	private static final Logger logger = LoggerFactory.getLogger(PasingRuleDataService.class);
+public class PasingRuleDataRepository implements ParsingRuleStorage {
+	private static final Logger logger = LoggerFactory.getLogger(PasingRuleDataRepository.class);
 
 	@Autowired
 	private JdbcTemplate jdbctmplat;
