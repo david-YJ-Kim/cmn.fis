@@ -15,6 +15,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.absolics.service.PropertyManager;
+import com.absolics.value.FISValues;
 import com.absolics.vo.ParsingDataVo;
 
 @Repository
@@ -23,22 +24,14 @@ public class ParsingDataRepository {
 
 	@Autowired
 	private JdbcTemplate jdbctmplat;
-	
-//	public JSONObject insertParsingData(String fileType,List<ParsingDataVo> insertDatas) {
-//		
-//		TransactionStatus status = this.batchInsert(fileType, insertDatas);
-//		JSONObject result = new JSONObject();
-//		
-//		return result;
-//	}
-	
+		
 	@Transactional(rollbackFor = Exception.class)
-	public TransactionStatus insertParsingData(String fileType, List<ParsingDataVo> insertDatas) {
+	public String insertParsingData(String fileType, List<ParsingDataVo> insertDatas) {
 		TransactionStatus status = null;
 		int[] ret;
 		
 		try {
-			if (fileType.equals("검사")) {
+			if (fileType.equals(FISValues.Inpection.name())) {
 //				ret = jdbctmplat.batchUpdate(inserParsingInspectData, insertDatas);
 				jdbctmplat.batchUpdate(PropertyManager.getPropertyManager().getInserParsingInspectDataSql(),
 						new BatchPreparedStatementSetter() {							
@@ -118,6 +111,20 @@ public class ParsingDataRepository {
 			log.error("## ", e);
 		}
 	
-		return status;
+		// transaction result 에서 상태 확인 후 keyvalue or rollback return		
+		if (status.isCompleted()) {
+			return status.toString();
+		} else { 
+			return FISValues.ROLLBACK.name();
+		}
+	}
+	
+	public String rollback(String key) {
+		int deletedRowNum = jdbctmplat.update(PropertyManager.getPropertyManager().getRollbackParsingData(), key);
+		
+		if ( deletedRowNum > 0)
+			return FISValues.SUCCESS.name();
+		else
+			return FISValues.ROLLBACK_FAIL.name();
 	}
 }

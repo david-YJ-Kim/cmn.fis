@@ -1,6 +1,7 @@
 package com.absolics.service;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,6 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.absolics.controller.SolacePublisher;
+import com.absolics.value.FISValues;
+import com.absolics.vo.ParsingDataVo;
+import com.solacesystems.jcsmp.JCSMPException;
 
 @Service
 public class FileReadExcutor {
@@ -18,7 +24,10 @@ public class FileReadExcutor {
 	
 	@Autowired
 	private FileParser parser;
-
+	
+	@Autowired
+	private ParsingDataService repository;
+	
 
 	// TODO : 전반 적인 알고리즘은 여기서 수행한다. 
 	/**
@@ -27,29 +36,54 @@ public class FileReadExcutor {
 	 **/
 	public void fileParsingStart(JSONObject msg) {
 		
-		JSONObject rstObj = null;
+		// 파싱 데이터 결과 값
+		List<ParsingDataVo> parsedData = null;
+		// 저장 후 File 이름 키값
+		String res = null;
+		JSONObject result = null;
 		
 		try {
 			
-			if (msg.get("filePath") != null) {
-				// FileManager 에서 get file 후 Parser로 던짐 parser는 resultList 를 repository 에 저장 된 결과 return 
-				// 결과 값 Msg 로 송신 여기서.
-				rstObj=  parser.toParsing(msg.getString("filePath"), msg.getString("fileName"), propMng.getParsingRule());
+			if (msg.get("filePath") != null && msg.get("fileName") != null) {
 				
-				// TODO : Repository 에서는 저장만, 하고 Service class 를 생성, 
-				// 저장 후 File 이름을 key 로 BRS 에 송신 . 
-				if ( rstObj != null ) {
-					log.info("# @@ parsing success !! ");
+				// 파싱 전 work id 생성 하는 로직 필요
+				
+				
+				// FileManager 에서 get file 후 Parser로 던짐 parser는 resultList를  return
+				parsedData =  parser.toParsing(msg.getString("fileType")
+											, msg.getString("filePath")
+											, msg.getString("fileName")
+											, propMng.getParsingRule() );
+				
+				// TODO : 파싱된 데이터 Repository 에서는 저장				
+				if ( parsedData != null ) {
 					
-					//TODO  회신 내용 Solace Sender 로 메세지 송신
+					//TODO  insert transaction 실행 
+					// 파일 type과 work id 에 대한 값도 처리 해야함.
+					result = repository.insertParsingData(msg.get("filePath").toString(), parsedData);
 					
-				} else {
-					rstObj = new JSONObject();
-					//TODO jsonobject set to error msg : 파싱  요청 후 저장 회신 값이 없음 에 대한 내용 작성 또는 throws exception 발생!
+				} else {					
+					
+					//TODO Data 파싱 데이터 insert 실패 메세지 생성 후 JSONObject에 
+					res = FISValues.ParsingFaile.name();
+					result = new JSONObject();
+					
 				}
+
 			} else {
-				rstObj = new JSONObject();
-				//TODO jsonobject set to error msg : filepathe 값이 없어 파일 파싱 불가능 에러 설정 후 회신
+				
+				//TODO 파일 정보 관련 잘못 들어왔음을 key 값에 전달
+				res = FISValues.InfoTribe.name();
+				
+				// key 값과 work-id 를 solace msg 로 JSONObject 생성
+			}
+			
+			// 메세지 송신
+			try {
+				SolacePublisher.getInstance().sendMessage(result.toString());
+			} catch (JCSMPException e) {
+				// TODO Auto-generated catch block
+				log.info("## Failure Send Message to MOD", e);
 			}
 			
 		} catch (IOException e) {

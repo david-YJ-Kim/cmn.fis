@@ -17,11 +17,16 @@ public class PropertyManager {
 	
 	private List<ParsingRuleVo> mappingRule;
 	
+	private List<ParsingRuleVo> psMppRule;
+	
 	@Value("${rule.sql.parsing}")
 	private String inserParsingInspectDataSql;
 	
 	@Value("${rule.sql.mapping}")
 	private String inserParsingInstrumentationDataSql;
+	
+	@Value("${rule.sql.rollback}")
+	private String rollbackParsingData;
 
 	private PropertyManager() {}
 	
@@ -45,6 +50,14 @@ public class PropertyManager {
 		this.mappingRule = mappingRule;
 	}
 
+	public List<ParsingRuleVo> getPsMppRule() {
+		return psMppRule;
+	}
+
+	public void setPsMppRule(List<ParsingRuleVo> psMppRule) {
+		this.psMppRule = psMppRule;
+	}
+
 	public String getInserParsingInspectDataSql() {
 		return inserParsingInspectDataSql;
 	}
@@ -53,7 +66,12 @@ public class PropertyManager {
 		return inserParsingInstrumentationDataSql;
 	}
 
-	
+	public String getRollbackParsingData() {
+		return rollbackParsingData;
+	}
 
+	public void setRollbackParsingData(String rollbackParsingData) {
+		this.rollbackParsingData = rollbackParsingData;
+	}
 	
 }

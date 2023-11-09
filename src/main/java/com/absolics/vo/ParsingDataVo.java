@@ -4,7 +4,9 @@ public class ParsingDataVo {
 	/**
 	 * 파싱 데이터 입력 객체
 	 **/
-
+	
+	private String workId;
+	private String fileFmYn;
 	private String siteId;
 	private String prodDefId;
 	private String procDefId;
@@ -34,6 +36,18 @@ public class ParsingDataVo {
 	private String prcsState;
 
 	
+	public String getWorkId() {
+		return workId;
+	}
+	public void setWorkId(String workId) {
+		this.workId = workId;
+	}
+	public String getFileFmYn() {
+		return fileFmYn;
+	}
+	public void setFileFmYn(String fileFmYn) {
+		this.fileFmYn = fileFmYn;
+	}
 	public String getSiteId() {
 		return siteId;
 	}

@@ -17,6 +17,7 @@ import com.absolics.controller.PropertyController;
 import com.absolics.controller.SolacePublisher;
 import com.absolics.controller.SolaceSubscriber;
 import com.absolics.service.PropertyManager;
+import com.solacesystems.jcsmp.JCSMPException;
 
 public class FileInterfaceRunner implements ApplicationListener<ApplicationStartedEvent>{
 	private static final Logger log = LoggerFactory.getLogger(FileInterfaceSystemApplication.class);
@@ -32,8 +33,16 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	private void startFileInterface(){
 		
 		// MOS 로 메세지 송신 할 Publisher 실행
-		SolacePublisher pub = new SolacePublisher();
-		pub.run();
+		try {
+			
+			SolacePublisher.getInstance().run();
+			
+		} catch (JCSMPException e) {
+			
+			// TODO Auto-generated catch block
+			log.info("## Exception from Start to Publisher", e);
+			
+		}
 		
 		// File Info 수신 부  구동
 		new Thread(new SolaceSubscriber()).run();
@@ -68,6 +77,11 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	@Bean
 	public JdbcTemplate jdbcTemplat(DataSource datasSource) {
 		return new JdbcTemplate(datasSource);
+	}
+	
+	@Bean
+	public SolacePublisher getSolacePublisher() throws JCSMPException {
+		return SolacePublisher.getInstance();
 	}
 
 }

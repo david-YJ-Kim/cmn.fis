@@ -106,7 +106,7 @@ public class SolacePublisher implements Runnable{
         return instance;
     }
 	
-	private void sendMessage(String msg) {
+	public void sendMessage(String msg) {
 		try {
 			XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
 
@@ -117,30 +117,22 @@ public class SolacePublisher implements Runnable{
             SDTMap map = JCSMPFactory.onlyInstance().createMap();
            
             // 테스트 topic 획득
-            topic = JCSMPFactory.onlyInstance().createTopic("");//SequenceManager.getTargetName("WFS") );
+            topic = JCSMPFactory.onlyInstance().createTopic("");
             // 운영시 사용 코드 
 //            topic = JCSMPFactory.onlyInstance().createTopic( SequenceManager.getTargetName("targetSystem", "cid", "obj.toString()", "ownerSystem" ) );
             
-            while(true) {	// Messaging Test 시에만 사용, 운영에서는 while 삭제
-//            	count++;
-            	eqp_id = "EQP-0001";			// 임의설정
-            	
-            	//Custom Property 설정
-            	map.putString("MSG_ID", msg_id);
-                map.putString("EQP_ID", eqp_id);
+        	//Custom Property 설정
+        	map.putString("messageId", msg_id);
+            map.putString("EQP_ID", eqp_id);
 
-                jcsmpMsg.setProperties(map);
-	            jcsmpMsg.setText(msg);
-	            //Application messageId 설정
-//	            jcsmpMsg.setApplicationMessageId(SequenceManageUtil.generateMessageID());
-	            jcsmpMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
-	
-	            log.info("message sending.");
-	            
-	            //Multi Application이 동일한 큐에 매핑된 Multi Topic에 송신한다고 가정한 코드
-	            prod.send(jcsmpMsg, topic);
-	            	           
-            }
+            jcsmpMsg.setProperties(map);
+            jcsmpMsg.setText(msg);
+            jcsmpMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+            
+            //Multi Application이 동일한 큐에 매핑된 Multi Topic에 송신한다고 가정한 코드
+            prod.send(jcsmpMsg, topic);
+
 		} catch(Exception e) {
 			log.error("Sender.sendMessage() Exception # ",e);
 			if (session != null && !session.isClosed()) try { session.closeSession(); } catch (Exception e1) {}

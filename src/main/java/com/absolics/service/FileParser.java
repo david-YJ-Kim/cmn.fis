@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.absolics.value.FISValues;
 import com.absolics.vo.ParsingDataVo;
 import com.absolics.vo.ParsingRuleVo;
 
@@ -38,54 +39,53 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		FileParser filePs = new FileParser();
 		
 		JSONObject result = null;
-		try {
-			
-			result = filePs.toParsing(path, fileNm1, null);
-			if ( result != null )
-				log.info("## read success!!");
-			else
-				log.info("## fail read!!!");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			
+//			result = filePs.toParsing(path, fileNm1, new List<ParsingRuleVo>());
+//			if ( result != null )
+//				log.info("## read success!!");
+//			else
+//				log.info("## fail read!!!");
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
 	}
 	
 	
 	// 
-	public JSONObject toParsing(String path, String fileName, List<ParsingRuleVo> list
+	public List<ParsingDataVo> toParsing(String fileType, String path, String fileName, List<ParsingRuleVo> list
 							) throws IOException {
 		
-		// call file parsing		
-		List<Map<String, String>> prsDatas = this.parsCsvLine(path, fileName);
+		// SFTP File 읽어오기
+		File file = fileMng.getFile(path, fileName);
+		
+		// file header culumn row 이후 전체 파싱  , 컬럼 명이 몇번 row 인지 정보 받아와야 함. 
+		List<Map<String, String>> prsDatas = this.parsCsvLine(file, 3);
 		
 		log.debug("return Data : "+ prsDatas.toString());
 		
-		// TODO : 파싱 데이터를 익스큐터로 전달
+		List<ParsingDataVo> parsededList = this.replaceToReulst(fileType, prsDatas, list);
 		
-		JSONObject rstObj = new JSONObject();
-		// TODO :  
-		
-		return rstObj;
+		return parsededList;
 	}
 	
 	// csv file 전체 data 어읽 옴
 	// TODO : 문의 : 어노테이션 확인해서 공유 하기
 	@SuppressWarnings("finally")
-	private List<Map<String, String>> parsCsvLine(String path, String fileName) throws IOException{
+	private List<Map<String, String>> parsCsvLine(File file, int header) throws IOException{
 		
-		File file = null;
+//		File file = null;
 		BufferedReader br = null;
 		
 		List<Map<String, String>> parsDt = null;
-		List<ParsingDataVo> parsededList = null;
+//		List<ParsingDataVo> parsededList = null;
 		
 		String[] colNm = null;
 		
 		try {
-			// Get file from nas SFTP method
-			file = fileMng.getFile(path, fileName);
-			// 변경할 것, 
+			// 변경할 것 
 			
 			br = new BufferedReader(new FileReader(file));
 			
@@ -96,25 +96,34 @@ public class FileParser {//extends JpaRepository<String, Object>{
 			String line = "";
 			
 			parsDt = new ArrayList<Map<String, String>>();
-			int cnt = 0;
+			
+			// Header Row info 필요
+			int cnt = header;
 			while ( (line = br.readLine()) != null ) {
 				log.info(" line : " + line);
 				
 				String[] rows = null;
+				Map<String, String> data = null;
 				
-				if ( cnt == 0 ) {
+				// column 정보  > 추후 colum info가 있는 line을  읽어야 함. 
+				if ( cnt == header ) {
 					
 					colNm = line.split(",");
+					data = new HashMap<String, String>();
+					for (int i = 0 ; i < rows.length ; i++ )
+						data.put(String.valueOf(i), colNm[i]);
+					cnt ++;
 					
 				} else {
 					
 					rows = line.split(",");
-					Map<String, String> data = new HashMap<String, String>();
+					data = new HashMap<String, String>();
 					
 					for (int i = 0 ; i < rows.length ; i++ )
 						data.put(colNm[i], rows[i]);
 					
 					parsDt.add(data);
+					cnt ++;
 				}
 				
 			}
@@ -134,10 +143,85 @@ public class FileParser {//extends JpaRepository<String, Object>{
 		
 	}
 	
-	private File getCVSFile(String fileInfo) {
+	private List<ParsingDataVo> replaceToReulst(String fileType, List<Map<String, String>> parsDt, List<ParsingRuleVo> rule) {
 		// SFPT Property 통해서 property 접근 property 는 SingleTone
+		List<ParsingDataVo> inserDatas = new ArrayList<ParsingDataVo>();		
+		ParsingDataVo row = null;
 		
-		return null;
+		// 검사 파일일 때
+		if (fileType.equals(FISValues.Inpection.name())) {
+		
+			for (Map<String, String> psRow: parsDt) {
+				for ( int i = 0 ; i < rule.size() ; i ++ ) {
+					row = new ParsingDataVo();
+					row.setSiteId( psRow.get(parsDt.get(i).get("0"))!=null?psRow.get(parsDt.get(i).get("0")):" " );
+					row.setProdDefId( psRow.get(parsDt.get(i).get("1"))!=null?psRow.get(parsDt.get(i).get("1")):" " ) ;
+					row.setProcDefId( psRow.get(parsDt.get(i).get("2"))!=null?psRow.get(parsDt.get(i).get("2")):" " ) ;
+					row.setProcSgmtId( psRow.get(parsDt.get(i).get("3"))!=null?psRow.get(parsDt.get(i).get("3")):" " ) ;
+					row.setEqpId( psRow.get(parsDt.get(i).get("4"))!=null?psRow.get(parsDt.get(i).get("4")):" " ) ;
+					row.setLotId( psRow.get(parsDt.get(i).get("5"))!=null?psRow.get(parsDt.get(i).get("5")):" " ) ;
+					row.setProdMtrlId( psRow.get(parsDt.get(i).get("6"))!=null?psRow.get(parsDt.get(i).get("6")):" " ) ;
+					row.setSubProdMtrlId( psRow.get(parsDt.get(i).get("7"))!=null?psRow.get(parsDt.get(i).get("7")):" " ) ;
+					row.setMtrlFaceCd( psRow.get(parsDt.get(i).get("8"))!=null?psRow.get(parsDt.get(i).get("8")):" " ) ;
+					row.setInspReptCnt( psRow.get(parsDt.get(i).get("9"))!=null?psRow.get(parsDt.get(i).get("9")):" " ) ;
+					row.setxValue( psRow.get(parsDt.get(i).get("10"))!=null?psRow.get(parsDt.get(i).get("10")):" " ) ;
+					row.setyValue( psRow.get(parsDt.get(i).get("11"))!=null?psRow.get(parsDt.get(i).get("11")):" " ) ;
+					row.setzValue( psRow.get(parsDt.get(i).get("12"))!=null?psRow.get(parsDt.get(i).get("12")):" " ) ;
+					row.setLotId( psRow.get(parsDt.get(i).get("13"))!=null?psRow.get(parsDt.get(i).get("13")):" " ) ;
+					row.setDcitemId( psRow.get(parsDt.get(i).get("14"))!=null?psRow.get(parsDt.get(i).get("14")):" " ) ;
+					row.setRsltVal( psRow.get(parsDt.get(i).get("15"))!=null?psRow.get(parsDt.get(i).get("15")):" " ) ;
+					row.setGrdId( psRow.get(parsDt.get(i).get("16"))!=null?psRow.get(parsDt.get(i).get("16")):" " ) ;
+					row.setDfctId( psRow.get(parsDt.get(i).get("17"))!=null?psRow.get(parsDt.get(i).get("17")):" " ) ;
+					row.setDfctXvalue( psRow.get(parsDt.get(i).get("18"))!=null?psRow.get(parsDt.get(i).get("18")):" " ) ;
+					row.setDfctYvalue( psRow.get(parsDt.get(i).get("19"))!=null?psRow.get(parsDt.get(i).get("19")):" " ) ;
+					row.setInspDt( psRow.get(parsDt.get(i).get("20"))!=null?psRow.get(parsDt.get(i).get("20")):" " ) ;
+					row.setImgFileName( psRow.get(parsDt.get(i).get("21"))!=null?psRow.get(parsDt.get(i).get("21")):" " ) ;
+					row.setReviewImgFileName( psRow.get(parsDt.get(i).get("22"))!=null?psRow.get(parsDt.get(i).get("22")):" " ) ;
+					row.setInspFileName( psRow.get(parsDt.get(i).get("23"))!=null?psRow.get(parsDt.get(i).get("23")):" " ) ;
+					row.setAttr1( psRow.get(parsDt.get(i).get("24"))!=null?psRow.get(parsDt.get(i).get("24")):" " ) ;
+					row.setAttr2( psRow.get(parsDt.get(i).get("25"))!=null?psRow.get(parsDt.get(i).get("25")):" " ) ;
+					row.setAttrN( psRow.get(parsDt.get(i).get("26"))!=null?psRow.get(parsDt.get(i).get("26")):" " ) ;			
+				}
+				inserDatas.add(row);
+			}
+		// 계측 파일일 때
+		} else {
+			for (Map<String, String> psRow: parsDt) {
+				for ( int i = 0 ; i < rule.size() ; i ++ ) {
+					row = new ParsingDataVo();
+					row.setSiteId( psRow.get(parsDt.get(i).get("0"))!=null?psRow.get(parsDt.get(i).get("0")):" " );
+					row.setProdDefId( psRow.get(parsDt.get(i).get("1"))!=null?psRow.get(parsDt.get(i).get("1")):" " ) ;
+					row.setProcDefId( psRow.get(parsDt.get(i).get("2"))!=null?psRow.get(parsDt.get(i).get("2")):" " ) ;
+					row.setProcSgmtId( psRow.get(parsDt.get(i).get("3"))!=null?psRow.get(parsDt.get(i).get("3")):" " ) ;
+					row.setEqpId( psRow.get(parsDt.get(i).get("4"))!=null?psRow.get(parsDt.get(i).get("4")):" " ) ;
+					row.setLotId( psRow.get(parsDt.get(i).get("5"))!=null?psRow.get(parsDt.get(i).get("5")):" " ) ;
+					row.setProdMtrlId( psRow.get(parsDt.get(i).get("6"))!=null?psRow.get(parsDt.get(i).get("6")):" " ) ;
+					row.setSubProdMtrlId( psRow.get(parsDt.get(i).get("7"))!=null?psRow.get(parsDt.get(i).get("7")):" " ) ;
+					row.setMtrlFaceCd( psRow.get(parsDt.get(i).get("8"))!=null?psRow.get(parsDt.get(i).get("8")):" " ) ;
+					row.setInspReptCnt( psRow.get(parsDt.get(i).get("9"))!=null?psRow.get(parsDt.get(i).get("9")):" " ) ;
+					row.setxValue( psRow.get(parsDt.get(i).get("10"))!=null?psRow.get(parsDt.get(i).get("10")):" " ) ;
+					row.setyValue( psRow.get(parsDt.get(i).get("11"))!=null?psRow.get(parsDt.get(i).get("11")):" " ) ;
+					row.setzValue( psRow.get(parsDt.get(i).get("12"))!=null?psRow.get(parsDt.get(i).get("12")):" " ) ;
+					row.setLotId( psRow.get(parsDt.get(i).get("13"))!=null?psRow.get(parsDt.get(i).get("13")):" " ) ;
+					row.setDcitemId( psRow.get(parsDt.get(i).get("14"))!=null?psRow.get(parsDt.get(i).get("14")):" " ) ;
+					row.setRsltVal( psRow.get(parsDt.get(i).get("15"))!=null?psRow.get(parsDt.get(i).get("15")):" " ) ;
+					row.setGrdId( psRow.get(parsDt.get(i).get("16"))!=null?psRow.get(parsDt.get(i).get("16")):" " ) ;
+					row.setDfctId( psRow.get(parsDt.get(i).get("17"))!=null?psRow.get(parsDt.get(i).get("17")):" " ) ;
+					row.setDfctXvalue( psRow.get(parsDt.get(i).get("18"))!=null?psRow.get(parsDt.get(i).get("18")):" " ) ;
+					row.setDfctYvalue( psRow.get(parsDt.get(i).get("19"))!=null?psRow.get(parsDt.get(i).get("19")):" " ) ;
+					row.setInspDt( psRow.get(parsDt.get(i).get("20"))!=null?psRow.get(parsDt.get(i).get("20")):" " ) ;
+					row.setImgFileName( psRow.get(parsDt.get(i).get("21"))!=null?psRow.get(parsDt.get(i).get("21")):" " ) ;
+					row.setReviewImgFileName( psRow.get(parsDt.get(i).get("22"))!=null?psRow.get(parsDt.get(i).get("22")):" " ) ;
+					row.setInspFileName( psRow.get(parsDt.get(i).get("23"))!=null?psRow.get(parsDt.get(i).get("23")):" " ) ;
+					row.setAttr1( psRow.get(parsDt.get(i).get("24"))!=null?psRow.get(parsDt.get(i).get("24")):" " ) ;
+					row.setAttr2( psRow.get(parsDt.get(i).get("25"))!=null?psRow.get(parsDt.get(i).get("25")):" " ) ;
+					row.setAttrN( psRow.get(parsDt.get(i).get("26"))!=null?psRow.get(parsDt.get(i).get("26")):" " ) ;			
+				}
+				inserDatas.add(row);
+			}			
+		}
+		
+		return inserDatas;
 	}
 	
 }

@@ -20,7 +20,7 @@ import com.jcraft.jsch.SftpException;
 public class FileManager {
 	private static final Logger log = LoggerFactory.getLogger(FileManager.class);
 			
-	public boolean moveToFile(String filePath, String fileName, File file) {
+	public boolean insertFile(String filePath, String fileName, File file) {
 		
 		// TODO remove filePath+fileName
 		try {
