@@ -20,19 +20,19 @@ public class SFTPProperty {
 	private static final SFTPProperty isntance = new SFTPProperty();
 
 	@Value("$nas.sftp.host}")
-	private String host="192.168.0.11";
+	private String host="192.168.0.193";
 	
 	@Value("$nas.sftp.port}")
 	private int port=22;
 	
 	@Value("$nas.sftp.user-name}")
-	private String userName="snis";
+	private String userName="mestest";
 	
 	@Value("$nas.sftp.user-passwd}")
-	private String userPasswd="!sn12910@";
+	private String userPasswd="absadmin";
 
 	@Value("$nas.sftp.remote-target-dir}")
-	private String remoteTargetDir="/home/snis";
+	private String remoteTargetDir="./backup/";
 	
 	private Session session;
 	

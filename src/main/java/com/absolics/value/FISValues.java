@@ -2,6 +2,7 @@ package com.absolics.value;
 
 public enum FISValues {
 	
+	A, 				// 파싱 컬럼 정보 기준 숫자
 	FAIL,
 	SUCCESS,
 	

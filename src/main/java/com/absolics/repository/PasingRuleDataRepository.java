@@ -19,6 +19,7 @@ public class PasingRuleDataRepository {
 	@Autowired
 	private JdbcTemplate jdbctmplat;
 	
+	
 	private String selectParsingRuleSql = "SELECT\r\n" + 
 			"			EQP_NM							as eqpName\r\n" + 
 			"			,FILE_FM_TP						as fileFormatType\r\n" + 
@@ -55,7 +56,7 @@ public class PasingRuleDataRepository {
 				
 				try {
 					ParsingRuleVo row = new ParsingRuleVo();
-					row.setPsRowinfo(String.valueOf(rs.getInt(1)));
+					row.setParsingRowInfo(String.valueOf(rs.getInt(1)));
 					row.setEqpName(rs.getString(2));
 					row.setFileFormatType(rs.getString(3));
 					row.setFileType(rs.getString(4));
@@ -86,7 +87,7 @@ public class PasingRuleDataRepository {
 				
 				try {
 					ParsingRuleVo row = new ParsingRuleVo();
-					row.setPsRowinfo(String.valueOf(rs.getInt(1)));
+					row.setParsingRowInfo(String.valueOf(rs.getInt(1)));
 					row.setEqpName(rs.getString(2));
 					row.setFileFormatType(rs.getString(3));
 					row.setFileType(rs.getString(4));

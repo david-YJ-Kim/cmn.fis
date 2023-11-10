@@ -6,20 +6,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.absolics.value.FISValues;
-import com.absolics.vo.ParsingDataVo;
-import com.absolics.vo.ParsingRuleVo;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.absolics.value.FISValues;
+import com.absolics.vo.ParsingRuleVo;
 
 @Service
 public class FileParser {//extends JpaRepository<String, Object>{
@@ -31,104 +31,123 @@ public class FileParser {//extends JpaRepository<String, Object>{
 	// TODO : File 파싱만 해서 결과를 return 한다. 
 	
 	public static void main(String args[]) throws IOException{
+//		String path = "D:\\work-space\\work-space-absolics\\FileParsingInterface\\src\\main\\resources\\";
 		String path = "D:\\work-spaces\\work-space-3.9.11\\FileParsingInterface\\src\\main\\resources\\";
-		String fileNm1 = "Absolics 계측 결과 파일 표준_20230918.csv";
+		String fileNm1 = "Absolics 검사 결과 파일 표준_20230918.csv";
 		String fileNm2 = "Absolics 검사 결과 파일 표준_20230918.csv";
 		
 		FileParser filePs = new FileParser();
 		
 		JSONObject result = null;
-//		try {
-//			
-//			result = filePs.toParsing(path, fileNm1, new List<ParsingRuleVo>());
-//			if ( result != null )
-//				log.info("## read success!!");
-//			else
-//				log.info("## fail read!!!");
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
+		
+		int[] colInfos = {1,4,5,7,8,9};
+		int[] rowInfos = {41,42,43};		
+//		log.info(": "+colInfos[3]+" , "+rowInfos[2]);
+		
+		ParsingRuleVo fileRule = new ParsingRuleVo(FISValues.Inpection.name(), colInfos, rowInfos);
+		
+		List<ParsingRuleVo> mappRule = new ArrayList<ParsingRuleVo>();
+		ParsingRuleVo row = new ParsingRuleVo();
+		
+		row.setFileColumName("PROD_DEF_ID");
+		row.setMappColumnName("CHANGE_PROD");
+		row.setFileFormatType(FISValues.Inpection.name());
+		mappRule.add(row);
+		row.setFileColumName("EQP_ID");
+		row.setMappColumnName("EQP");
+		row.setFileFormatType(FISValues.Inpection.name());
+		mappRule.add(row);
+		
+		List<Map<String,String>> rs = null;
+		
+		try {			
+//			rs = filePs.parsCsvLines(path, fileNm1, fileRule, mappRule); // home test
+			rs = filePs.toParsing(path, fileNm1, fileRule, mappRule); // 룰이 어레이여야 한다. 
+			if ( rs != null ) {
+				log.info("## read success!!" + rs.size());
+				for (int i = 0 ; i < rs.size() ; i ++ )
+					System.out.println(" ## "+ rs.get(i).toString() );
+			} else {
+				log.info("## fail read!!!");
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		log.info("  A, 1 : "+(int)'A'+ ", "+(int)'1'+", "+String.valueOf((char)49));
+	}
+		
+	public List<Map<String,String>> toParsing(String filePath, String fileName, ParsingRuleVo parsing 
+											,List<ParsingRuleVo> mapping) throws IOException {
+		// parsing Rule 객체를 찾아서 인자로 준다.
+		File file = fileMng.getFile(filePath, fileName);
+				
+		return parsCsvLines(file, parsing, mapping);
 	}
 	
-	
-	// 
-	public List<ParsingDataVo> toParsing(String fileType, String path, String fileName, List<ParsingRuleVo> list
-							) throws IOException {
+	private List<Map<String,String>> parsCsvLines(File file
+												, ParsingRuleVo rule
+												, List<ParsingRuleVo> mappRules) throws IOException {
 		
-		// SFTP File 읽어오기
-		File file = fileMng.getFile(path, fileName);
+		BufferedReader br = null;		
+		List<Map<String, String>> parsDt = null;		
+		String[] colNm = null;		
 		
-		// file header culumn row 이후 전체 파싱  , 컬럼 명이 몇번 row 인지 정보 받아와야 함. 
-		List<Map<String, String>> prsDatas = this.parsCsvLine(file, 3);
-		
-		log.debug("return Data : "+ prsDatas.toString());
-		
-		List<ParsingDataVo> parsededList = this.replaceToReulst(fileType, prsDatas, list);
-		
-		return parsededList;
-	}
-	
-	// csv file 전체 data 어읽 옴
-	// TODO : 문의 : 어노테이션 확인해서 공유 하기
-	@SuppressWarnings("finally")
-	/**
-	 * header: csv 파일내 컬럼 시작  row 번호 -> 기준 정보에서 받을 것
-	 */
-	private List<Map<String, String>> parsCsvLine(File file, int header) throws IOException{
-		
-//		File file = null;
-		BufferedReader br = null;
-		
-		List<Map<String, String>> parsDt = null;
-//		List<ParsingDataVo> parsededList = null;
-		
-		String[] colNm = null;
 		
 		try {
-			// 변경할 것 
 			
-			br = new BufferedReader(new FileReader(file));
+			br = new BufferedReader(new FileReader(file));		
 			
-			if ( file != null )	log.info("Check File exist - "+file.getPath()+file.getName());
-			if ( br != null ) log.info("Check reader exist - "+br.toString());
-			
-			Charset.forName("UTF-8");	 // TODO 문의 : 확인 - 상위 단계에서 미리 설정해 놓을 수 있는지
 			String line = "";
 			
+			// result 객체 생성
 			parsDt = new ArrayList<Map<String, String>>();
 			
-			// Header Row info 필요
-			int cnt = header; // 3
+			// 행 번호 컬럼 번호 정보 담아쓰기
+			int[] rowsInfo = rule.getParsingRowInfos();
+			int[] colsInfo = rule.getParsingTitles();
+			
+			// 파싱 데이터 그릇			
+			String[] fileColunms = null;
+			String[] splitRowDatas = null;
+			
+			int cnt=0;
+			// 첫 줄 부터 로우 읽어옴.
 			while ( (line = br.readLine()) != null ) {
-				log.info(" line : " + line);
-
-
-				String[] rows = null;
-				Map<String, String> data = null;
+				log.info("## :"+cnt+" line : " + line);
 				
-				// column 정보  > 추후 colum info가 있는 line을  읽어야 함.
-				if ( cnt == header ) {
+				// 시작 행 을 컬럼명 행으로 인지 파싱 저장
+				if ( cnt == rule.getParsingRowInfos()[0]) {
+					log.info("## in fifle 1st if :"+cnt+" line : " + line);
+					fileColunms = line.split(",");
+					cnt++;
+				// 파싱 행번호가 어래이 안에 있다면, 파싱 저장
+				} else if ( Arrays.binarySearch( rowsInfo, cnt ) >= 0 ){
+					log.info("## in data pars 2nd if :"+cnt+" line : " + line);
+					Map<String, String> data = new HashMap<String, String>();
 					
-					colNm = line.split(",");
-					data = new HashMap<String, String>();
-					for (int i = 0 ; i < rows.length ; i++ )
-						data.put(String.valueOf(i), colNm[i]);
-					cnt ++;
-					
-				} else {
-					
-					rows = line.split(",");
-					data = new HashMap<String, String>();
-					
-					for (int i = 0 ; i < rows.length ; i++ )
-						data.put(colNm[i], rows[i]);
-					
+					splitRowDatas = line.split(",");
+
+
+					for (int i = 0 ; i < splitRowDatas.length ; i++ ) {
+						
+						// 컬럼 구분하여 맵에 저장
+						if ( Arrays.binarySearch( colsInfo, i ) >= 0 ) {
+							// 매핑 객체와 조회 하여 동일한 파일유형의 동일한 컬럼 값을 찾아와야 한다.
+							String key = returnMappingColumnName(mappRules, rule, fileColunms[i]);
+							data.put( key, splitRowDatas[i] );
+						} else {
+							log.info(" -- skip column num : "+i+", data : "+splitRowDatas[i]);
+						}
+					}
 					parsDt.add(data);
-					cnt ++;
+					cnt++;
+				// 그 외에 로우는 저장하지 않는다.
+				} else {
+					cnt++;
+					log.info("skip Data : " + cnt+" , "+line);
+					continue;
 				}
-				
 			}
 			
 		} catch (FileNotFoundException  e) {
@@ -142,89 +161,29 @@ public class FileParser {//extends JpaRepository<String, Object>{
 			if (br != null ) br.close();
 			return parsDt;
 			
-		}		
+		}
 		
 	}
 	
-	private List<ParsingDataVo> replaceToReulst(String fileType, List<Map<String, String>> parsDt, List<ParsingRuleVo> rule) {
-		// SFPT Property 통해서 property 접근 property 는 SingleTone
-		List<ParsingDataVo> inserDatas = new ArrayList<ParsingDataVo>();		
-		ParsingDataVo row = null;
+	// 파일 컬럼 명과 파일타입 유형 키값 입력 시 매핑 컬럼명 반환 됨 - 파일 유형 고려 하여 전달 할 수 있도록 진행
+	private String returnMappingColumnName(List<ParsingRuleVo> mapp, ParsingRuleVo rule, String fileColumn) {
+		String key = null;
 		
-		// 검사 파일일 때
-		if (fileType.equals(FISValues.Inpection.name())) {
+		for (ParsingRuleVo mappInfo : mapp) {
 		
-			for (Map<String, String> psRow: parsDt) {
-				for ( int i = 0 ; i < rule.size() ; i ++ ) {
-					row = new ParsingDataVo();
-					row.setSiteId( psRow.get(parsDt.get(i).get("0"))!=null?psRow.get(parsDt.get(i).get("0")):" " );
-					row.setProdDefId( psRow.get(parsDt.get(i).get("1"))!=null?psRow.get(parsDt.get(i).get("1")):" " ) ;
-					row.setProcDefId( psRow.get(parsDt.get(i).get("2"))!=null?psRow.get(parsDt.get(i).get("2")):" " ) ;
-					row.setProcSgmtId( psRow.get(parsDt.get(i).get("3"))!=null?psRow.get(parsDt.get(i).get("3")):" " ) ;
-					row.setEqpId( psRow.get(parsDt.get(i).get("4"))!=null?psRow.get(parsDt.get(i).get("4")):" " ) ;
-					row.setLotId( psRow.get(parsDt.get(i).get("5"))!=null?psRow.get(parsDt.get(i).get("5")):" " ) ;
-					row.setProdMtrlId( psRow.get(parsDt.get(i).get("6"))!=null?psRow.get(parsDt.get(i).get("6")):" " ) ;
-					row.setSubProdMtrlId( psRow.get(parsDt.get(i).get("7"))!=null?psRow.get(parsDt.get(i).get("7")):" " ) ;
-					row.setMtrlFaceCd( psRow.get(parsDt.get(i).get("8"))!=null?psRow.get(parsDt.get(i).get("8")):" " ) ;
-					row.setInspReptCnt( psRow.get(parsDt.get(i).get("9"))!=null?psRow.get(parsDt.get(i).get("9")):" " ) ;
-					row.setxValue( psRow.get(parsDt.get(i).get("10"))!=null?psRow.get(parsDt.get(i).get("10")):" " ) ;
-					row.setyValue( psRow.get(parsDt.get(i).get("11"))!=null?psRow.get(parsDt.get(i).get("11")):" " ) ;
-					row.setzValue( psRow.get(parsDt.get(i).get("12"))!=null?psRow.get(parsDt.get(i).get("12")):" " ) ;
-					row.setLotId( psRow.get(parsDt.get(i).get("13"))!=null?psRow.get(parsDt.get(i).get("13")):" " ) ;
-					row.setDcitemId( psRow.get(parsDt.get(i).get("14"))!=null?psRow.get(parsDt.get(i).get("14")):" " ) ;
-					row.setRsltVal( psRow.get(parsDt.get(i).get("15"))!=null?psRow.get(parsDt.get(i).get("15")):" " ) ;
-					row.setGrdId( psRow.get(parsDt.get(i).get("16"))!=null?psRow.get(parsDt.get(i).get("16")):" " ) ;
-					row.setDfctId( psRow.get(parsDt.get(i).get("17"))!=null?psRow.get(parsDt.get(i).get("17")):" " ) ;
-					row.setDfctXvalue( psRow.get(parsDt.get(i).get("18"))!=null?psRow.get(parsDt.get(i).get("18")):" " ) ;
-					row.setDfctYvalue( psRow.get(parsDt.get(i).get("19"))!=null?psRow.get(parsDt.get(i).get("19")):" " ) ;
-					row.setInspDt( psRow.get(parsDt.get(i).get("20"))!=null?psRow.get(parsDt.get(i).get("20")):" " ) ;
-					row.setImgFileName( psRow.get(parsDt.get(i).get("21"))!=null?psRow.get(parsDt.get(i).get("21")):" " ) ;
-					row.setReviewImgFileName( psRow.get(parsDt.get(i).get("22"))!=null?psRow.get(parsDt.get(i).get("22")):" " ) ;
-					row.setInspFileName( psRow.get(parsDt.get(i).get("23"))!=null?psRow.get(parsDt.get(i).get("23")):" " ) ;
-					row.setAttr1( psRow.get(parsDt.get(i).get("24"))!=null?psRow.get(parsDt.get(i).get("24")):" " ) ;
-					row.setAttr2( psRow.get(parsDt.get(i).get("25"))!=null?psRow.get(parsDt.get(i).get("25")):" " ) ;
-					row.setAttrN( psRow.get(parsDt.get(i).get("26"))!=null?psRow.get(parsDt.get(i).get("26")):" " ) ;			
-				}
-				inserDatas.add(row);
+			if( mappInfo.getFileType().equals(rule.getFileType())
+				 &&mappInfo.getFileFormatType().equals(rule.getFileFormatType())
+				 &&mappInfo.getEqpName().equals(rule.getEqpName())
+				 &&mappInfo.getFileColumName().equals(fileColumn) ) {
+				
+				key = mappInfo.getMappColumnName();
+				
+			} else {
+				key = fileColumn;
 			}
-		// 계측 파일일 때
-		} else {
-			for (Map<String, String> psRow: parsDt) {
-				for ( int i = 0 ; i < rule.size() ; i ++ ) {
-					row = new ParsingDataVo();
-					row.setSiteId( psRow.get(parsDt.get(i).get("0"))!=null?psRow.get(parsDt.get(i).get("0")):" " );
-					row.setProdDefId( psRow.get(parsDt.get(i).get("1"))!=null?psRow.get(parsDt.get(i).get("1")):" " ) ;
-					row.setProcDefId( psRow.get(parsDt.get(i).get("2"))!=null?psRow.get(parsDt.get(i).get("2")):" " ) ;
-					row.setProcSgmtId( psRow.get(parsDt.get(i).get("3"))!=null?psRow.get(parsDt.get(i).get("3")):" " ) ;
-					row.setEqpId( psRow.get(parsDt.get(i).get("4"))!=null?psRow.get(parsDt.get(i).get("4")):" " ) ;
-					row.setLotId( psRow.get(parsDt.get(i).get("5"))!=null?psRow.get(parsDt.get(i).get("5")):" " ) ;
-					row.setProdMtrlId( psRow.get(parsDt.get(i).get("6"))!=null?psRow.get(parsDt.get(i).get("6")):" " ) ;
-					row.setSubProdMtrlId( psRow.get(parsDt.get(i).get("7"))!=null?psRow.get(parsDt.get(i).get("7")):" " ) ;
-					row.setMtrlFaceCd( psRow.get(parsDt.get(i).get("8"))!=null?psRow.get(parsDt.get(i).get("8")):" " ) ;
-					row.setInspReptCnt( psRow.get(parsDt.get(i).get("9"))!=null?psRow.get(parsDt.get(i).get("9")):" " ) ;
-					row.setxValue( psRow.get(parsDt.get(i).get("10"))!=null?psRow.get(parsDt.get(i).get("10")):" " ) ;
-					row.setyValue( psRow.get(parsDt.get(i).get("11"))!=null?psRow.get(parsDt.get(i).get("11")):" " ) ;
-					row.setzValue( psRow.get(parsDt.get(i).get("12"))!=null?psRow.get(parsDt.get(i).get("12")):" " ) ;
-					row.setLotId( psRow.get(parsDt.get(i).get("13"))!=null?psRow.get(parsDt.get(i).get("13")):" " ) ;
-					row.setDcitemId( psRow.get(parsDt.get(i).get("14"))!=null?psRow.get(parsDt.get(i).get("14")):" " ) ;
-					row.setRsltVal( psRow.get(parsDt.get(i).get("15"))!=null?psRow.get(parsDt.get(i).get("15")):" " ) ;
-					row.setGrdId( psRow.get(parsDt.get(i).get("16"))!=null?psRow.get(parsDt.get(i).get("16")):" " ) ;
-					row.setDfctId( psRow.get(parsDt.get(i).get("17"))!=null?psRow.get(parsDt.get(i).get("17")):" " ) ;
-					row.setDfctXvalue( psRow.get(parsDt.get(i).get("18"))!=null?psRow.get(parsDt.get(i).get("18")):" " ) ;
-					row.setDfctYvalue( psRow.get(parsDt.get(i).get("19"))!=null?psRow.get(parsDt.get(i).get("19")):" " ) ;
-					row.setInspDt( psRow.get(parsDt.get(i).get("20"))!=null?psRow.get(parsDt.get(i).get("20")):" " ) ;
-					row.setImgFileName( psRow.get(parsDt.get(i).get("21"))!=null?psRow.get(parsDt.get(i).get("21")):" " ) ;
-					row.setReviewImgFileName( psRow.get(parsDt.get(i).get("22"))!=null?psRow.get(parsDt.get(i).get("22")):" " ) ;
-					row.setInspFileName( psRow.get(parsDt.get(i).get("23"))!=null?psRow.get(parsDt.get(i).get("23")):" " ) ;
-					row.setAttr1( psRow.get(parsDt.get(i).get("24"))!=null?psRow.get(parsDt.get(i).get("24")):" " ) ;
-					row.setAttr2( psRow.get(parsDt.get(i).get("25"))!=null?psRow.get(parsDt.get(i).get("25")):" " ) ;
-					row.setAttrN( psRow.get(parsDt.get(i).get("26"))!=null?psRow.get(parsDt.get(i).get("26")):" " ) ;			
-				}
-				inserDatas.add(row);
-			}			
+			
 		}
-		
-		return inserDatas;
+		return key;
 	}
 	
 }

@@ -1,15 +1,16 @@
 package com.absolics.service;
 
 import java.util.List;
+import java.util.Map;
 
-import com.absolics.value.FISValues;
-import com.absolics.vo.ParsingDataVo;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.absolics.repository.ParsingDataRepository;
+import com.absolics.value.FISValues;
+import com.absolics.vo.ParsingRuleVo;
 
 public class ParsingDataService {
 	private static final Logger log = LoggerFactory.getLogger(ParsingDataService.class);
@@ -21,14 +22,14 @@ public class ParsingDataService {
 	//TODO : Repository 에서 동시에 진행하던 service 부분을 구현 진행
 	//TODO : work ID 어디서 진행?
 	
-	public JSONObject insertParsingData(String fileType, List<ParsingDataVo> parsData) {
+	public JSONObject insertParsingDatas(String fileType, List<Map<String, String>> parsData, ParsingRuleVo rule) {
 		String res = null; 
 		
 		log.info("# @@ insert to oracle db after parsing !! ");
 		if (fileType.equals(FISValues.Inpection.name()))
-			res = repository.insertParsingData(FISValues.Inpection.name(), parsData);
+			res = repository.batchInsert(FISValues.Inpection.name(), parsData, rule);
 		else
-			res = repository.insertParsingData(FISValues.Measure.name(), parsData);
+			res = repository.batchInsert(FISValues.Measure.name(), parsData, rule);
 		
 		// 파일이 입력이 실패하면 rollback 
 		if ( res.equals(FISValues.SUCCESS.name()) ) {
