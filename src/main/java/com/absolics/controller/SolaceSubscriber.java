@@ -1,14 +1,13 @@
 package com.absolics.controller;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
+import com.absolics.config.SolaceConfiguration;
+import com.absolics.solace.broker.Receiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.absolics.solace.broker.Receiver;
-import com.absolics.config.SolaceConfiguration;
 import com.absolics.solace.util.ImportQueueList;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;

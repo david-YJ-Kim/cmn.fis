@@ -4,19 +4,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.absolics.service.PropertyManager;
+import com.absolics.value.FISValues;
+import com.absolics.vo.ParsingDataVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.absolics.service.PropertyManager;
-import com.absolics.value.FISValues;
-import com.absolics.vo.ParsingDataVo;
 
 @Repository
 public class ParsingDataRepository {

@@ -1,10 +1,10 @@
 package com.absolics.solace.broker;
 
+import com.absolics.service.FileReadExcutor;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.absolics.service.FileReadExcutor;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
 import com.solacesystems.jcsmp.EndpointProperties;
@@ -90,6 +90,8 @@ public class Receiver implements Runnable {
         	try {
         		
 //        		log.info("dump: \n{}", message.dump());
+				
+				// TODO CID로 분기 처리
         		
 				if (message instanceof TextMessage) {
 					

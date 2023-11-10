@@ -12,15 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.absolics.value.FISValues;
+import com.absolics.vo.ParsingDataVo;
+import com.absolics.vo.ParsingRuleVo;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.absolics.value.FISValues;
-import com.absolics.vo.ParsingDataVo;
-import com.absolics.vo.ParsingRuleVo;
 
 @Service
 public class FileParser {//extends JpaRepository<String, Object>{
@@ -74,6 +73,9 @@ public class FileParser {//extends JpaRepository<String, Object>{
 	// csv file 전체 data 어읽 옴
 	// TODO : 문의 : 어노테이션 확인해서 공유 하기
 	@SuppressWarnings("finally")
+	/**
+	 * header: csv 파일내 컬럼 시작  row 번호 -> 기준 정보에서 받을 것
+	 */
 	private List<Map<String, String>> parsCsvLine(File file, int header) throws IOException{
 		
 //		File file = null;
@@ -98,14 +100,15 @@ public class FileParser {//extends JpaRepository<String, Object>{
 			parsDt = new ArrayList<Map<String, String>>();
 			
 			// Header Row info 필요
-			int cnt = header;
+			int cnt = header; // 3
 			while ( (line = br.readLine()) != null ) {
 				log.info(" line : " + line);
-				
+
+
 				String[] rows = null;
 				Map<String, String> data = null;
 				
-				// column 정보  > 추후 colum info가 있는 line을  읽어야 함. 
+				// column 정보  > 추후 colum info가 있는 line을  읽어야 함.
 				if ( cnt == header ) {
 					
 					colNm = line.split(",");

@@ -11,13 +11,13 @@ public class ParsingRuleVo {
 	
 	private String targetFileMovePath;
 	
-	private String parsingTitleInfo;
+	private String parsingTitleInfo; //1,2,3,7-12,16,20
 	
-	private String[] parsingTitleInfos;
+	private String[] parsingTitleInfos; // {1,2,3,7,8,9,10,11,12,16,20}
 	
-	private String parsingRowInfo;
+	private String parsingRowInfo; //1,2,3,7-12,16,20
 	
-	private int[] parsingRowInfos;
+	private int[] parsingRowInfos;  // {1,2,3,7,8,9,10,11,12,16,20}
 	
 	private String parsingTitleName;
 	
