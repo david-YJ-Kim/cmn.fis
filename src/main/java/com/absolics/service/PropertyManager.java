@@ -7,17 +7,39 @@ import org.springframework.stereotype.Service;
 
 import com.absolics.vo.ParsingRuleVo;
 
+/**
+ * 파일 파싱을 위한 기준 정보 객체
+ * 
+ * 객체는 3개를 진행 한다. init 할 때에는 
+ * 1. Sub 객체에 읽어오고, 
+ * 2. 새로운 룰 적용 하는 메소드 별도 작성\
+ * 		: main -> past, sub -> main  정상 고체시 main과 sub은 동일 객체  
+ **/
+
 @Service
 public class PropertyManager {
 	
 	private static final PropertyManager instance = new PropertyManager();
 	
-	// join parsing data & mapping data
+	// 파싱룰 데이터
 	private List<ParsingRuleVo> parsingRule;
 	
+	// 매핑 룰 데이터
 	private List<ParsingRuleVo> mappingRule;
+		
+	// 파싱룰 데이터
+	private List<ParsingRuleVo> parsingRuleSub;
 	
-	private List<ParsingRuleVo> psMppRule;
+	// 매핑 룰 데이터
+	private List<ParsingRuleVo> mappingRuleSub;
+
+	// 파싱룰 데이터
+	private List<ParsingRuleVo> parsingRulePast;
+	
+	// 매핑 룰 데이터
+	private List<ParsingRuleVo> mappingRulePast;
+
+	
 	
 	@Value("${rule.sql.parsing}")
 	private String inserParsingInspectDataSql;
@@ -50,12 +72,36 @@ public class PropertyManager {
 		this.mappingRule = mappingRule;
 	}
 
-	public List<ParsingRuleVo> getPsMppRule() {
-		return psMppRule;
+	public List<ParsingRuleVo> getParsingRuleSub() {
+		return parsingRuleSub;
 	}
 
-	public void setPsMppRule(List<ParsingRuleVo> psMppRule) {
-		this.psMppRule = psMppRule;
+	public void setParsingRuleSub(List<ParsingRuleVo> parsingRuleSub) {
+		this.parsingRuleSub = parsingRuleSub;
+	}
+
+	public List<ParsingRuleVo> getMappingRuleSub() {
+		return mappingRuleSub;
+	}
+
+	public void setMappingRuleSub(List<ParsingRuleVo> mappingRuleSub) {
+		this.mappingRuleSub = mappingRuleSub;
+	}
+
+	public List<ParsingRuleVo> getParsingRulePast() {
+		return parsingRulePast;
+	}
+
+	public void setParsingRulePast(List<ParsingRuleVo> parsingRulePast) {
+		this.parsingRulePast = parsingRulePast;
+	}
+
+	public List<ParsingRuleVo> getMappingRulePast() {
+		return mappingRulePast;
+	}
+
+	public void setMappingRulePast(List<ParsingRuleVo> mappingRulePast) {
+		this.mappingRulePast = mappingRulePast;
 	}
 
 	public String getInserParsingInspectDataSql() {

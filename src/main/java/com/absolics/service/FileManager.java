@@ -74,11 +74,10 @@ public class FileManager {
 		// FTP 서버 정보
         String host = SFTPProperty.getSftpProperty().getHost();
         int port = SFTPProperty.getSftpProperty().getPort();
-        String username = "snis";
-        String password = "!sn12910@";
+        String username = "mestest";	//"snis";
+        String password = "absadmin";	//"!sn12910@";
         
         String localPath = "D:\\test.xlsx";
-        
         
         JSch jsch = new JSch();
         Session session = null;

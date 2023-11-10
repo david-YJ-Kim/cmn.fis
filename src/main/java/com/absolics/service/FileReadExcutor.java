@@ -2,6 +2,7 @@ package com.absolics.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.absolics.controller.SolacePublisher;
 import com.absolics.value.FISValues;
-import com.absolics.vo.ParsingDataVo;
+import com.absolics.vo.ParsingRuleVo;
 import com.solacesystems.jcsmp.JCSMPException;
 
 @Service
@@ -37,30 +38,46 @@ public class FileReadExcutor {
 	public void fileParsingStart(JSONObject msg) {
 		
 		// 파싱 데이터 결과 값
-		List<ParsingDataVo> parsedData = null;
+		List<Map<String,String>> parsedData = null;
 		// 저장 후 File 이름 키값
 		String res = null;
 		JSONObject result = null;
+		ParsingRuleVo rule = null;
 		
 		try {
 			
 			if (msg.get("filePath") != null && msg.get("fileName") != null) {
 				
+				
+				for (ParsingRuleVo vo : propMng.getParsingRule()) {
+					if ( vo.getEqpName().equals(msg.getString("eqpId"))
+							&& vo.getFileType().equals(msg.getString("fileType"))
+							&& vo.getFileFormatType().equals(msg.getString("fileFormatType"))) {
+						rule = vo;
+						break;
+					} else continue;
+				}
+				
 				// 파싱 전 work id 생성 하는 로직 필요
 				
 				
 				// FileManager 에서 get file 후 Parser로 던짐 parser는 resultList를  return
-				parsedData =  parser.toParsing(msg.getString("fileType")
-											, msg.getString("filePath")
-											, msg.getString("fileName")
-											, propMng.getParsingRule() );
+				try {
+					parsedData =  parser.toParsing( msg.getString("filePath")
+												, msg.getString("fileName")
+												, rule
+												, propMng.getMappingRule() );
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					log.error("@@ error occured file Parsing : " ,e);
+				}
 				
 				// TODO : 파싱된 데이터 Repository 에서는 저장				
 				if ( parsedData != null ) {
 					
 					//TODO  insert transaction 실행 
 					// 파일 type과 work id 에 대한 값도 처리 해야함.
-					result = repository.insertParsingData(msg.get("filePath").toString(), parsedData);
+					result = repository.insertParsingDatas(msg.get("filePath").toString(), parsedData, rule);
 					
 				} else {					
 					
@@ -86,9 +103,9 @@ public class FileReadExcutor {
 				log.info("## Failure Send Message to MOD", e);
 			}
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.error("## FileReadExcutor - fileParsingStart - IOException : ", e);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			log.error("## FileReadExcutor - fileParsingStart - IOException : ", e);
 			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
