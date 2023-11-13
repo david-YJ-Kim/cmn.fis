@@ -14,10 +14,10 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;;
 
 @Component
-public class SFTPProperty {
-	private static final Logger log = LoggerFactory.getLogger(SFTPProperty.class);
+public class SFTPConfiguration {
+	private static final Logger log = LoggerFactory.getLogger(SFTPConfiguration.class);
 	
-	private static final SFTPProperty isntance = new SFTPProperty();
+	private static final SFTPConfiguration isntance = new SFTPConfiguration();
 
 	@Value("$nas.sftp.host}")
 	private String host="192.168.0.193";
@@ -42,7 +42,7 @@ public class SFTPProperty {
 	
 	private JSch jsch;
 	
-	private SFTPProperty() {
+	private SFTPConfiguration() {
 		this.config = new Properties();
 		config.put("StrictHostKeyChecking", "no");
 		
@@ -62,7 +62,7 @@ public class SFTPProperty {
 		}		
 	}
 	
-	public static SFTPProperty getSftpProperty() {
+	public static SFTPConfiguration getSftpProperty() {
 		return isntance;
 	}
 	

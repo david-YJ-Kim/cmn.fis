@@ -3,7 +3,7 @@ package com.absolics.vo;
 
 public class ParsingRuleVo {
 
-	private String eqpName;					// 장비명
+private String eqpName;					// 장비명
 	
 	private String fileFormatType;			// 파일 정규 비정규 유형
 	
@@ -20,6 +20,8 @@ public class ParsingRuleVo {
 	private String parsingRowInfo;			// 파싱 로우 정보 41,48-200
 	
 	private int[] parsingRowInfos;			// 파싱 로우 41,48,49,50,...,199,200
+	
+	private int parsingColNum;				// 파싱 컬럼 번호
 	
 	private String fileColumName;			// 파싱 컬럼명
 	
@@ -40,31 +42,31 @@ public class ParsingRuleVo {
 	public String getEqpName() {
 		return eqpName;
 	}
-
+ 
 	public void setEqpName(String eqpName) {
 		this.eqpName = eqpName;
 	}
-
+ 
 	public String getFileFormatType() {
 		return fileFormatType;
 	}
-
+ 
 	public void setFileFormatType(String fileFormatType) {
 		this.fileFormatType = fileFormatType;
 	}
-
+ 
 	public String getFileType() {
 		return fileType;
 	}
-
+ 
 	public void setFileType(String fileType) {
 		this.fileType = fileType;
 	}
-
+ 
 	public String getTargetFileMovePath() {
 		return targetFileMovePath;
 	}
-
+ 
 	public void setTargetFileMovePath(String targetFileMovePath) {
 		this.targetFileMovePath = targetFileMovePath;
 	}
@@ -72,7 +74,7 @@ public class ParsingRuleVo {
 	public String[] getParsingTitleInfos() {
 		return parsingTitleInfos;
 	}
-
+ 
 	public void setParsingTitleInfo(String[] parsingTitleInfos) {
 		this.parsingTitleInfos = parsingTitleInfos;
 	}
@@ -80,63 +82,71 @@ public class ParsingRuleVo {
 	public int[] getParsingTitles() {
 		return parsingTitles;
 	}
-
+ 
 	public void setParsingTitles(int[] parsingTitles) {
 		this.parsingTitles = parsingTitles;
 	}
-
+ 
 	public String getParsingTitleInfo() {
 		return parsingTitleInfo;
 	}
-
+ 
 	public void setParsingTitleInfo(String parsingTitleInfo) {
 		this.parsingTitleInfo = parsingTitleInfo;
 	}
-
+ 
 	public String getParsingRowInfo() {
 		return parsingRowInfo;
 	}
-
+ 
 	public void setParsingRowInfo(String parsingRowInfo) {
 		this.parsingRowInfo = parsingRowInfo;
 	}
-
+ 
 	public int[] getParsingRowInfos() {
 		return parsingRowInfos;
 	}
-
+ 
 	public void setParsingRowInfos(int[] parsingRowInfos) {
 		this.parsingRowInfos = parsingRowInfos;
+	}	
+ 
+	public int getParsingColNum() {
+		return this.parsingColNum;
 	}
-
+ 
+	public void setParsingColNum(int parsingColNum) {
+		this.parsingColNum = parsingColNum;
+	}
+ 
 	public String getFileColumName() {
 		return fileColumName;
 	}
-
+ 
 	public void setFileColumName(String fileColumName) {
 		this.fileColumName = fileColumName;
 	}
-
+ 
 	public String[] getFileColumNames() {
 		return fileColumNames;
 	}
-
+ 
 	public void setFileColumNames(String[] fileColumNames) {
 		this.fileColumNames = fileColumNames;
 	}
-
+ 
 	public String getMappColumnName() {
 		return mappColumnName;
 	}
-
+ 
 	public void setMappColumnName(String mappColumnName) {
 		this.mappColumnName = mappColumnName;
 	}
-
+ 
 	public String[] getMappColumns() {
 		return mappColumns;
 	}
-
+ 
 	public void setMappColumns(String[] mappColumns) {
 		this.mappColumns = mappColumns;
 	}
