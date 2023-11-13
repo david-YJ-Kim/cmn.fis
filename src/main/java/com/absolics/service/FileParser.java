@@ -21,9 +21,11 @@ import org.springframework.stereotype.Service;
 import com.absolics.value.FISValues;
 import com.absolics.vo.ParsingRuleVo;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
-public class FileParser {//extends JpaRepository<String, Object>{
-	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
+public class FileParser {//extends JpaRepository<String, Object>{	
 	
 	@Autowired
 	private FileManager fileMng;

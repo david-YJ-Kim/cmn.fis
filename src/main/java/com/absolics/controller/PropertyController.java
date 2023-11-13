@@ -14,10 +14,7 @@ public class PropertyController {
 	private static final Logger log = LoggerFactory.getLogger(PropertyController.class);
 
 	/**
-	 * FIS Property Initialize from restful url
-	 * http://uri/init_psdt
-	 * http://uri/init_mppdt 
-	 * 
+	 * FIS Property Initialize from solace topic
 	 * TODO : init method to be here !! 
 	 **/
 	

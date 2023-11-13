@@ -10,6 +10,8 @@ logging:
   level:
     '[org.springframework]': debug
     '[org.springframework.web]': debug
+    com.zaxxer.hikari.HikariConfig: debug
+    com.zaxxer.hikari: TRACE
    
 
 spring:
@@ -42,7 +44,7 @@ solace:
     client-name: MOS-File-Interface-System
     reconnnect-retries: 20
     retries-per-host: 5
-    module-name: test
+    module-name: SVM_DEV_FIS_PRS
 
 
 #SFTP (NAS 접속 정보)    
@@ -53,6 +55,7 @@ nas:
     user-name: mestest
     user-passwd: absadmin
     remote-target-dir: ./backup/
+  path: 
 
     
 
