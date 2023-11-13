@@ -22,19 +22,19 @@ public class SFTPConfiguration {
 	
 	private static final SFTPConfiguration isntance = new SFTPConfiguration();
 
-	@Value("$nas.sftp.host}")
+	@Value("${nas.sftp.host}")
 	private String host;
 	
-	@Value("$nas.sftp.port}")
+	@Value("${nas.sftp.port}")
 	private int port;
 	
-	@Value("$nas.sftp.user-name}")
+	@Value("${nas.sftp.user-name}")
 	private String userName;
 	
-	@Value("$nas.sftp.user-passwd}")
+	@Value("${nas.sftp.user-passwd}")
 	private String userPasswd;
 
-	@Value("$nas.sftp.remote-target-dir}")
+	@Value("${nas.sftp.remote-target-dir}")
 	private String remoteTargetDir;
 	
 	private Session session;
