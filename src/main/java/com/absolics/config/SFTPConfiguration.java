@@ -11,38 +11,41 @@ import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;;
+import com.jcraft.jsch.Session;
 
+import lombok.Getter;;
+
+@Getter
 @Component
-public class SFTPProperty {
-	private static final Logger log = LoggerFactory.getLogger(SFTPProperty.class);
+public class SFTPConfiguration {
+	private static final Logger log = LoggerFactory.getLogger(SFTPConfiguration.class);
 	
-	private static final SFTPProperty isntance = new SFTPProperty();
+	private static final SFTPConfiguration isntance = new SFTPConfiguration();
 
-	@Value("$nas.sftp.host}")
-	private String host="192.168.0.193";
+	@Value("${nas.sftp.host}")
+	private String host;
 	
-	@Value("$nas.sftp.port}")
-	private int port=22;
+	@Value("${nas.sftp.port}")
+	private int port;
 	
-	@Value("$nas.sftp.user-name}")
-	private String userName="mestest";
+	@Value("${nas.sftp.user-name}")
+	private String userName;
 	
-	@Value("$nas.sftp.user-passwd}")
-	private String userPasswd="absadmin";
+	@Value("${nas.sftp.user-passwd}")
+	private String userPasswd;
 
-	@Value("$nas.sftp.remote-target-dir}")
-	private String remoteTargetDir="./backup/";
+	@Value("${nas.sftp.remote-target-dir}")
+	private String remoteTargetDir;
 	
 	private Session session;
 	
-	private Channel channel;
+	private ChannelSftp channel;
 	
 	private Properties config;
 	
 	private JSch jsch;
 	
-	private SFTPProperty() {
+	private SFTPConfiguration() {
 		this.config = new Properties();
 		config.put("StrictHostKeyChecking", "no");
 		
@@ -62,7 +65,7 @@ public class SFTPProperty {
 		}		
 	}
 	
-	public static SFTPProperty getSftpProperty() {
+	public static SFTPConfiguration getSftpProperty() {
 		return isntance;
 	}
 	
@@ -74,29 +77,4 @@ public class SFTPProperty {
 		this.session.disconnect();
 		log.info("## Disconnect to Session.");
 	}
-	
-	public String getHost() {
-		return this.host;
-	}
-
-	public int getPort() {
-		return this.port;
-	}
-
-	public String getUserName() {
-		return this.userName;
-	}
-
-	public String getUserPasswd() {
-		return this.userPasswd;
-	}
-
-	public String getRemoteTargetDir() {
-		return this.remoteTargetDir;
-	}
-
-	public ChannelSftp getChannel() {
-		return (ChannelSftp)this.channel;
-	}
-	
 }

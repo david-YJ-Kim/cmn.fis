@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import com.solacesystems.jcsmp.JCSMPChannelProperties;
 import com.solacesystems.jcsmp.JCSMPProperties;
 
+import lombok.Getter;
+
+@Getter
 @Component
 public class SolaceConfiguration {
 	private static SolaceConfiguration instance;
@@ -75,41 +78,4 @@ public class SolaceConfiguration {
 
 		return properties;
 	}
-
-	public String getHost() {
-		return env.getProperty(host);
-	}
-
-	public String getMsgVpn() {
-		return msgVpn;
-	}
-
-	public String getClientUserName() {
-		return clientUserName;
-	}
-
-	public String getClientPassWord() {
-		return clientPassWord;
-	}
-
-	public String getClientName() {
-		return clientName;
-	}
-
-	public int getReconnnectRetries() {
-		return reconnnectRetries;
-	}
-
-	public int getRetriesPerHost() {
-		return retriesPerHost;
-	}
-	
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public Map<String, String> getArgBag() {
-		return argBag;
-	}
-	
 }

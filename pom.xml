@@ -90,11 +90,11 @@
 		    <version>2.11.1</version>		    
 		</dependency>
 		
-<!--		<dependency>-->
-<!--	        <groupId>com.oracle.database.jdbc</groupId>-->
-<!--	        <artifactId>ojdbc8</artifactId>-->
-<!--	        <version>19.8.0.0</version> &lt;!&ndash; 실제 버전에 따라 업데이트 필요 &ndash;&gt;-->
-<!--	    </dependency>-->
+<!-- 		<dependency> -->
+<!-- 	        <groupId>com.oracle.database.jdbc</groupId> -->
+<!-- 	        <artifactId>ojdbc8</artifactId> -->
+<!-- 	        <version>19.8.0.0</version>  -->
+<!-- 	    </dependency> -->
 
 		<!-- IFACT MES POS 버전과 동일하게 진행 -->
 		<!-- oracle -->
@@ -117,12 +117,12 @@
 		    <artifactId>jsch</artifactId>
 		    <version>0.1.55</version>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.0.7.RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.springframework</groupId> -->
+<!--             <artifactId>spring-context</artifactId> -->
+<!--             <version>5.0.7.RELEASE</version> -->
+<!--             <scope>compile</scope> -->
+<!--         </dependency> -->
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>

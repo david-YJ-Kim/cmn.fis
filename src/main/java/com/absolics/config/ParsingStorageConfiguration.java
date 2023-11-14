@@ -2,9 +2,17 @@ package com.absolics.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
+import lombok.Getter;
+
+@Getter
 @Configuration
-public class ParsingDataConfig {
+public class ParsingStorageConfiguration {
+	
+	Environment env;
+	
+	private static ParsingStorageConfiguration instance;
 	
 	@Value("${spring.datasource.url}")
 	private String driveUrl;
@@ -17,5 +25,14 @@ public class ParsingDataConfig {
 	
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
+
+	public ParsingStorageConfiguration(Environment env) {
+		this.env = env;
+		instance = this;
+	}
+	
+	public static ParsingStorageConfiguration getInstance() {
+		return instance;
+	}
 	
 }

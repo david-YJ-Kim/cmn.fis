@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.absolics.config.SFTPProperty;
+import com.absolics.config.SFTPConfiguration;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -25,7 +25,7 @@ public class FileManager {
 		// TODO remove filePath+fileName
 		try {
 			
-			SFTPProperty.getSftpProperty().getChannel().put(new FileInputStream(file), filePath+fileName);
+			SFTPConfiguration.getSftpProperty().getChannel().put(new FileInputStream(file), filePath+fileName);
 			return true;
 			
 		} catch (FileNotFoundException e) {
@@ -43,7 +43,7 @@ public class FileManager {
 				
 		try {
 			// TODO : FileStream 을파일로 변환해서 return 한다.
-			SFTPProperty.getSftpProperty().getChannel().get(path+fileName);
+			SFTPConfiguration.getSftpProperty().getChannel().get(path+fileName);
 			
 		} catch (SftpException e) {
 			// TODO Auto-generated catch block
@@ -56,7 +56,7 @@ public class FileManager {
 	public boolean deleteFile(String path, String fileName) {
 		try {
 			
-			SFTPProperty.getSftpProperty().getChannel().rm(path + "/" + fileName);
+			SFTPConfiguration.getSftpProperty().getChannel().rm(path + "/" + fileName);
 			return true;
 			
 		} catch (SftpException e) {
@@ -72,8 +72,8 @@ public class FileManager {
 //		File localFile;
 		
 		// FTP 서버 정보
-        String host = SFTPProperty.getSftpProperty().getHost();
-        int port = SFTPProperty.getSftpProperty().getPort();
+        String host = SFTPConfiguration.getSftpProperty().getHost();
+        int port = SFTPConfiguration.getSftpProperty().getPort();
         String username = "mestest";	//"snis";
         String password = "absadmin";	//"!sn12910@";
         

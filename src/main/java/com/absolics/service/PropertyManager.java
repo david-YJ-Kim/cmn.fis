@@ -3,7 +3,7 @@ package com.absolics.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.absolics.vo.ParsingRuleVo;
 
@@ -16,7 +16,7 @@ import com.absolics.vo.ParsingRuleVo;
  * 		: main -> past, sub -> main  정상 고체시 main과 sub은 동일 객체  
  **/
 
-@Service
+@Component
 public class PropertyManager {
 	
 	private static final PropertyManager instance = new PropertyManager();
@@ -41,14 +41,22 @@ public class PropertyManager {
 
 	
 	
-	@Value("${rule.sql.parsing}")
+	
+	@Value("${rule.sql.insp}")
 	private String inserParsingInspectDataSql;
 	
-	@Value("${rule.sql.mapping}")
+	@Value("${rule.sql.meas}")
 	private String inserParsingInstrumentationDataSql;
 	
 	@Value("${rule.sql.rollback}")
 	private String rollbackParsingData;
+	
+	@Value("${rule.sql.baseSelect}")
+	private String baseParsingRule;
+	
+	@Value("${rule.sql.mappingSelect}")
+	private String baseMappingRule;
+	
 
 	private PropertyManager() {}
 	
@@ -118,6 +126,22 @@ public class PropertyManager {
 
 	public void setRollbackParsingData(String rollbackParsingData) {
 		this.rollbackParsingData = rollbackParsingData;
+	}
+
+	public String getBaseParsingRule() {
+		return baseParsingRule;
+	}
+
+	public void setBaseParsingRule(String baseParsingRule) {
+		this.baseParsingRule = baseParsingRule;
+	}
+
+	public String getBaseMappingRule() {
+		return baseMappingRule;
+	}
+
+	public void setBaseMappingRule(String baseMappingRule) {
+		this.baseMappingRule = baseMappingRule;
 	}
 	
 }

@@ -10,6 +10,8 @@ logging:
   level:
     '[org.springframework]': debug
     '[org.springframework.web]': debug
+    com.zaxxer.hikari.HikariConfig: debug
+    com.zaxxer.hikari: TRACE
    
 
 spring:
@@ -18,6 +20,11 @@ spring:
     username: mesadm
     password: absolics12#
     driver-class-name: oracle.jdbc.driver.OracleDriver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 30000
   jpa:
     properties:
       hibernate:        
@@ -40,23 +47,27 @@ solace:
     client-name: MOS-File-Interface-System
     reconnnect-retries: 20
     retries-per-host: 5
-    module-name: test
+    module-name: SVM_DEV_FIS_PRS
 
 
 #SFTP (NAS 접속 정보)    
 nas:
   sftp: 
-    host: 
-    port: 
-    user-name:
-    user-passwd: 
-    remote-target-dir: 
+    host: 192.168.0.193
+    port: 22
+    user-name: mestest
+    user-passwd: absadmin
+    remote-target-dir: ./backup/ 
 
     
 
 rule: 
   sql: 
-    parsing: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
-    mapping: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
+    insp: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
+    meas: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
     rollback: DELETE FROM FIS_EDM_TMP WHERE WORK_ID = ?
+    baseSelect: SELECT EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO FROM CN_FIS_IF_PARSING_FILE_INFO
+    mappingSelect: SELECT EQP_NM,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO FROM CN_FIS_IF_PARSING_DATA_MAPPING_INFO
+    mappingInsert: INSERT INTO CN_FIS_IF_PARSING_DATA_MAPPING_INFO(PM_SEQ,EQP_NM,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,?)
+    baseInsert: INSERT INTO CN_FIS_IF_PARSING_FILE_INFO (PS_SEQ,EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTEMP,"test")
     

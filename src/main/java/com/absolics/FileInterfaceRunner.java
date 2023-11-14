@@ -2,12 +2,6 @@ package com.absolics;
 
 import javax.sql.DataSource;
 
-import com.absolics.config.SFTPProperty;
-import com.absolics.config.SolaceConfiguration;
-import com.absolics.controller.PropertyController;
-import com.absolics.controller.SolacePublisher;
-import com.absolics.controller.SolaceSubscriber;
-import com.absolics.service.PropertyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,13 +11,31 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.absolics.config.ParsingStorageConfiguration;
+import com.absolics.config.SFTPConfiguration;
+import com.absolics.config.SolaceConfiguration;
+import com.absolics.controller.PropertyController;
+import com.absolics.controller.SolacePublisher;
+import com.absolics.controller.SolaceSubscriber;
+import com.absolics.service.PropertyManager;
 import com.solacesystems.jcsmp.JCSMPException;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class FileInterfaceRunner implements ApplicationListener<ApplicationStartedEvent>{
 	private static final Logger log = LoggerFactory.getLogger(FisApplication.class);
 	
 	@Value("${property.type}")
 	private String propertyType;
+	
+	public HikariDataSource dataSource() {
+		HikariDataSource dataSource = new HikariDataSource(); 
+		dataSource.setDriverClassName(ParsingStorageConfiguration.getInstance().getDriverClassName());
+		dataSource.setJdbcUrl(ParsingStorageConfiguration.getInstance().getDriveUrl());
+		dataSource.setUsername(ParsingStorageConfiguration.getInstance().getUserName());
+		dataSource.setPassword(ParsingStorageConfiguration.getInstance().getPassWord());
+		return dataSource;
+	}
+	
 
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -66,8 +78,8 @@ public class FileInterfaceRunner implements ApplicationListener<ApplicationStart
 	}
 	
 	@Bean
-	public SFTPProperty getsftpProperty() {
-		return SFTPProperty.getSftpProperty();
+	public SFTPConfiguration getsftpProperty() {
+		return SFTPConfiguration.getSftpProperty();
 	}
 	
 	@Bean
