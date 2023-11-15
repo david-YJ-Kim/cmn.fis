@@ -17,7 +17,8 @@ public class CnFisWork {
 
     @javax.persistence.Id
     @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fisnew.util.ObjIdGenerator")
-    @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "WORK_ID")
     private String workId;
 
     @Column(name = "FILE_NM")
