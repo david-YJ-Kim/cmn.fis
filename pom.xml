@@ -10,10 +10,10 @@
 	</parent>
 
 	<groupId>com.abs.cmn</groupId>
-	<artifactId>fis-new</artifactId>
+	<artifactId>fis</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>fis-new</name>
-	<description>fis-new</description>
+	<name>fis</name>
+	<description>File Interface System</description>
 	<properties>
 		<java.version>8</java.version>
 	</properties>
