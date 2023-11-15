@@ -8,7 +8,6 @@ server:
 
 logging:
   level:
-<<<<<<< HEAD
     org:
       springframework:
         jdbc:
@@ -16,12 +15,6 @@ logging:
             JdbcTemplate : debug
 #    '[org.springframework]': debug
 #    '[org.springframework.web]': debug
-=======
-    '[org.springframework]': debug
-    '[org.springframework.web]': debug
-    com.zaxxer.hikari.HikariConfig: debug
-    com.zaxxer.hikari: TRACE
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
    
 
 spring:
@@ -46,19 +39,6 @@ spring:
 
 
 #Solace 접속 정보            
-<<<<<<< HEAD
-=======
-solace:
-  java:
-    host: 52.79.64.176:55555
-    msg-vpn: MES
-    client-username: default
-    client-password: admin
-    client-name: MOS-File-Interface-System
-    reconnnect-retries: 20
-    retries-per-host: 5
-    module-name: SVM_DEV_FIS_PRS
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
 
 
 #SFTP (NAS 접속 정보)    
@@ -68,12 +48,7 @@ nas:
     port: 22
     user-name: mestest
     user-passwd: absadmin
-<<<<<<< HEAD
     remote-target-dir:  ./backup/
-=======
-    remote-target-dir: ./backup/
-  path: 
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
 
 ##### Application Config ####
 ap:
@@ -115,17 +90,3 @@ ap:
       mapping: INSERT INTO CN_FIS_EDC_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
       rollback: DELETE FROM FIS_EDM_TMP WHERE WORK_ID = ?
 
-<<<<<<< HEAD
-=======
-rule: 
-  sql: 
-    insp: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
-    meas: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
-    rollback: DELETE FROM FIS_EDM_TMP WHERE WORK_ID = ?
-    baseSelect: SELECT EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO FROM CN_FIS_IF_PARSING_FILE_INFO
-    mappingSelect: SELECT EQP_NM,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO FROM CN_FIS_IF_PARSING_DATA_MAPPING_INFO
-    mappingInsert: INSERT INTO CN_FIS_IF_PARSING_DATA_MAPPING_INFO(PM_SEQ,EQP_NM,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,?)
-    baseInsert: INSERT INTO CN_FIS_IF_PARSING_FILE_INFO (PS_SEQ,EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTEMP,"test")
-    
-    
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
