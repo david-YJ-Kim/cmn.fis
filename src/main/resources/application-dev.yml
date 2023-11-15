@@ -8,46 +8,36 @@ server:
 
 logging:
   level:
-<<<<<<< HEAD
-    org:
-      springframework:
-        jdbc:
-          core:
-            JdbcTemplate : debug
-#    '[org.springframework]': debug
-#    '[org.springframework.web]': debug
-=======
     '[org.springframework]': debug
     '[org.springframework.web]': debug
     com.zaxxer.hikari.HikariConfig: debug
     com.zaxxer.hikari: TRACE
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
    
 
 spring:
   datasource:
     url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
-#    url: jdbc:oracle:thin:@localhost:1521:ORCL
     username: mesadm
     password: absolics12#
     driver-class-name: oracle.jdbc.driver.OracleDriver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 30000
   jpa:
     properties:
-      hibernate:
+      hibernate:        
         jdbc:
           lob:
             non_contextual_creation: true
           batch_size: 100
-#        dialect: org.hibernate.dialect.Oracle12cDialect\
-    show-sql: true
-    database-platform: org.hibernate.dialect.OracleDialect
+        dialect: org.hibernate.dialect.Oracle12cDialect\
   transaction:
     mode: jdbc
 
 
 #Solace 접속 정보            
-<<<<<<< HEAD
-=======
 solace:
   java:
     host: 52.79.64.176:55555
@@ -58,7 +48,6 @@ solace:
     reconnnect-retries: 20
     retries-per-host: 5
     module-name: SVM_DEV_FIS_PRS
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
 
 
 #SFTP (NAS 접속 정보)    
@@ -68,55 +57,10 @@ nas:
     port: 22
     user-name: mestest
     user-passwd: absadmin
-<<<<<<< HEAD
-    remote-target-dir:  ./backup/
-=======
-    remote-target-dir: ./backup/
-  path: 
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0
+    remote-target-dir: ./backup/ 
 
-##### Application Config ####
-ap:
-  info:
-    group: FIS
-    site: SVM
-    env: DEV
-    sequence: 1
-  file:
-    mode: local
-    nas:
-      sftp:
-        host: 192.168.0.193
-        port: 22
-        user-name: mestest
-        user-passwd: absadmin
-        remote-target-dir: ./backup/
-  interface:
-    solace:
-      host: 52.79.64.176:55555
-#      host: localhost:55555
-      vpn: MES
-      client:
-        username: default
-        password: admin
-      connect:
-        trial-count: 2
-      reconnect:
-        trial-count: 20
-        per-host: 5
-    destination:
-      send:
-        topic: SVM/BRS/CMN/01
-      receive:
-        queue: SVM_DEV_FIS_CMN
-  query:
-    rule:
-      parsing: INSERT INTO CN_FIS_EDC_TMP(OBJ_ID, WORK_ID, FILE_TP, FILE_FM_TP, SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL, DCITEM_ID, RSLT_VAL, GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N, CRT_DT)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      mapping: INSERT INTO CN_FIS_EDC_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
-      rollback: DELETE FROM FIS_EDM_TMP WHERE WORK_ID = ?
+    
 
-<<<<<<< HEAD
-=======
 rule: 
   sql: 
     insp: INSERTINTOCN_FIS_EDM_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
@@ -127,5 +71,3 @@ rule:
     mappingInsert: INSERT INTO CN_FIS_IF_PARSING_DATA_MAPPING_INFO(PM_SEQ,EQP_NM,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,?)
     baseInsert: INSERT INTO CN_FIS_IF_PARSING_FILE_INFO (PS_SEQ,EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO,CRT_DT,CRTR)VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTEMP,"test")
     
-    
->>>>>>> b6a4ceb96f00e2cd665c4d81fd741ba739051eb0

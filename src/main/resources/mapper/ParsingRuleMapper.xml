@@ -1,0 +1,52 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">-->
+<!--<mapper namespace="com.absolics.mapper.ParsingDataMapper">	-->
+<!--	<select id="initParsingRuleData" resultType="java.util.Map">-->
+<!--		SELECT-->
+<!--			IFP.EQP_NM						as eqpName-->
+<!--			,IFP.FILE_FM_TP					as fileFormatType-->
+<!--			,IFP.FILE_TP					as fileType-->
+<!--			,IFP.TG_FILE_PT					as filePath-->
+<!--			,ARRAY( LISTAGG( IFP.FILE_CLM_INFO ) )-->
+<!--			,LISTAGG( IFP.PRS_TTL_INFO, ',' ) WITHIN GROUP (ORDER BY IFP.PRS_TTL_INFO)-->
+<!--											as fileCulomnInfo-->
+<!--			,LISTAGG( IFP.PRS_ROW_INFO, ',' ) WITHIN GROUP (ORDER BY IFP.PRS_ROW_INFO)-->
+<!--											as fileCulomnInfo-->
+<!--			,IFM.FILE_CLM_NM				as fileColum-->
+<!--			,IFM.MPP_CLM_NM					as mappColumn-->
+<!--		FROM-->
+<!--			IF_PARSING_FILE_INFO IFP-->
+<!--		LEFT JOIN-->
+<!--			IF_PARSING_DATA_MAPPIN_INFO IFM-->
+<!--		ON-->
+<!--			IFP.EQP_NM = IFM.EQP_NM-->
+<!--		AND -->
+<!--			IFP.FILE_TP = IFM.FILE_TP-->
+<!--		AND -->
+<!--			IFM.FILE_CLM_NM IN ( -->
+<!--					SELECT REGEXP_SUBSTR (FILE_CLM_INFO, ',', 1, 1)-->
+<!--					FROM IF_PARSING_FILE_INFO-->
+<!--			);-->
+<!--	</select>-->
+<!--	<select id="initParsingFileRule" resultType="java.util.Map">-->
+<!--		SELECT-->
+<!--			EQP_NM							as eqpName-->
+<!--			,FILE_FM_TP						as fileFormatType-->
+<!--			,FILE_TP						as fileType-->
+<!--			,TG_FILE_MV_PT					as targetFileMovePath-->
+<!--			,PRS_TTL_INFO					as parsingTitleInfo-->
+<!--			,PRS_ROW_INFO					as parsingRowInfo			-->
+<!--		FROM-->
+<!--			IF_PARSING_FILE_INFO-->
+<!--	</select>-->
+<!--	<select id="initParsingMappingRule" resultType="java.util.Map">-->
+<!--		SELECT-->
+<!--			EQP_NM							as eqpName-->
+<!--			,FILE_FM_TP						as fileFormatType-->
+<!--			,FILE_TP						as fileType			-->
+<!--			,FILE_CLM_NM					as fileColumnName-->
+<!--			,MPP_CLM_NM						as mappingColumnNamen-->
+<!--		FROM-->
+<!--			IF_PARSING_DATA_MAPPIN_INFO-->
+<!--	</select>-->
+<!--</mapper>-->
