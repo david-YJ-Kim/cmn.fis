@@ -30,19 +30,28 @@ public class FisPropertyObject {
     private String clientName;
     @Value("${ap.interface.destination.receive.queue}")
     private String receiveQueueName;
-
+    @Value("${ap.interface.destination.receive.init}")
+    private String receiveInitTopic;
     @Value("${ap.interface.destination.send.topic}")
     private String sendTopicName;
+    
 
-    @Value("${ap.query.rule.parsing}")
+    @Value("${ap.query.parsing.Inpection}")
     private String insertParsingInspectionDataSql;
 
-    @Value("${ap.query.rule.mapping}")
+    @Value("${ap.query.parsing.Measure}")
     private String insertParsingMeasurementDataSql;
 
-    @Value("${ap.query.rule.rollback}")
+    @Value("${ap.query.parsing.rollback}")
     private String rollbackQuery;
 
+    
+    @Value("${ap.query.rule.parsing}")
+    private String selectParsingRuleDataSql;
+
+    @Value("${ap.query.rule.mapping}")
+    private String selectMappingRuleDataSql;
+    
 
     private List<ParsingRuleVo> parsingRule;
 
