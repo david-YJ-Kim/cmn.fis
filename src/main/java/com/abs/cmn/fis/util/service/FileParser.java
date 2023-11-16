@@ -84,9 +84,9 @@ public class FileParser {
                 bufferedReader.close();
                 log.info("BufferedReader is closed.");
             }
-            return listMapResult;
-
+            
         }
+        return listMapResult;
 
     }
 

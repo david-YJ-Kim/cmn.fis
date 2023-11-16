@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +46,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     }
 
     @Override
-    public String execute(String fileType, String fileName, String filePath,
+    public Map<String, String> execute(String fileType, String fileName, String filePath,
                                 String eqpId, String reqSystem, String fileFormatType) throws Exception {
 
         log.info("Start to parsing file. type:{}, name:{}, path:{}", fileType, fileName, filePath);
@@ -59,7 +60,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                                     .requestSystemName(reqSystem)
                                     .processState(FisConstant.R.name())
                                     .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
-                                    .updateUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
+                                    .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .build();
         String key = this.workService.saveEntity(vo).getWorkId();
 
@@ -88,19 +89,20 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         // TODO DB 적재
         String fileTypeConstant = FisConstant.Inpection.name(); // For Test
-        // String status = this.parsingDataRepository.batchInsert(fileTypeConstant, parsingResult, columList);
+        // String status = this.parsingDataRepository.batchInsert(fileTypeConstant, parsingResult, key);
 
         long startTime = System.currentTimeMillis();
         String status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
         log.info("ElapsedTime: {}ms", System.currentTimeMillis() - startTime);
         log.info(status);
 
-        // TODO 키 송신
-//        InterfaceSolacePub.getInstance().sendMessage(key);
-
         log.info("Send key to EDC : {}", key);
+        Map<String, String> response = new HashMap<String, String>();
+        response.put("status", status);
+        response.put("workId", key);
         
-        return key;
+     // TODO 결과 status와 키 workId 리턴
+        return response;
     }
 
 

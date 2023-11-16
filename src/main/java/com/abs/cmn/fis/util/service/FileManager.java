@@ -1,38 +1,26 @@
 package com.abs.cmn.fis.util.service;
 
-//import com.abs.cmn.fis.config.SFTPProperty;
-import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.util.code.FisConstant;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
+import org.springframework.stereotype.Service;
+
+import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSftpPropertyObject;
+import com.abs.cmn.fis.util.code.FisConstant;
+import com.jcraft.jsch.SftpException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class FileManager {
 
 	private Boolean localMode = null;
-//		// TODO remove filePath+fileName
-//		try {
-//
-//			SFTPProperty.getSftpProperty().getChannel().put(new FileInputStream(file), filePath+fileName);
-//			return true;
-//
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			log.error("## FileNotFoundException : ", e);
-//		} catch (SftpException e) {
-//			// TODO Auto-generated catch block
-//			log.error("## SftpException : ", e);
-//		}
-//
-//		return false;
-//	}
-
 
 	public Boolean isLocalMode(){
 		if(localMode == null){
@@ -53,9 +41,11 @@ public class FileManager {
 
 	public boolean deleteFile(String path, String fileName){
 		if(this.isLocalMode()){
-
+			if (this.removeFileLocal(path, fileName))
+				return true;
 		}else{
-
+			if(this.removeFileFromRemote(fileName, fileName))
+				return true;
 		}
 		return false;
 	}
@@ -67,7 +57,9 @@ public class FileManager {
 				return true;
 			}
 		}else{
-
+			if(this.moveRemoteFile(fromPath, fileName, toPath)){
+				return true;
+			}
 		}
 		return false;
 	}
@@ -100,6 +92,35 @@ public class FileManager {
 		}
 
 	}
+	
+	private boolean moveRemoteFile(String fromPath, String fileName, String toPath){
+		File fromFile = null;
+		File toFile = new File(toPath, fileName);
+
+		try {
+			
+			fromFile = this.getFileFromRemote(fromPath, fileName);
+			
+			if(!fromFile.exists()){
+				log.error("Source file does not exist at remote Server.");
+				return false;
+			}
+			
+			if ( this.insertFileToRemote(fromPath, toPath, fileName) ) {
+				
+				this.removeFileFromRemote(fromPath, fileName);
+				return true;
+				
+			} else {
+				return false;
+			}
+			
+		}catch (Exception e) {
+			log.error("## FileManager, moveRemoteFile : ", e);
+			return false;
+		}
+
+	}
 
 
 	private File getFileFromLocal(String path, String name) throws Exception {
@@ -112,13 +133,33 @@ public class FileManager {
 			throw new Exception(String.format("File is not exist under path: %s ", (path + name)));
 		}
 	}
+	
+	private boolean removeFileLocal(String path, String name) {
+		File localFile = new File(path+name);
+		localFile.delete();
+		
+		if (localFile.exists()) 
+			return false;
+		else
+			return true;
+		
+	}
 
 	private File getFileFromRemote(String path, String name) throws Exception {
+		
+		String localPath = FisSftpPropertyObject.getInstance().getLocalFilePath();
+		File file = null;
+		
 		try {
 			// TODO : FileStream 을파일로 변환해서 return 한다.
-//			SFTPProperty.getSftpProperty().getChannel().get(path+fileName);
-
-			return null;
+		
+			file = new File (localPath);
+			
+			FisSftpPropertyObject.getInstance().getSftpChannel().get(path+name, new FileOutputStream(localPath));
+			
+			file = new File(localPath);
+			
+			return file;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -128,61 +169,28 @@ public class FileManager {
 		}
 	}
 	
-//	public boolean deleteFile(String path, String fileName) {
-//		try {
-//
-//			SFTPProperty.getSftpProperty().getChannel().rm(path + "/" + fileName);
-//			return true;
-//
-//		} catch (SftpException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return false;
-//	}
+	private boolean removeFileFromRemote(String path, String name) {
+		
+		try {
+			String rmFilePath = path+name;
+			FisSftpPropertyObject.getInstance().getSftpChannel().rm(rmFilePath);
+			return true;
+		} catch (SftpException e) {
+			log.error("## FileManager , removeFileFromRemote : ", e);
+			return false;
+		}
+		
+	}
 	
-//	public static void main(String args[]) {
-//		String path = "/home/snis";
-//		String fileName = "Absolics 계측 결과 파일 표준_20230918_test.xlsx";
-////		File localFile;
-//
-//		// FTP 서버 정보
-//        String host = SFTPProperty.getSftpProperty().getHost();
-//        int port = SFTPProperty.getSftpProperty().getPort();
-//        String username = "mestest";	//"snis";
-//        String password = "absadmin";	//"!sn12910@";
-//
-//        String localPath = "D:\\test.xlsx";
-//
-//        JSch jsch = new JSch();
-//        Session session = null;
-//        try {
-//
-//            session = jsch.getSession(username, host, port);
-//            session.setConfig("StrictHostKeyChecking", "no");
-//            session.setPassword(password);
-//            session.connect();
-//
-//            ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
-//            channel.connect();
-//
-//            try {
-//				channel.get(path + "/" + fileName, new FileOutputStream(localPath));
-//				log.info("download!! ");
-//				channel.rm(path + "/" + fileName);
-//				log.info("removed !! ");
-//
-//	            channel.put(localPath, path + "/" + "123"+fileName);
-//
-//			} catch (FileNotFoundException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//            channel.disconnect();
-//            session.disconnect();
-//        } catch (JSchException | SftpException e) {
-//            e.printStackTrace();
-//        }
-//
-//	}
+	private boolean insertFileToRemote(String fromPath,String path, String name) {
+		try {
+			String targetPath = path+name;
+			String existFilePath = fromPath+name;
+			FisSftpPropertyObject.getInstance().getSftpChannel().put(existFilePath ,targetPath);
+			return true;
+		} catch (SftpException e) {
+			log.error("## FileManager , insertFileToRemote : ", e);
+			return false;
+		}
+	}	
 }

@@ -38,6 +38,9 @@ public class ParsingRuleVo {
 	private String[] mappColumns;			// 매핑 컬럼명 배열
 
 
+	
+	public ParsingRuleVo() {}
+	
 	@Builder
 	public ParsingRuleVo(String eqpName, String fileFormatType, String fileType, String targetFileMovePath, String parsingTitleInfo, String[] parsingTitleInfos, int[] parsingTitles, String parsingRowInfo, int[] parsingRowInfos, int parsingColNum, String fileColumName, String[] fileColumNames, String mappColumnName, String[] mappColumns) {
 		this.eqpName = eqpName;

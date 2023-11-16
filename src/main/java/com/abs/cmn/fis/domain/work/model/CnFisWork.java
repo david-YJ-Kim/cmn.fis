@@ -16,8 +16,8 @@ import java.sql.Timestamp;
 public class CnFisWork {
 
     @javax.persistence.Id
-    @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fisnew.util.ObjIdGenerator")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
+    @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
     @Column(name = "WORK_ID")
     private String workId;
 

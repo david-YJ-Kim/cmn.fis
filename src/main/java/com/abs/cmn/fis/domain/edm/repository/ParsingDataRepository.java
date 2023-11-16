@@ -43,14 +43,14 @@ public class ParsingDataRepository {
 			if (fileType.equals(FisConstant.Inpection.name())) {
 				log.info("Insert For File type : {}", FisConstant.Inpection.name());
 				jdbcTemplate.setFetchSize(1000);
-
+				log.info(" #@#@ inspectionColumList length : "+ inspectionColumList.length);
 				jdbcTemplate.batchUpdate(
 						FisPropertyObject.getInstance().getInsertParsingInspectionDataSql(),
 						new BatchPreparedStatementSetter() {
 							@Override
 							public void setValues(PreparedStatement ps, int i) throws SQLException {
-
-
+								
+								
 								// TODO List<MAP> 변환 필요
 								Map<String, String> map = listMap.get(i);
 								for(int idx = 0; idx < inspectionColumList.length; idx++){
@@ -88,7 +88,7 @@ public class ParsingDataRepository {
 
 
 //	@Transactional()
-	public String batchInsert(String fileType, List<Map<String, String>> insertData, String[] columList) {
+	public String batchInsert(String fileType, List<Map<String, String>> insertData, String workId) {
 		TransactionStatus status = null;
 		int[] ret;
 		
@@ -192,16 +192,38 @@ public class ParsingDataRepository {
 		if (status.isCompleted()) {
 			return status.toString();
 		} else { 
-			return FisConstant.ROLLBACK.name();
+			return FisConstant.DELETE_BATCH.name();
 		}
 	}
 	
-//	public String rollback(String key) {
-//		int deletedRowNum = jdbcTemplate.update(FisPropertyManager.getPropertyManager().getRollbackParsingData(), key);
-//
-//		if ( deletedRowNum > 0)
-//			return FisConstant.SUCCESS.name();
-//		else
-//			return FisConstant.ROLLBACK_FAIL.name();
-//	}
+	public String deleteBatch(String key) throws SQLException {
+		
+		int deletedRowNum[] = null;//jdbcTemplate.update(FisPropertyObject.getInstance().getRollbackQuery(), key);
+
+//		PreparedStatement preparedStatement = jdbcTemplate.getDataSource()
+//											.getConnection()
+//											.prepareStatement(FisPropertyObject.getInstance().getRollbackQuery()); 
+		
+		BatchPreparedStatementSetter batchSetter = new BatchPreparedStatementSetter() {
+			
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				// TODO Auto-generated method stub
+				ps.setString(1, key);
+			}
+			
+			@Override
+			public int getBatchSize() {
+				// TODO Auto-generated method stub
+				return 1000;
+			}
+		};
+		
+		deletedRowNum = jdbcTemplate.batchUpdate(FisPropertyObject.getInstance().getRollbackQuery(), batchSetter);
+		
+		if ( deletedRowNum.length < 0)
+			return FisConstant.DELETE_FAIL.name();			
+		else
+			return FisConstant.DELETE_BATCH.name();
+	}
 }

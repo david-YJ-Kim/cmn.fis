@@ -18,6 +18,10 @@ logging:
    
 
 spring:
+  boot:
+    antoconfigure:
+      exclude:
+        - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration    
   datasource:
     url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
 #    url: jdbc:oracle:thin:@localhost:1521:ORCL
@@ -66,6 +70,8 @@ ap:
         user-name: mestest
         user-passwd: absadmin
         remote-target-dir: ./backup/
+    local-path: D:\\parsingfile.csv
+    
   interface:
     solace:
       host: 52.79.64.176:55555
@@ -81,12 +87,16 @@ ap:
         per-host: 5
     destination:
       send:
-        topic: SVM/BRS/CMN/01
+        topic: SVM/DEV/EDC/CMN/00
       receive:
         queue: SVM_DEV_FIS_CMN
+        init: SVM/DEV/FIS/CMN/INIT
+       
   query:
-    rule:
-      parsing: INSERT INTO CN_FIS_EDC_TMP(OBJ_ID, WORK_ID, FILE_TP, FILE_FM_TP, SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL, DCITEM_ID, RSLT_VAL, GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N, CRT_DT)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      mapping: INSERT INTO CN_FIS_EDC_TMP(SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTEMP,?)
+    parsing:
+      Inpection: INSERT INTO CN_FIS_EDM_TMP(PD_SEQ,WORK_ID,FILE_SPC,FILE_FM_YN,FILE_TP,ROW_SEQ,SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,GRD_ID,DFCT_ID,DFCT_X_VAL,DFCT_Y_VAL,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT)VALUES(WFS_INDEX_SEQ.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,SYSTIMESTAMP)
+      Measure: INSERT INTO CN_FIS_EDM_TMP(OBJ_ID,WORK_ID,FILE_TP,FILE_FM_TP,SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,Z_VAL,DCITEM_ID,RSLT_VAL,IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N,CRT_DT,FILE_NM)VALUES(WFS_INDEX_SEQ.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,SYSTIMESTAMP,?)
       rollback: DELETE FROM FIS_EDM_TMP WHERE WORK_ID = ?
-
+    rule:
+      parsing: SELECT EQP_NM,FILE_FM_TP,FILE_TP,TG_FILE_MV_PT,PRS_TTL_INFO,PRS_ROW_INFO FROM CN_FIS_IF_PARSING_FILE_INFO
+      mapping: SELECT EQP_NM,FILE_FM_TP,FILE_TP,FILE_COLM_NUM,FILE_CLM_INFO,MPP_CLM_INFO FROM CN_FIS_IF_PARSING_DATA_MAPPING_INFO

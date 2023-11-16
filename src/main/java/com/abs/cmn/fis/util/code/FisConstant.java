@@ -19,8 +19,8 @@ public enum FisConstant {
     Inpection,		// 검사
     Measure,		// 계측 , 측정 의미
 
-    ROLLBACK,		// rollback
-    ROLLBACK_FAIL,	// rollback Fail
+    DELETE_BATCH,		// rollback
+    DELETE_FAIL,	// rollback Fail
     sftp,
     body,
     head,

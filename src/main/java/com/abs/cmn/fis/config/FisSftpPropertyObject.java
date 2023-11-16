@@ -6,12 +6,12 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
-;
 @Getter
 @Component
 public class FisSftpPropertyObject {
@@ -19,23 +19,26 @@ public class FisSftpPropertyObject {
 
 	Environment env;
 
-	@Value("$ap.file.mode}")
+	@Value("${ap.file.mode}")
 	private String fileMode;
 
-	@Value("$ap.file.nas.sftp.host}")
+	@Value("${ap.file.nas.sftp.host}")
 	private String host;
 	
-	@Value("$ap.file.nas.sftp.port}")
+	@Value("${ap.file.nas.sftp.port}")
 	private String port;
 	
-	@Value("$ap.file.nas.sftp.user-name}")
+	@Value("${ap.file.nas.sftp.user-name}")
 	private String userName;
 	
-	@Value("$ap.file.nas.sftp.user-passwd}")
+	@Value("${ap.file.nas.sftp.user-passwd}")
 	private String userPasswd;
 
-	@Value("$ap.file.nas.sftp.remote-target-dir}")
+	@Value("${ap.file.nas.sftp.remote-target-dir}")
 	private String remoteTargetDir;
+	
+	@Value("${ap.file.local-path}")
+	private String localFilePath;
 	
 	private Session session;
 	
@@ -47,7 +50,7 @@ public class FisSftpPropertyObject {
 
 	private static FisSftpPropertyObject instance;
 
-	public Session getSftpSession(){
+	public ChannelSftp getSftpChannel(){
 
 		if(fileMode.equals(FisConstant.remote.name())){
 
@@ -64,14 +67,14 @@ public class FisSftpPropertyObject {
 				this.channel = (ChannelSftp) session.openChannel(FisConstant.sftp.name());
 				this.channel.connect();
 
+				
 			} catch (JSchException e) {
 				// TODO Auto-generated catch block
 				log.error("## Error JSchException : ",e);
-			}
-			return session;
+			}			
 		}
-		return null;
-
+		
+		return  (ChannelSftp)channel;
 
 	}
 	

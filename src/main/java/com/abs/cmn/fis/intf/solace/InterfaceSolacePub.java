@@ -1,12 +1,22 @@
 package com.abs.cmn.fis.intf.solace;
 
+import java.util.HashMap;
+
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solacesystems.jcsmp.*;
-import lombok.extern.slf4j.Slf4j;
+import com.solacesystems.jcsmp.DeliveryMode;
+import com.solacesystems.jcsmp.JCSMPException;
+import com.solacesystems.jcsmp.JCSMPFactory;
+import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
+import com.solacesystems.jcsmp.SDTMap;
+import com.solacesystems.jcsmp.TextMessage;
+import com.solacesystems.jcsmp.Topic;
+import com.solacesystems.jcsmp.XMLMessageProducer;
 
-import java.util.HashMap;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InterfaceSolacePub {
@@ -15,7 +25,6 @@ public class InterfaceSolacePub {
     private static InterfaceSolacePub instance;
     private JCSMPSession session;
     private XMLMessageProducer messageProducer;
-
 
     public InterfaceSolacePub() {
     }
@@ -46,17 +55,17 @@ public class InterfaceSolacePub {
         return instance;
     }
 
-    public void sendBasicTextMessage(String payload, String queueName){
+    public void sendBasicTextMessage(String cid, String payload, String topicName){
         try{
 
             XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
             TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
 
             txtMsg.setText(payload);
-
-            Queue queue = JCSMPFactory.onlyInstance().createQueue(queueName);
-
-            prod.send(txtMsg, queue);
+//            Topic topic = JCSMPFactory.onlyInstance().createTopic(topicName);
+            
+            txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
+            prod.send(txtMsg, createTopic(topicName));
         }catch (Exception e){
 
             e.printStackTrace();

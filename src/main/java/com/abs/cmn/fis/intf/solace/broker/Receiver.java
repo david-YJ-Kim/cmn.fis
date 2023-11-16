@@ -1,18 +1,42 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.xml.ws.Response;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JsonParser;
+
+import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
+import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
 import com.abs.cmn.fis.util.ApplicationContextProvider;
 import com.abs.cmn.fis.util.FisMessageList;
-import com.solacesystems.jcsmp.*;
+import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.ConsumerFlowProperties;
+import com.solacesystems.jcsmp.EndpointProperties;
+import com.solacesystems.jcsmp.FlowReceiver;
+import com.solacesystems.jcsmp.InvalidPropertiesException;
+import com.solacesystems.jcsmp.JCSMPException;
+import com.solacesystems.jcsmp.JCSMPFactory;
+import com.solacesystems.jcsmp.JCSMPProperties;
+import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.Queue;
+import com.solacesystems.jcsmp.SDTMap;
+import com.solacesystems.jcsmp.TextMessage;
+import com.solacesystems.jcsmp.XMLMessageListener;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
 
 @Slf4j
 public class Receiver implements Runnable {
 
-//	private CountDownLatch latch;
+
 	private JCSMPSession session;
 	private ArrayList<String> queueList;
 	private Queue queue;
@@ -21,6 +45,10 @@ public class Receiver implements Runnable {
 //	private String module_name;
 	private String thread_name;
 	private String queue_name;
+	
+    @Autowired
+    private InterfaceSolacePub interfaceSolacePub;
+
 
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
 //		this.latch = latch;
@@ -68,27 +96,94 @@ public class Receiver implements Runnable {
 		@Override
 		public void onReceive(BytesXMLMessage message) {
 
-			String filePath = "C:\\Workspace\\abs\\cmn\\fis-new\\src\\main\\resources\\";
-			String fileName = "Absolics계측결과파일표준_20230918.csv";
-			String fileType = "INSP";
-
-			String fileFormatType = "FORMAT";
+//			String filePath = "C:\\Workspace\\abs\\cmn\\fis-new\\src\\main\\resources\\";
+//			String filePath = "D:\\work-spaces\\FIS-work-space\\fis\\src\\main\\resources\\";
+//			String fileName = "Absolics계측결과파일표준_20230918.csv";
+//			String fileType = "INSP";
+//
+//			String fileFormatType = "FORMAT";
 			String cid = "FIS_FILE_REQ"; // CID
+			
 
 			try{
-
-				switch (cid){
+//				String cid = null;
+				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
+					
+					// TODO 파싱 기준 데이터  1. 리로딩
+					// 				  2. 대체 
+					
+				} else {
+				
+					JSONObject msg = null;
+					String payload = "";
+//					SDTMap userProperty = message.getProperties();
+					SDTMap userProperty = JCSMPFactory.onlyInstance().createMap();
+					
+					userProperty.putString("cid", cid);
+					
+					cid = userProperty.getString("cid");
+					
+					log.info("cid "+userProperty.getString("cid") );
+					
+					if ( message instanceof TextMessage) {
+						payload = ((TextMessage) message).getText();					
+					} else {
+						payload = new String( message.getBytes(), "UTF-8");
+					}
+					
+					payload ="{\r\n" + 
+							"	\"body\":{\r\n" + 
+							"		\"fileType\":\"MEAS\",\r\n" + 
+							"		\"filePath\":\"D:\\\\work-spaces\\\\FIS-work-space\\\\fis\\\\src\\\\main\\\\resources\\\\\",\r\n" + 
+							"		\"fileName\":\"Absolics계측결과파일표준_20230918.csv\",\r\n" + 
+							"		\"eqpId\":\"AM-YG-09-01\",\r\n" + 
+							"		\"src\":\"BRS\",\r\n" + 
+							"		\"fileFormatType\":\"FORMAT\",\r\n" + 
+							"	}\r\n" + 
+							"}"; 
+							
+					
+					log.info("payload: "+payload);
+					
+					msg = new JSONObject(payload);
+										
+					if (msg != null) log.info("msg : "+msg.toString());
+					
+					JSONObject msgbody = new JSONObject(msg.get("body").toString());
+					
+					log.info("msgbody : "+ msgbody.toString());
+					
+					String fileType =  msgbody.getString("fileType"); 
+					String fileName = msgbody.getString("fileName");
+					String filePath = msgbody.getString("filePath");
+					String eqpId = msgbody.getString("eqpId");
+					String reqSystem = msgbody.getString("src");
+					String fileFormatType = msgbody.getString("fileFormatType");
+					
+					switch (cid){
 					case FisMessageList.FIS_FILE_REQ:
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
-						String key = fisFileParsingExecute.execute(fileType, fileName, filePath, "eqpId", "WFS", fileFormatType);
+						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);
+						msgbody.put("workId", response.get("workId"));
+						msgbody.put("status", response.get("status"));
+						msg.put("body", msgbody.toString());
+						interfaceSolacePub.sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName()); //????
 						break;
 					case FisMessageList.FIS_INTF_COMP:
+						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
+						fisFileMoveExecute.init();
+						fisFileMoveExecute.execute(msgbody.getString("fileType"), msgbody.getString("fileName"), msgbody.getString("filePath"), msgbody.getString("workId"));
+						break;
+					default:
+						log.error("## Invalied cid : "+cid);
+						break;
+					}
 
 				}
-
+				
 			}catch (Exception e){
-
+				log.error("##  Receiver.onReceive() Exception : ", e); 
 			}
 
 
