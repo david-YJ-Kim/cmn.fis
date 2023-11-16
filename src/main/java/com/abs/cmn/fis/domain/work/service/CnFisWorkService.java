@@ -17,12 +17,12 @@ public class CnFisWorkService {
 
     public CnFisWork saveEntity(CnFisWorkSaveRequestVo vo){
         try{
-
             CnFisWork entity = vo.toEntity();
             log.info(entity.toString());
             return this.repository.save(entity);
         }catch (Exception e){
             e.printStackTrace();
+            log.error(e.getMessage());
             return null;
         }
 

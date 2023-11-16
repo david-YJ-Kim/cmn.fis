@@ -59,7 +59,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                                     .requestSystemName(reqSystem)
                                     .processState(FisConstant.R.name())
                                     .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
-                                    .updateUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
+                                    .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .build();
         String key = this.workService.saveEntity(vo).getWorkId();
 
