@@ -44,7 +44,6 @@ public class FisPropertyObject {
 
     @Value("${ap.query.parsing.rollback}")
     private String rollbackQuery;
-
     
     @Value("${ap.query.rule.parsing}")
     private String selectParsingRuleDataSql;
@@ -52,11 +51,19 @@ public class FisPropertyObject {
     @Value("${ap.query.rule.mapping}")
     private String selectMappingRuleDataSql;
     
-
+    // 프로세스에서 사용하는 룰 객체 
     private List<ParsingRuleVo> parsingRule;
-
     private List<ParsingRuleVo> mappingRule;
-
+    
+    // 패치 예정인 룰정보
+    private List<ParsingRuleVo> prepParsingRule;
+    private List<ParsingRuleVo> prepMappingRule;
+    
+    // 직전 사용 하던 룰 정보 - 롤백을 대비한 보관
+    private List<ParsingRuleVo> pastParsingRule;
+    private List<ParsingRuleVo> pastMappingRule;
+    
+    
     private String[] inspectionColumList;
 
     private String[] measurementColumList;
@@ -97,6 +104,22 @@ public class FisPropertyObject {
 
     public void setMappingRule(List<ParsingRuleVo> mappingRule) {
         this.mappingRule = mappingRule;
+    }
+    
+    public void setPrepParsingRule(List<ParsingRuleVo> parsingRule) {
+        this.prepParsingRule = parsingRule;
+    }
+
+    public void setPrepMappingRule(List<ParsingRuleVo> mappingRule) {
+        this.prepMappingRule = mappingRule;
+    }
+    
+    public void setPastParsingRule(List<ParsingRuleVo> parsingRule) {
+        this.pastParsingRule = parsingRule;
+    }
+
+    public void setPastMappingRule(List<ParsingRuleVo> mappingRule) {
+        this.pastMappingRule = mappingRule;
     }
 
     public void setInspectionColumList(String[] inspectionColumList) {

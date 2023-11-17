@@ -4,5 +4,6 @@ public final class FisMessageList {
 
     public static final String FIS_FILE_REQ = "FIS_FILE_REQ";
     public static final String FIS_INTF_COMP = "FIS_INTF_COMP";
+    public static final String FIS_INTF_FAIL = "FIS_INTF_FAIL";
 
 }

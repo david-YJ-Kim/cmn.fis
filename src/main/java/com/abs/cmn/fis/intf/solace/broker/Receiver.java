@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -15,7 +16,9 @@ import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
 import com.abs.cmn.fis.util.ApplicationContextProvider;
+import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.FisMessageList;
+import com.abs.cmn.fis.util.code.FisConstant;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
 import com.solacesystems.jcsmp.EndpointProperties;
@@ -46,7 +49,6 @@ public class Receiver implements Runnable {
 	private String thread_name;
 	private String queue_name;
 	
-    @Autowired
     private InterfaceSolacePub interfaceSolacePub;
 
 
@@ -102,25 +104,33 @@ public class Receiver implements Runnable {
 //			String fileType = "INSP";
 //
 //			String fileFormatType = "FORMAT";
-			String cid = "FIS_FILE_REQ"; // CID
+//			String cid = "FIS_FILE_REQ"; // CID
 			
 
 			try{
-//				String cid = null;
+				String cid = null;				
+				SDTMap userProperty = message.getProperties();				
+//				SDTMap userProperty = JCSMPFactory.onlyInstance().createMap();
+				
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
 					
-					// TODO 파싱 기준 데이터  1. 리로딩
-					// 				  2. 대체 
+					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
+					// 				  2. 대체	ELSE
+					if ( userProperty.getString("cid").equals(FisConstant.RELOAD_RULE.name()) )
+						FisCommonUtil.reloadBaseRuleData();
+					else if ( userProperty.getString("cid").equals(FisConstant.PATCH_RULE.name()) )
+						FisCommonUtil.applicationNewBaseRulse();
+					else 
+						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
 					
 				} else {
 				
 					JSONObject msg = null;
 					String payload = "";
-//					SDTMap userProperty = message.getProperties();
-					SDTMap userProperty = JCSMPFactory.onlyInstance().createMap();
+			
+//					userProperty.putString("cid", cid);
 					
-					userProperty.putString("cid", cid);
-					
+					log.info("@@ dump : "+message.dump());
 					cid = userProperty.getString("cid");
 					
 					log.info("cid "+userProperty.getString("cid") );
@@ -131,16 +141,16 @@ public class Receiver implements Runnable {
 						payload = new String( message.getBytes(), "UTF-8");
 					}
 					
-					payload ="{\r\n" + 
-							"	\"body\":{\r\n" + 
-							"		\"fileType\":\"MEAS\",\r\n" + 
-							"		\"filePath\":\"D:\\\\work-spaces\\\\FIS-work-space\\\\fis\\\\src\\\\main\\\\resources\\\\\",\r\n" + 
-							"		\"fileName\":\"Absolics계측결과파일표준_20230918.csv\",\r\n" + 
-							"		\"eqpId\":\"AM-YG-09-01\",\r\n" + 
-							"		\"src\":\"BRS\",\r\n" + 
-							"		\"fileFormatType\":\"FORMAT\",\r\n" + 
-							"	}\r\n" + 
-							"}"; 
+//					payload ="{\r\n" + 
+//							"	\"body\":{\r\n" + 
+//							"		\"fileType\":\"INSP\",\r\n" + 
+//							"		\"filePath\":\"D:\\\\work-spaces\\\\FIS-work-space\\\\fis\\\\src\\\\main\\\\resources\\\\\",\r\n" + 
+//							"		\"fileName\":\"검사결과_파일표준_20231116.csv\",\r\n" + 
+//							"		\"eqpId\":\"AM-YG-09-01\",\r\n" + 
+//							"		\"userId\":\"BRS\",\r\n" + 
+//							"		\"fileFormatType\":\"FORMAT\",\r\n" + 
+//							"	}\r\n" + 
+//							"}"; 
 							
 					
 					log.info("payload: "+payload);
@@ -157,24 +167,38 @@ public class Receiver implements Runnable {
 					String fileName = msgbody.getString("fileName");
 					String filePath = msgbody.getString("filePath");
 					String eqpId = msgbody.getString("eqpId");
-					String reqSystem = msgbody.getString("src");
+					String reqSystem = msgbody.getString("userId");
 					String fileFormatType = msgbody.getString("fileFormatType");
-					
+
 					switch (cid){
 					case FisMessageList.FIS_FILE_REQ:
+						// TODO : Work table 상태 P (파싱)
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
-						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);
-						msgbody.put("workId", response.get("workId"));
+						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);						
 						msgbody.put("status", response.get("status"));
-						msg.put("body", msgbody.toString());
-						interfaceSolacePub.sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName()); //????
+						msgbody.put("workId", response.get("workId"));
+						msg.put("body", msgbody.toString());					
+						InterfaceSolacePub.getInstance().sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName());
+						// TODO : Work table 상태 (파싱 완료)
 						break;
+						
 					case FisMessageList.FIS_INTF_COMP:
+						// TODO : Work table 상태 D (삭제시작)
+						String workId = msgbody.getString("workId");
 						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
 						fisFileMoveExecute.init();
-						fisFileMoveExecute.execute(msgbody.getString("fileType"), msgbody.getString("fileName"), msgbody.getString("filePath"), msgbody.getString("workId"));
+						// TODO : toFilePath 를 찾아오는 method util 에 생성하여 사용 
+						String tofilePath = filePath+FisPropertyObject.getInstance().getParsingRule().get(1).getTargetFileMovePath().replace(".\\", "")+"\\\\";  
+						fisFileMoveExecute.execute(filePath, fileName, tofilePath, workId, FisMessageList.FIS_INTF_COMP);
+						// TODO : Work table 상태 (삭제 완료)
 						break;
+//					case FisMessageList.FIS_INTF_FAIL:	//데이터만 삭제 - BRS에서 입력 실패 파일에 대한 메세지를 송신 해 줄 때 사용 (미정) 
+//						String workId = msgbody.getString("workId");
+//						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
+//						fisFileMoveExecute.init();
+//						fisFileMoveExecute.execute(filePath, fileName, tofilePath, workId);
+//						break;
 					default:
 						log.error("## Invalied cid : "+cid);
 						break;
@@ -182,11 +206,11 @@ public class Receiver implements Runnable {
 
 				}
 				
+				message.ackMessage();
+				
 			}catch (Exception e){
 				log.error("##  Receiver.onReceive() Exception : ", e); 
 			}
-
-
 
 			try {
 //				log.info("================ Solace Method Before");
@@ -241,10 +265,15 @@ public class Receiver implements Runnable {
 
 		@Override
 		public void onException(JCSMPException exception) {
-//			consumer.stop();
-//			consumer.close();
-//			latch.countDown();
-			exception.printStackTrace();
+			
+			try {
+				if ( session.isClosed()) session.connect();
+				if ( consumer.isClosed()) consumer.start();
+			} catch (JCSMPException e) {
+				// TODO Auto-generated catch block
+				log.error("## Receiver , onException : ",e);
+			}
+
 			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException("Unimplemented method 'onException'");
 		}

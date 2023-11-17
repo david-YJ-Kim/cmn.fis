@@ -2,16 +2,41 @@ package com.abs.cmn.fis.domain.edm.repository;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.util.code.FisConstant;
+import com.abs.cmn.fis.util.code.FisFileType;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.type.descriptor.sql.JdbcTypeFamilyInformation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 
+import java.io.InputStream;
+import java.io.Reader;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.JDBCType;
+import java.sql.NClob;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
+import java.sql.Ref;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.SQLXML;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -40,16 +65,19 @@ public class ParsingDataRepository {
 		}
 
 		try {
-			if (fileType.equals(FisConstant.Inpection.name())) {
-				log.info("Insert For File type : {}", FisConstant.Inpection.name());
+			String sql = null;			
+			if (fileType.equals(FisFileType.INSP.name())) {
+				sql = FisPropertyObject.getInstance().getInsertParsingInspectionDataSql();
+			} else {
+				sql = FisPropertyObject.getInstance().getInsertParsingMeasurementDataSql();
+			}
+			
+				log.info("Insert For File type : {}", FisFileType.INSP.name());
 				jdbcTemplate.setFetchSize(1000);
 				log.info(" #@#@ inspectionColumList length : "+ inspectionColumList.length);
-				jdbcTemplate.batchUpdate(
-						FisPropertyObject.getInstance().getInsertParsingInspectionDataSql(),
-						new BatchPreparedStatementSetter() {
+				jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 							@Override
 							public void setValues(PreparedStatement ps, int i) throws SQLException {
-								
 								
 								// TODO List<MAP> 변환 필요
 								Map<String, String> map = listMap.get(i);
@@ -71,30 +99,21 @@ public class ParsingDataRepository {
 				return "Complete";
 				// TODO : 입력 중 오류 방생 시 Rollback 은 신규 thread 생성 하여, 입력 중이던 파일의 모든 데이터를 삭제 처리
 
-
-			} else {
-
-				log.info(fileType);
-			}
-
 		} catch (Exception vo) {
 			vo.printStackTrace();
 			log.error("## ", vo);
 		}
 
-
 		return workId;
 	}
 
-
-//	@Transactional()
 	public String batchInsert(String fileType, List<Map<String, String>> insertData, String workId) {
 		TransactionStatus status = null;
 		int[] ret;
 		
 		try {
-			if (fileType.equals(FisConstant.Inpection.name())) {
-				log.info("Insert For File type : {}", FisConstant.Inpection.name());
+			if (fileType.equals(FisFileType.INSP.name())) {
+				log.info("Insert For File type : {}", FisFileType.INSP.name());
 
 //				ret = jdbcTemplate.batchUpdate(inserParsingInspectData, insertData);
 				jdbcTemplate.batchUpdate(
@@ -137,12 +156,6 @@ public class ParsingDataRepository {
 								ps.setString(22, "ATTR_2");
 								ps.setString(23, "ATTR_N");
 								ps.setString(24, "FILE_NM");
-
-
-
-
-
-
 
 //								for(String value : map.values()){
 //									ps.setString(i, value);
@@ -196,13 +209,9 @@ public class ParsingDataRepository {
 		}
 	}
 	
-	public String deleteBatch(String key) throws SQLException {
+	public String deleteBatch(String key, int batchSize) throws SQLException {
 		
 		int deletedRowNum[] = null;//jdbcTemplate.update(FisPropertyObject.getInstance().getRollbackQuery(), key);
-
-//		PreparedStatement preparedStatement = jdbcTemplate.getDataSource()
-//											.getConnection()
-//											.prepareStatement(FisPropertyObject.getInstance().getRollbackQuery()); 
 		
 		BatchPreparedStatementSetter batchSetter = new BatchPreparedStatementSetter() {
 			
@@ -210,20 +219,23 @@ public class ParsingDataRepository {
 			public void setValues(PreparedStatement ps, int i) throws SQLException {
 				// TODO Auto-generated method stub
 				ps.setString(1, key);
+				ps.setInt(2, batchSize);
 			}
 			
 			@Override
 			public int getBatchSize() {
 				// TODO Auto-generated method stub
-				return 1000;
+				return batchSize;
 			}
 		};
 		
 		deletedRowNum = jdbcTemplate.batchUpdate(FisPropertyObject.getInstance().getRollbackQuery(), batchSetter);
+		log.debug("## deletedRowNum : "+Arrays.toString(deletedRowNum));
 		
 		if ( deletedRowNum.length < 0)
 			return FisConstant.DELETE_FAIL.name();			
 		else
 			return FisConstant.DELETE_BATCH.name();
 	}
+	
 }

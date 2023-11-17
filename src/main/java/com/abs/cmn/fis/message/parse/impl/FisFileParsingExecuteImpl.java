@@ -4,11 +4,15 @@ import com.abs.cmn.fis.domain.edm.model.CnFisEdcTmpVo;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
+import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
+import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisConstant;
+import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.service.FileManager;
 //import com.abs.cmn.fisnew.util.service.FileParser;
 import com.abs.cmn.fis.util.service.FileParser;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +42,9 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     @Autowired
     private CnFisWorkService workService;
+    
+    @Autowired
+    private FisFileMoveExecute filedelete;
 
 
     @Override
@@ -71,11 +78,13 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         // TODO 파싱 시작 해더 가져오기
         // 빈차장 소스 머지
-//        int startHeader = FisCommonUtil.getParsingStartPoint(eqpId, fileType, fileFormatType);
-        int startHeader = 0;
+        int startHeader = FisCommonUtil.getParsingStartPoint(eqpId, fileType, fileFormatType);
 
         // TODO 파일 파싱하기
+        long parsingStartTime = System.currentTimeMillis();
         List<Map<String,String>> parsingResult = this.fileParser.parsCsvLine(file, startHeader, key);
+        log.info("Parsing ElapsedTime: {}ms", System.currentTimeMillis() - parsingStartTime);
+        long parsingTime = System.currentTimeMillis() - parsingStartTime;
         log.debug(parsingResult.toString());
 
         String[] columList = parsingResult.get(0).keySet().toArray(new String[0]);
@@ -88,14 +97,27 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
 
         // TODO DB 적재
-        String fileTypeConstant = FisConstant.Inpection.name(); // For Test
+        String fileTypeConstant = fileType; // FisFileType.INSP.name(); // For Test
         // String status = this.parsingDataRepository.batchInsert(fileTypeConstant, parsingResult, key);
 
         long startTime = System.currentTimeMillis();
-        String status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
-        log.info("ElapsedTime: {}ms", System.currentTimeMillis() - startTime);
+        String status = "";
+        
+        status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
+    	if (status.equals(key)) 
+    		;	// 삭제 요청
+    	else ;
+        
+//        for (int i=0 ; i < Math.ceil((double)parsingResult.size()/1000); i ++) {
+//        	status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
+//        	if (status.equals(key)) break;	// batchinsert 실패시 workId 반환
+//        	else continue;
+//        }
+        
+        log.info("DB Insert ElapsedTime: {}ms, Parsing Time: {}ms", System.currentTimeMillis() - startTime, parsingTime);
         log.info(status);
 
+        // 리턴 데이터 
         log.info("Send key to EDC : {}", key);
         Map<String, String> response = new HashMap<String, String>();
         response.put("status", status);

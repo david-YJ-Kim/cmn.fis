@@ -3,6 +3,8 @@ package com.abs.cmn.fis.util;
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingDataMappingInfo;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingFileInfo;
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingDataMappingInfoService;
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingFileInfoService;
 import com.abs.cmn.fis.util.vo.ParsingRuleVo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,8 +14,16 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Slf4j
 public class FisCommonUtil {
+	
+	@Autowired
+    private static CnFisIfParsingDataMappingInfoService cnFisIfParsingDataMappingInfoService;
+	
+	@Autowired
+    private static CnFisIfParsingFileInfoService cnFisIfParsingFileInfoService;
 
     public static String generateClientName(String groupName, String siteName, String envType, String processSeq){
         return String.format("%s-%s-%s-", groupName, siteName, envType) + String.format("%04d", Integer.valueOf(processSeq) );
@@ -77,9 +87,21 @@ public class FisCommonUtil {
 
     public static int getParsingStartPoint(String eqpId, String fileType, String fileFormatType){
         // TODO 기준 정보 순회
-        FisPropertyObject.getInstance().getParsingRule();
+    	
+        List<ParsingRuleVo> rule =  FisPropertyObject.getInstance().getParsingRule();
+        
+        int parsingStart = 0;
+        
+        for (ParsingRuleVo vo : rule) {
+        	if ( vo.getEqpName().equals(eqpId) && vo.getFileType().equals(fileType) && vo.getFileFormatType().equals(fileFormatType) ) {
+        		parsingStart = vo.getParsingRowInfos()[0];
+        		break;
+        	} else {
+        		parsingStart = 0;	// 임의 설정 값 프로퍼티로?
+        	}
+        }
 
-        return 3;
+        return parsingStart;
 
     }
 
@@ -179,6 +201,53 @@ public class FisCommonUtil {
         }
 
         return result;
+    }
+    
+    public static boolean reloadBaseRuleData() {
+    	try {
+	    	// DB에서 기준 정보 읽어옴
+	    	List<CnFisIfParsingDataMappingInfo> mappingInfoEntities = cnFisIfParsingDataMappingInfoService.getAllEntities();
+	        List<ParsingRuleVo> mappingInfoVos = FisCommonUtil.convertMappingInfoInfoVo(mappingInfoEntities);
+	        FisPropertyObject.getInstance().setPrepMappingRule(mappingInfoVos);
+	
+	        List<CnFisIfParsingFileInfo> parsingInfoEntities = cnFisIfParsingFileInfoService.getAllEntities();
+	        List<ParsingRuleVo> parsingInfoVos = FisCommonUtil.convertParsingInfoInfoVo(parsingInfoEntities);
+	        FisPropertyObject.getInstance().setPrepParsingRule(parsingInfoVos);
+	        
+	        // 현재 운영 룰 past에 저장 해 놓음
+	        FisPropertyObject.getInstance().setPastMappingRule(
+	        		FisPropertyObject.getInstance().getMappingRule()
+	        		);
+	        FisPropertyObject.getInstance().setPastParsingRule(
+	        		FisPropertyObject.getInstance().getParsingRule()
+	        		);
+	        
+	        return true;
+        
+    	} catch (Exception e) {
+    		log.info("## FisCommonUtil, reloadBaseRuleData ", e);
+    		return false;
+    	}       
+    	
+    }
+    
+    // 준비된 기준정보를 적용 
+    public static boolean applicationNewBaseRulse() {
+    	try {
+    		
+    		FisPropertyObject.getInstance().setMappingRule(
+	        		FisPropertyObject.getInstance().getPrepMappingRule()
+	        		);
+	        FisPropertyObject.getInstance().setParsingRule(
+	        		FisPropertyObject.getInstance().getPrepParsingRule()
+	        		);
+    		
+    		return true;
+    	} catch (Exception e) {    		
+    		log.info("## FisCommonUtil, applicationNewBaseRulse ", e);
+    		return false;
+    	}
+    	
     }
 
 }

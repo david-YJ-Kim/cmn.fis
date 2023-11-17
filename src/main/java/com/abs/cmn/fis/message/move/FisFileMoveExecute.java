@@ -4,5 +4,5 @@ public interface FisFileMoveExecute {
 
     void init();
 
-    void execute(String fileType, String fileName, String filePath, String workId) throws  Exception;
+    void execute(String fileType, String fileName, String filePath, String workId, String type) throws  Exception;
 }
