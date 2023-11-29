@@ -1,22 +1,5 @@
 package com.abs.cmn.fis.message.parse.impl;
 
-import com.abs.cmn.fis.domain.edm.model.CnFisEdcTmpVo;
-import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
-import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
-import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
-import com.abs.cmn.fis.message.move.FisFileMoveExecute;
-import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
-import com.abs.cmn.fis.util.FisCommonUtil;
-import com.abs.cmn.fis.util.code.FisConstant;
-import com.abs.cmn.fis.util.code.FisFileType;
-import com.abs.cmn.fis.util.service.FileManager;
-//import com.abs.cmn.fisnew.util.service.FileParser;
-import com.abs.cmn.fis.util.service.FileParser;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -25,6 +8,25 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.domain.edm.model.CnFisEdcTmpVo;
+import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
+import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
+import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
+import com.abs.cmn.fis.message.move.FisFileMoveExecute;
+import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
+import com.abs.cmn.fis.util.FisCommonUtil;
+import com.abs.cmn.fis.util.code.FisConstant;
+import com.abs.cmn.fis.util.service.FileManager;
+//import com.abs.cmn.fisnew.util.service.FileParser;
+import com.abs.cmn.fis.util.service.FileParser;
+import com.abs.cmn.fis.util.vo.ParseRuleVo;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -70,23 +72,24 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                                     .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .build();
         String key = this.workService.saveEntity(vo).getWorkId();
-
-
+        
         // TODO 파일 읽기
         File file = this.fileManager.getFile(filePath, fileName);
 
 
         // TODO 파싱 시작 해더 가져오기
         // 빈차장 소스 머지
-        int startHeader = FisCommonUtil.getParsingStartPoint(eqpId, fileType, fileFormatType);
-
+        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(eqpId, fileType, fileFormatType);
+        int startHeader = fileRule.getParseRowValList()[0];
+        
         // TODO 파일 파싱하기
         long parsingStartTime = System.currentTimeMillis();
-        List<Map<String,String>> parsingResult = this.fileParser.parsCsvLine(file, startHeader, key);
+        List<Map<String,String>> parsingResult = this.fileParser.parsCsvLine(file, startHeader, key, fileRule);
         log.info("Parsing ElapsedTime: {}ms", System.currentTimeMillis() - parsingStartTime);
         long parsingTime = System.currentTimeMillis() - parsingStartTime;
-        log.debug(parsingResult.toString());
 
+        // TODO Parsing : P 상태로 work table update
+        
         String[] columList = parsingResult.get(0).keySet().toArray(new String[0]);
         log.info(Arrays.toString(columList));
 
@@ -94,7 +97,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         // TEST Entity
 //        ArrayList<CnFisEdcTmpVo> entities = this.testList();
-
+        
+        // >> work history table  
 
         // TODO DB 적재
         String fileTypeConstant = fileType; // FisFileType.INSP.name(); // For Test
@@ -103,10 +107,15 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         long startTime = System.currentTimeMillis();
         String status = "";
         
-        status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
-    	if (status.equals(key)) 
-    		;	// 삭제 요청
-    	else ;
+        status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult, fileRule);
+        
+     // TODO Insert : I 상태로 work table update
+        
+        // 장애 케이스 
+    	if (status.equals(key)) { 
+    		this.parsingDataRepository.deleteBatch(fileType, key, FisPropertyObject.getInstance().getBatchSize());	// 삭제 요청
+    		// TODO 장애 케이스로 return 처리, 
+    	} else ;
         
 //        for (int i=0 ; i < Math.ceil((double)parsingResult.size()/1000); i ++) {
 //        	status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);

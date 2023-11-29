@@ -15,7 +15,6 @@ import java.util.Random;
 public class InterfaceSolaceSub implements Runnable {
 
 	private JCSMPSession session;
-	private ArrayList<String> queueList;
 
     private static final String SAMPLE_NAME = InterfaceSolaceSub.class.getSimpleName();
     private static String QUEUE_NAME = "SVM_DEV_BRS_LOT_00";		// used queue name ex ) PROP_RMP_00
@@ -118,52 +117,5 @@ public class InterfaceSolaceSub implements Runnable {
 
         return true;
     }
-
-
-    //////////////////////////////////////////////////////////////////////////// developed in Receiver.java
-
-    /** Very simple static inner class, used for receives messages from Queue Flows. **/
-	/*
-	 * private static class QueueFlowListener implements XMLMessageListener {
-	 *
-	 * String queueName;
-	 *
-	 * public QueueFlowListener(String queueName) { this.queueName = queueName; }
-	 *
-	 * public void onReceive(BytesXMLMessage msg) { msgRecvCounter++; if
-	 * (msg.getRedelivered()) { // useful check // this is the broker telling the
-	 * consumer that this message has been sent and not ACKed before. // this can
-	 * happen if an exception is thrown, or the broker restarts, or the netowrk
-	 * disconnects // perhaps an error in processing? Should do extra checks to
-	 * avoid duplicate processing hasDetectedRedelivery = true; }
-	 *
-	 *
-	 * // TextMessage message = (TextMessage) msg; // System.out.println( //
-	 * "##########################\n" + // "FROM THIS QUEUE : " +
-	 * message.dump(message.getTopicNameOffset()) + // "MessageID : " +
-	 * message.getMessageId() + "\n" + // "Message Text : " + message.getText() +
-	 * "\n" + // "##########################" // ); System.out.println(
-	 * "##########################\n" + "FROM THIS QUEUE : " + this.queueName +
-	 * "##########################" );
-	 *
-	 * try { InterfaceSolacePub interfaceSolacePub =
-	 * InterfaceSolacePub.getInstance();
-	 * interfaceSolacePub.sendMessage(String.valueOf(msg)); } catch (JCSMPException
-	 * e) { System.out.println(e.toString()); }
-	 *
-	 * // Messages are removed from the broker queue when the ACK is received. //
-	 * Therefore, DO NOT ACK until all processing/storing of this message is
-	 * complete. // NOTE that messages can be acknowledged from a different thread.
-	 * msg.ackMessage(); // ACKs are asynchronous }
-	 *
-	 * public void onException(JCSMPException e) { // logger.warn("### Queue " +
-	 * QUEUE_NAME + " Flow handler received exception.  Stopping!!", e); if (e
-	 * instanceof JCSMPTransportException) { // all reconnect attempts failed
-	 * isShutdown = true; // let's quit; or, could initiate a new connection attempt
-	 * } else { // Generally unrecoverable exception, probably need to recreate and
-	 * restart the flow flowQueueReceiver.close(); // add logic in main thread to
-	 * restart FlowReceiver, or can exit the program } } }
-	 */
-
 
 }

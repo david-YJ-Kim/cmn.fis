@@ -40,7 +40,7 @@ public class FisCommonUtil {
         return keyValueString;
     }
 
-    public static List<ParseRuleRelVo> convertMappingInfoInfoVo(List<CnFisIfParseRuleRel> entities){
+    public static List<ParseRuleRelVo> convertParseRuleRelVo(List<CnFisIfParseRuleRel> entities){
 
         ArrayList<ParseRuleRelVo> voList = new ArrayList<>();
         for(CnFisIfParseRuleRel e : entities){
@@ -62,7 +62,7 @@ public class FisCommonUtil {
 
     }
 
-    public static List<ParseRuleVo> convertParsingInfoVo(List<CnFisIfParseRule> entities, List<ParseRuleRelVo> mappingInfoVos){
+    public static List<ParseRuleVo> convertParseRuleVo(List<CnFisIfParseRule> entities, List<ParseRuleRelVo> parseRuleRelVos){
 
         ArrayList<ParseRuleVo> voList = new ArrayList<>();
         for(CnFisIfParseRule e : entities){
@@ -72,32 +72,45 @@ public class FisCommonUtil {
             
             // 파싱 컬럼 문자 배열 - A,D,G,H,I,J,L 
             String [] parsingTitleStringArray = FisCommonUtil.parsingArrayStringValues(inputParsingTitleInfo);
-            int[] parsingTitleIntArray = null;						// 파싱 컬럼 문자 배열을 숫자 배열로
             
+            int[] parsingTitleIntArray = null;						// 파싱 컬럼 문자 배열을 숫자 배열로
             if (parsingTitleStringArray.length > 1 ) parsingTitleIntArray = FisCommonUtil.columnSequence(parsingTitleStringArray);
             else parsingTitleIntArray = new int[0];
+            log.info(">> parsingTitleStringArray : " + parsingTitleStringArray.toString());
+            log.info(">> parsingTitleIntArray : " + parsingTitleIntArray.toString());
             
-            String [] inputParsingRowStringArray = FisCommonUtil.parsingArrayStringValues(inputParsingRowInfo);
+            String [] inputParsingRowStringArray = null;			// 파싱 RowInfo에 * 가 있을 경우와 그렇지 않은 경우를 분류 한다. 
+            if (inputParsingRowInfo.equals("*")) inputParsingRowStringArray = null; 
+            else inputParsingRowStringArray = FisCommonUtil.parsingArrayStringValues(inputParsingRowInfo);
+            
             int[] inputParsingRowIntArray = null;
-            
             if (inputParsingRowStringArray.length > 1 ) inputParsingRowIntArray = FisCommonUtil.setRowNumList(inputParsingRowStringArray);
             else inputParsingRowIntArray = new int[0];
             
+            log.info(">> inputParsingRowStringArray : " + inputParsingRowStringArray.toString());
+            log.info(">> inputParsingRowIntArray : " + inputParsingRowIntArray.toString());
+            
             String objId = e.getObjId();
-            String query = FisCommonUtil.makeBatchInsertQuery(e.getFileTyp(), objId, mappingInfoVos);
-            String[] mappColumns = FisCommonUtil.getMappingColums(String.valueOf(objId), mappingInfoVos);
+            String query = FisCommonUtil.makeBatchInsertQuery(e.getFileTyp(), objId, parseRuleRelVos);
+            String[] mpngClmList = FisCommonUtil.getMappingColums(String.valueOf(objId), parseRuleRelVos);
+            int[] numberDtTypList = FisCommonUtil.getNumberDataTypeList(String.valueOf(objId), parseRuleRelVos);
+            int[] timeStmpDrTypList = FisCommonUtil.getTimeStempTypeList(String.valueOf(objId), parseRuleRelVos);
             
             
             ParseRuleVo vo = ParseRuleVo.builder()
+            		.objId(e.getObjId())
                     .eqpName(e.getEqpNm())
                     .fileFormatType(String.valueOf(e.getFileFmTyp()))
                     .fileType(e.getFileTyp())
                     .fileTrgtPosnVal(e.getFileTrgtPosnVal())
-                    .parsingColmIdVal(inputParsingTitleInfo)
+                    .parsingColmIdVal(e.getParsClmIdVal())
                     .parseClmIdValStrList(parsingTitleStringArray)	// 컬럼 정보 스트링 배열로
-                    .parseClmIdValIntList(parsingTitleIntArray)			// 컬럼 정보 인트 배열로
-                    .parseRowValList(inputParsingRowIntArray)		// 로우 정보 인트 배열로
+                    .parseClmIdValIntList(parsingTitleIntArray)		// 컬럼 정보 인트 배열로
                     .parseRowVal(e.getParsRowVal())
+                    .parseRowValList(inputParsingRowIntArray)		// 로우 정보 인트 배열로
+                    .mpngClmStrList(mpngClmList)					// SQL 기준 컬럼 비교 컬럼 리스트
+                    .numberDtTypList(numberDtTypList)				// 
+                    .timeStmpDrTypList(timeStmpDrTypList)
                     .queryInsertBatch(query)
                     .build();
 
@@ -108,23 +121,23 @@ public class FisCommonUtil {
 
     }
 
-    public static int getParsingStartPoint(String eqpId, String fileType, String fileFormatType){
+    public static ParseRuleVo getParsingRule(String eqpId, String fileType, String fileFormatType){
         // TODO 기준 정보 순회
     	
         List<ParseRuleVo> rule =  FisPropertyObject.getInstance().getParsingRule();
         
-        int parsingStart = 0;
+        ParseRuleVo parsingRule = null;
         
         for (ParseRuleVo vo : rule) {
         	if ( vo.getEqpName().equals(eqpId) && vo.getFileType().equals(fileType) && vo.getFileFormatType().equals(fileFormatType) ) {
-        		parsingStart = vo.getParseRowValList()[0];
+        		parsingRule = vo;
         		break;
         	} else {
-        		parsingStart = 0;	// 임의 설정 값 프로퍼티로?
+        		parsingRule = null;	// 임의 설정 값 프로퍼티로?
         	}
         }
 
-        return parsingStart;
+        return parsingRule;
 
     }
 
@@ -239,11 +252,11 @@ public class FisCommonUtil {
     	try {
 	    	// DB에서 기준 정보 읽어옴
 	    	List<CnFisIfParseRuleRel> mappingInfoEntities = cnFisIfParsingDataMappingInfoService.getAllEntities();
-	        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertMappingInfoInfoVo(mappingInfoEntities);
+	        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
 	        FisPropertyObject.getInstance().setPrepMappingRule(mappingInfoVos);
 	
 	        List<CnFisIfParseRule> parsingInfoEntities = cnFisIfParsingFileInfoService.getAllEntities();
-	        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParsingInfoVo(parsingInfoEntities, mappingInfoVos);
+	        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
 	        FisPropertyObject.getInstance().setPrepParsingRule(parsingInfoVos);
 	        
 	        // 현재 운영 룰 past에 저장 해 놓음
@@ -325,7 +338,8 @@ public class FisCommonUtil {
     	
     	return query;
     }
-
+    
+    // SQL 작성및 inserbatch 시 비교을 위한 Mapping Colum List 만들기 
     private static String[] getMappingColums(String objId, List<ParseRuleRelVo> mappingList) {
     	String[] mappingColums = null;	
     	ParseRuleRelVo vo = null;
@@ -348,6 +362,70 @@ public class FisCommonUtil {
     	}
     	
     	return mappingColums;
+    }
+    
+    // inserbatch 시 number 형 data 타입 갯수 리턴 
+    private static int[] getNumberDataTypeList(String objId, List<ParseRuleRelVo> mappingList) {
+    	String numberColums = "";
+    	String[] numberColumList = null;	
+    	ParseRuleRelVo vo = null;
+    	int cnt = 0;
+    	
+    	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
+    		vo = mappingList.get(i);
+    		if  ( objId.equals( vo.getObjId()) && vo.getClmDataTyp().equals("NUMBER")) {
+    			numberColums += String.valueOf(cnt);
+    			numberColums += String.valueOf(",");
+    			cnt++;
+    		} else if  ( objId.equals( vo.getObjId()) ) {
+    			cnt++;
+    		} else
+    			continue;
+    		
+    	}
+    	if (numberColums.lastIndexOf(",") == numberColums.length()-1)
+    		numberColumList = numberColums.substring(0, numberColums.length()-1).split(",");
+    	else
+    		numberColumList = numberColums.split(",");
+    	
+    	int[] returnList =  new int[numberColumList.length];
+    	for( int i = 0 ; i < numberColumList.length ; i ++ ) {
+    		returnList[i] = Integer.valueOf(numberColumList[i]);
+    	}
+    	
+    	return returnList;
+    }
+    
+    // inserbatch 시 number 형 data 타입 갯수 리턴 
+    private static int[] getTimeStempTypeList(String objId, List<ParseRuleRelVo> mappingList) {
+    	String timeStmpColums = "";
+    	String[] timeStmpColumList = null;	
+    	ParseRuleRelVo vo = null;
+    	int cnt = 0;
+    	
+    	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
+    		vo = mappingList.get(i);
+    		if  ( objId.equals( vo.getObjId()) && vo.getClmDataTyp().equals("TIMESTAMP")) {
+    			timeStmpColums += String.valueOf(cnt);
+    			timeStmpColums += String.valueOf(",");
+    			cnt++;
+    		} else if  ( objId.equals( vo.getObjId()) ) {
+    			cnt++;
+    		} else
+    			continue;
+    		
+    	}
+    	if (timeStmpColums.lastIndexOf(",") == timeStmpColums.length()-1)
+    		timeStmpColumList = timeStmpColums.substring(0, timeStmpColums.length()-1).split(",");
+    	else
+    		timeStmpColumList = timeStmpColums.split(",");
+    	
+    	int[] returnList =  new int[timeStmpColumList.length];
+    	for( int i = 0 ; i < timeStmpColumList.length ; i ++ ) {
+    		returnList[i] = Integer.valueOf(timeStmpColumList[i]);
+    	}
+    	
+    	return returnList;
     }
     
     // 쿼리 가져오는 method 
@@ -384,4 +462,15 @@ public class FisCommonUtil {
     	}
     	return colums;
     }
+    
+    public static boolean checkDataInList(int[] dataTypeList, int val) {
+    	for (int i = 0 ; i < dataTypeList.length ; i ++) {
+    		if ( dataTypeList[i] == val)
+    			return true;
+    		else
+    			continue;
+    	}
+    	return false;
+    }
+    
 }

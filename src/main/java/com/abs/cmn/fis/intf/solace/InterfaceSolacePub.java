@@ -2,7 +2,10 @@ package com.abs.cmn.fis.intf.solace;
 
 import java.util.HashMap;
 
+import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
+import com.abs.cmn.fis.util.FisMessageList;
+import com.abs.cmn.fis.util.code.FisFileType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solacesystems.jcsmp.DeliveryMode;
@@ -55,14 +58,24 @@ public class InterfaceSolacePub {
         return instance;
     }
 
-    public void sendBasicTextMessage(String cid, String payload, String topicName){
+    public void sendBasicTextMessage(String cid, String payload, String topicName, String fileType){
         try{
 
             XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
             TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
 
+            SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
+            
+            String sendCid = null;
+            
+            if ( fileType.equals(FisFileType.INSP.name()) )
+            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+            else 
+            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+            
+            userPropMap.putString("cid", sendCid);
             txtMsg.setText(payload);
-//            Topic topic = JCSMPFactory.onlyInstance().createTopic(topicName);
+            txtMsg.setProperties(userPropMap);
             
             txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
             prod.send(txtMsg, createTopic(topicName));
@@ -83,15 +96,6 @@ public class InterfaceSolacePub {
 
             //Byte Message
             TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-
-//            //Get Reply head
-//            BrsMsgHead replyHead = mapper.convertValue(sendMessage.get(BrsConstants.BRS_MSG_HEAD), BrsMsgHead.class);
-//
-//            topic = JCSMPFactory.onlyInstance().createTopic(SequenceManager.getTargetName(replyHead.getTgt()) );
-//
-//            //Custom Property 설정
-//            userPropMap.putString(BrsConstants.MESSAGE_ID, SequenceManageUtil.generateMessageID());
-//            userPropMap.putString(BrsConstants.CID, replyHead.getCid());
 
             txtMsg.setText(mapper.writeValueAsString(sendMessage));
             txtMsg.setProperties(userPropMap);

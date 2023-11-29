@@ -1,8 +1,10 @@
 package com.abs.cmn.fis.domain.edm.repository;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisConstant;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.vo.ParseRuleVo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,174 +46,69 @@ import java.util.Map;
 @Slf4j
 public class ParsingDataRepository {
 
-	public String[] inspectionColumList = null;
-	public String[] measurementColumList = null;
+	public String[] sqlColumList = null;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
 
-	private void initializeColumList(){
-		this.inspectionColumList = FisPropertyObject.getInstance().getInspectionColumList();
-		this.measurementColumList = FisPropertyObject.getInstance().getMeasurementColumList();
-		log.info("MeasurementQuery: {}, InspectionQuery: {}", Arrays.toString(this.measurementColumList), Arrays.toString(this.inspectionColumList));
-	}
-
-
-	public String batchEntityInsert(String workId, String fileType, List<Map<String, String>> listMap) {
-
-		if(inspectionColumList == null || measurementColumList == null){
-			this.initializeColumList();
-		}
+	public String batchEntityInsert(String workId, String fileType, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
 
 		try {
-			String sql = null;			
-			if (fileType.equals(FisFileType.INSP.name())) {
-				sql = FisPropertyObject.getInstance().getInsertParsingInspectionDataSql();
-			} else {
-				sql = FisPropertyObject.getInstance().getInsertParsingMeasurementDataSql();
-			}
 			
-				log.info("Insert For File type : {}", FisFileType.INSP.name());
-				jdbcTemplate.setFetchSize(1000);
-				log.info(" #@#@ inspectionColumList length : "+ inspectionColumList.length);
-				jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-							@Override
-							public void setValues(PreparedStatement ps, int i) throws SQLException {
-								
-								// TODO List<MAP> 변환 필요
-								Map<String, String> map = listMap.get(i);
-								for(int idx = 0; idx < inspectionColumList.length; idx++){
-									log.debug("Column:{}, Value: {}", inspectionColumList[idx], map.getOrDefault(inspectionColumList[idx], null));
-									ps.setString(idx +1, map.getOrDefault(inspectionColumList[idx], null));
-								}
+			// TODO 파일 유형의 ObjId를 가져와야 한다. 위에 패스에서 확인 할 것.
+			sqlColumList = fileRule.getMpngClmStrList();
+			
+			String query = fileRule.getQueryInsertBatch();	// TODO objId 로 전달 할 수 있도록 objId 관련 로직 전에 확인 하기
+			
+			int[] numberDataList = fileRule.getNumberDtTypList();
+			int[] timeStmpDataList = fileRule.getTimeStmpDrTypList();
+			
+			log.info("Insert For File type : {}", fileRule.getFileType());
+			jdbcTemplate.setFetchSize(FisPropertyObject.getInstance().getBatchSize()); 
+			
+			jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
+				@Override
+				public void setValues(PreparedStatement ps, int i) throws SQLException {
+					// TODO List<MAP> 변환 필요
+					Map<String, String> map = listMap.get(i);
+					for(int idx = 0; idx < sqlColumList.length; idx++){
+						log.debug("Column:{}, Value: {}", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+//						Arrays.stream(array).anyMatch(i -> i == 1);
+						if ( FisCommonUtil.checkDataInList(numberDataList, idx) ) {
+							ps.setInt(idx +1, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
+						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, idx)){
+							ps.setTimestamp(idx +1, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );;
+						} else {
+							ps.setString(idx +1, map.getOrDefault(sqlColumList[idx], null));
+						}
+					}
 
-							}
+				}
 
-							@Override
-							public int getBatchSize() {
-								// TODO Auto-generated method stub 프로퍼티 파일에 설정 할 수 있도록
-								log.info(String.valueOf(listMap.size()));
-								return listMap.size();
-							}
-						});
-				log.info("Batch Complete. maxRows: {}", jdbcTemplate.getMaxRows());
-				return "Complete";
-				// TODO : 입력 중 오류 방생 시 Rollback 은 신규 thread 생성 하여, 입력 중이던 파일의 모든 데이터를 삭제 처리
+				@Override
+				public int getBatchSize() {		// override 하는 이유를 찾아보자. - 이 안에 listmap size를 넣는게 맞는가? ,  
+					// TODO Auto-generated method stub 프로퍼티 파일에 설정 할 수 있도록
+					log.info(String.valueOf(listMap.size()));
+					return listMap.size();
+				}
+			});
+			log.info("Batch Complete. maxRows: {}", jdbcTemplate.getMaxRows());
+			return "Complete";
+			// TODO : 입력 중 오류 방생 시 Rollback 은 신규 thread 생성 하여, 입력 중이던 파일의 모든 데이터를 삭제 처리
 
 		} catch (Exception vo) {
 			vo.printStackTrace();
 			log.error("## ", vo);
 		}
-
+		
 		return workId;
 	}
 
-	public String batchInsert(String fileType, List<Map<String, String>> insertData, String workId) {
-		TransactionStatus status = null;
-		int[] ret;
-		
-		try {
-			if (fileType.equals(FisFileType.INSP.name())) {
-				log.info("Insert For File type : {}", FisFileType.INSP.name());
-
-//				ret = jdbcTemplate.batchUpdate(inserParsingInspectData, insertData);
-				jdbcTemplate.batchUpdate(
-						FisPropertyObject.getInstance().getInsertParsingInspectionDataSql(),
-						new BatchPreparedStatementSetter() {
-							@Override
-							public void setValues(PreparedStatement ps, int i) throws SQLException {
-
-//								Map<String, String> map = insertData.get(i);
-//								for(String col : columList){
-//									ps.setString(i, map.get(col));
-//								}
-//								ps.setString(i, "파일네임");
-
-								log.info("Index: {}", i);
-
-								Map<String, String> map = insertData.get(i);
-
-								ps.setString(1, "SITE_ID");
-								ps.setString(2, "PROD_DEF_ID");
-								ps.setString(3, "PROC_DEF_ID");
-								ps.setString(4, "PROC_SGMT_ID");
-								ps.setString(5, "EQP_ID");
-								ps.setString(6, "LOT_ID");
-								ps.setString(7, "PROD_MTRL_ID");
-								ps.setString(8, "SUB_PROD_MTRL_ID");
-								ps.setString(9, "MTRL_FACE_CD");
-								ps.setString(10, "INSP_REPT_CNT");
-								ps.setString(11, "X_VAL");
-								ps.setString(12, "Y_VAL");
-								ps.setString(13, "GRD_ID");
-								ps.setString(14, "DFCT_ID");
-								ps.setString(15, "DFCT_X_VAL");
-								ps.setString(16, "DFCT_Y_VAL");
-								ps.setString(17, "INSP_DT");
-								ps.setString(18, "IMG_FILE_NM");
-								ps.setString(19, "REVIEW_IMG_FILE_NM");
-								ps.setString(20, "INSP_FILE_NM");
-								ps.setString(21, "ATTR_1");
-								ps.setString(22, "ATTR_2");
-								ps.setString(23, "ATTR_N");
-								ps.setString(24, "FILE_NM");
-
-//								for(String value : map.values()){
-//									ps.setString(i, value);
-//								}
-//								for (int j = 0 ; j < insertData.size() ; j++ ) {
-//									ps.setString(i, insertData.get(i).get( keys[j] ));
-//								}
-							}
-							
-							@Override
-							public int getBatchSize() {
-								// TODO Auto-generated method stub 프로퍼티 파일에 설정 할 수 있도록
-								return insertData.size();
-							}
-				});
-
-				// TODO : 입력 중 오류 방생 시 Rollback 은 신규 thread 생성 하여, 입력 중이던 파일의 모든 데이터를 삭제 처리
-
-
-			} else {
-//				ret = jdbcTemplate.batchUpdate(inserParsingInstrumentationData, insertData);
-				jdbcTemplate.batchUpdate(FisPropertyObject.getInstance().getInsertParsingMeasurementDataSql(),
-						new BatchPreparedStatementSetter() {							
-							@Override
-							public void setValues(PreparedStatement ps, int i) throws SQLException {
-
-								Map<String, String> map = insertData.get(i);
-								for(String value : map.values()){
-									ps.setString(i, value);
-								}
-							}
-							
-							@Override
-							public int getBatchSize() {
-								// TODO Auto-generated method stub
-								return insertData.size();
-							}
-				});
-			}
-			
-		} catch (Exception vo) {
-			vo.printStackTrace();
-			log.error("## ", vo);
-		}
 	
-		// transaction result 에서 상태 확인 후 keyvalue or rollback return		
-		if (status.isCompleted()) {
-			return status.toString();
-		} else { 
-			return FisConstant.DELETE_BATCH.name();
-		}
-	}
-	
-	public String deleteBatch(String key, int batchSize) throws SQLException {
+	public String deleteBatch(String fileType, String key, int batchSize) throws SQLException {
 		
-		int deletedRowNum[] = null;//jdbcTemplate.update(FisPropertyObject.getInstance().getRollbackQuery(), key);
+		int[] deletedRowNum = null;//jdbcTemplate.update(FisPropertyObject.getInstance().getRollbackQuery(), key);
 		
 		BatchPreparedStatementSetter batchSetter = new BatchPreparedStatementSetter() {
 			
@@ -229,7 +126,14 @@ public class ParsingDataRepository {
 			}
 		};
 		
-		deletedRowNum = jdbcTemplate.batchUpdate(FisPropertyObject.getInstance().getRollbackQuery(), batchSetter);
+		String deletBatch = FisPropertyObject.getInstance().getDeleteBatchTemplate();
+		if (fileType.equals(FisFileType.INSP.name()))
+			deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameInsp());
+    	else
+    		deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameMeas()); 
+		
+		deletedRowNum = jdbcTemplate.batchUpdate(deletBatch, batchSetter);
+		
 		log.debug("## deletedRowNum : "+Arrays.toString(deletedRowNum));
 		
 		if ( deletedRowNum.length < 0)

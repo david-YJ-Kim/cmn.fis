@@ -1,6 +1,6 @@
 package com.abs.cmn.fis.domain.rule.service;
 
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingFileInfo;
+import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.repository.CnFisIfParsingFileInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class CnFisIfParsingFileInfoService {
 
     private final CnFisIfParsingFileInfoRepository repository;
 
-    public List<CnFisIfParsingFileInfo> getAllEntities(){
+    public List<CnFisIfParseRule> getAllEntities(){
         return this.repository.findAll();
     }
 }

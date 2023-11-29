@@ -47,12 +47,12 @@ public class FisApStartedActivator implements ApplicationRunner {
         // TODO 기준정보 초기화 >> VO명칭 변경  CnFisIfParsingDataMappingInfo >  CnFisIfParseRuleRel
 //    	 rule Vo 와 Mapping Vo 를 나누어 1 : N 구조롤 나눈다. 
         List<CnFisIfParseRuleRel> mappingInfoEntities = this.cnFisIfParsingDataMappingInfoService.getAllEntities();
-        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertMappingInfoInfoVo(mappingInfoEntities);
+        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
         FisPropertyObject.getInstance().setMappingRule(mappingInfoVos);
 
         // CnFisIfParsingFileInfo > VO 명을 현행화 CnFisIfParseRule
         List<CnFisIfParseRule> parsingInfoEntities = this.cnFisIfParsingFileInfoService.getAllEntities();
-        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParsingInfoVo(parsingInfoEntities, mappingInfoVos);
+        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
         FisPropertyObject.getInstance().setParsingRule(parsingInfoVos);
 
         log.info("기준정보 로딩 완료. MappingInfos: {}, ParsingInfo: {}",

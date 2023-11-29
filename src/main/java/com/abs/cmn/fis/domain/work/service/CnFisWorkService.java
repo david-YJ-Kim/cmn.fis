@@ -28,10 +28,18 @@ public class CnFisWorkService {
 
     }
 
+    // return work_id
     public Optional<CnFisWork> getEntityByObjId(String objId){
         return Optional.of(this.repository.findById(objId).get());
     }
+    
+    // update work_id status
+    public void updateEntity(String objId, String status) {
+    	Optional<CnFisWork> vo = this.repository.findById(objId);
+    	
+    }
 
+    // delete work_id
     public void deleteEntityByObjId(String objId){
         this.repository.deleteById(objId);
     }

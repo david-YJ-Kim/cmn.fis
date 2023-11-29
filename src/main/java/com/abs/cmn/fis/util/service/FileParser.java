@@ -14,7 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.abs.cmn.fis.util.FisCommonUtil;
+import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
+import com.abs.cmn.fis.util.vo.ParseRuleVo;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 
@@ -23,12 +29,9 @@ import org.springframework.stereotype.Service;
 public class FileParser {
 
 
+    public List<Map<String, String>> parsCsvLine(File file, int header, String workId, ParseRuleVo parseRule) throws IOException{
 
-
-
-    public List<Map<String, String>> parsCsvLine(File file, int header, String workId) throws IOException{
-
-        Charset.forName("UTF-8");	 // TODO 문의 : 확인 - 상위 단계에서 미리 설정해 놓을 수 있는지
+    	Charset charset = Charset.forName("UTF-8");	 // TODO 문의 : 확인 - 상위 단계에서 미리 설정해 놓을 수 있는지
 
         BufferedReader bufferedReader = null;
         List<Map<String, String>> listMapResult = null;
@@ -39,9 +42,13 @@ public class FileParser {
             if (bufferedReader != null) {
                 log.info("Check reader exist - "+ bufferedReader.toString());
             }
-
+            
+            int[] clmValList = parseRule.getParseClmIdValIntList();
+            int[] rowValeList = parseRule.getParseRowValList();
+            columList = new String[clmValList.length];
+            
             listMapResult = new ArrayList<Map<String, String>>();
-
+            
             // Header Row info 필요
             int cnt = 0;
             String csvLine = "";
@@ -50,19 +57,26 @@ public class FileParser {
 
                 Map<String, String> csvLineObject = new HashMap<String, String>();
 
+                // 컬럼 짤라 오기, >> 컬럼을 숫자로 >> 
                 // column 정보  > 추후 colum info가 있는 line을  읽어야 함.
                 if ( cnt == header ) {
-
-                    columList = csvLine.split(",");
+                	String[] parsed = csvLine.split(",");
+                	int j = 0;
+                	for ( int i = 0 ; i < parsed.length ; i++ ) {
+                		if ( FisCommonUtil.checkDataInList(clmValList, i)) {
+                			columList[j] = parsed[i];
+                			j++;
+                		} else continue;
+                	}
                     cnt++;
                     log.info("[Colum] Count : {}, headerStartCount:{},  headerLine : {}", cnt, header, csvLine);
 
-                } else if(cnt > header){
-
-                    listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject));
+                } else if(cnt > header && FisCommonUtil.checkDataInList(rowValeList, cnt) ){ // 로우 필터  >> *는 로우에서만 
+                	
+                	
+                    listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
                     cnt++;
                     log.info("[Row] Count : {}, header:{},  csvLine : {}", cnt, header, csvLine);
-
 
                 }else{
                     log.info("[Row-Else] Count : {}, header:{},  csvLine : {}", cnt, header, csvLine);
@@ -90,14 +104,19 @@ public class FileParser {
 
     }
 
-    private Map<String, String> saveLineInMap(String workId, String[] colList, String csvLine, Map<String, String> obj){
+    private Map<String, String> saveLineInMap(String workId, String[] colList, String csvLine,
+    							Map<String, String> obj, int[] clmValList){
 
         String[] rows = csvLine.split(",");
-
+        int c = 0;
         for (int i = 0 ; i < rows.length ; i++ ){
-
-            obj.put(colList[i], rows[i]);
+        	if ( FisCommonUtil.checkDataInList(clmValList, i) ) {
+        		obj.put(colList[c], rows[i]);
+        		c++;
+        	} else
+        		continue;
         }
+        // 기준 정보를 읽어오는 방식으로 바뀐다. 
         obj.put("OBJ_ID", FisCommonUtil.generateObjKey());
         obj.put("WORK_ID", workId);
         obj.put("SITE_ID", "SVM");
@@ -107,4 +126,5 @@ public class FileParser {
     }
 
 
+   
 }
