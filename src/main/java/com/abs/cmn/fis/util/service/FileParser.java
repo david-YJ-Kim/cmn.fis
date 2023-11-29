@@ -45,6 +45,9 @@ public class FileParser {
             
             int[] clmValList = parseRule.getParseClmIdValIntList();
             int[] rowValeList = parseRule.getParseRowValList();
+            if (parseRule.getParseRowVal().equals("*"))
+            	header = 0;
+            
             columList = new String[clmValList.length];
             
             listMapResult = new ArrayList<Map<String, String>>();
@@ -70,7 +73,12 @@ public class FileParser {
                 	}
                     cnt++;
                     log.info("[Colum] Count : {}, headerStartCount:{},  headerLine : {}", cnt, header, csvLine);
-
+                    
+                } else if(cnt > header && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
+                	
+                	listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
+                    cnt++;
+                    
                 } else if(cnt > header && FisCommonUtil.checkDataInList(rowValeList, cnt) ){ // 로우 필터  >> *는 로우에서만 
                 	
                 	
