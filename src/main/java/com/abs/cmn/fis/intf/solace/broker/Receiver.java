@@ -68,8 +68,6 @@ public class Receiver implements Runnable {
 			// Queue - SolAdmin에서 생성한 queue에 접속, SolAdmin에 생성되지 않은 경우 Application에서 생성
 			final Queue queue = JCSMPFactory.onlyInstance().createQueue(queue_name);
 
-//			session.provision(queue, SessionConfiguration.getSessionConfiguration().getEndpoint(), JCSMPSession.FLAG_IGNORE_ALREADY_EXISTS);
-
 			/* ConsumerFlow 설정 */
 			final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
 			// Queue에 연결할 flow 설정
@@ -98,11 +96,9 @@ public class Receiver implements Runnable {
 		@Override
 		public void onReceive(BytesXMLMessage message) {
 
-//			String filePath = "C:\\Workspace\\abs\\cmn\\fis-new\\src\\main\\resources\\";
 //			String filePath = "D:\\work-spaces\\FIS-work-space\\fis\\src\\main\\resources\\";
 //			String fileName = "Absolics계측결과파일표준_20230918.csv";
 //			String fileType = "INSP";
-//
 //			String fileFormatType = "FORMAT";
 //			String cid = "FIS_FILE_REQ"; // CID
 			
@@ -110,7 +106,6 @@ public class Receiver implements Runnable {
 			try{
 				String cid = null;				
 				SDTMap userProperty = message.getProperties();				
-//				SDTMap userProperty = JCSMPFactory.onlyInstance().createMap();
 				
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
 					
@@ -128,8 +123,6 @@ public class Receiver implements Runnable {
 					JSONObject msg = null;
 					String payload = "";
 			
-//					userProperty.putString("cid", cid);
-					
 					log.info("@@ dump : "+message.dump());
 					cid = userProperty.getString("cid");
 					
@@ -175,24 +168,30 @@ public class Receiver implements Runnable {
 						// TODO : Work table 상태 P (파싱)
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
-						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);						
+						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);	
+						// 장애 상황 대응 필요 >> status 는 'D'로 변경
 						msgbody.put("status", response.get("status"));
 						msgbody.put("workId", response.get("workId"));
 						msg.put("body", msgbody.toString());					
-						InterfaceSolacePub.getInstance().sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName());
+						InterfaceSolacePub.getInstance().sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
 						// TODO : Work table 상태 (파싱 완료)
 						break;
 						
-					case FisMessageList.FIS_INTF_COMP:
-						// TODO : Work table 상태 D (삭제시작)
+					case FisMessageList.FIS_INSP_DATA_SAVE_REP:
+					case FisMessageList.FIS_MEAS_DATA_SAVE_REP:
+						// TODO : Work table 상태 C (삭제시작)
 						String workId = msgbody.getString("workId");
 						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
 						fisFileMoveExecute.init();
-						// TODO : toFilePath 를 찾아오는 method util 에 생성하여 사용 
-						String tofilePath = filePath+FisPropertyObject.getInstance().getParsingRule().get(1).getTargetFileMovePath().replace(".\\", "")+"\\\\";  
-						fisFileMoveExecute.execute(filePath, fileName, tofilePath, workId, FisMessageList.FIS_INTF_COMP);
+						fisFileMoveExecute.execute(fileType, fileName, filePath, workId, FisMessageList.FIS_INTF_COMP);
 						// TODO : Work table 상태 (삭제 완료)
 						break;
+					case FisMessageList.FIS_DLT_REQ:
+						// TODO : work table 조회 > 'C', 'D' 상태 읽기
+						// 'C', 'D' 상태의 workid list 롤 만들기, 
+						// DeleteBatch() 하고, 
+						// Work History 에 insert > work table 삭제
+//						break;
 //					case FisMessageList.FIS_INTF_FAIL:	//데이터만 삭제 - BRS에서 입력 실패 파일에 대한 메세지를 송신 해 줄 때 사용 (미정) 
 //						String workId = msgbody.getString("workId");
 //						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
@@ -212,55 +211,6 @@ public class Receiver implements Runnable {
 				log.error("##  Receiver.onReceive() Exception : ", e); 
 			}
 
-			try {
-//				log.info("================ Solace Method Before");
-//				log.info("Request Time : " + CommonDate.getTimeUI(System.currentTimeMillis()));
-//
-//				log.info(message.getCorrelationId());
-//				InterfaceSolacePub.getInstance().sendSelectorReply(message, "HelloWorld");
-//				log.info("Send Complete");
-//
-//
-//				// Set TraceID
-//				MDC.put(MesConstants.TRACE_ID, UUID.randomUUID().toString());
-//
-////             log.info("dump: \n{}", message.dump());
-//				SDTMap map = message.getProperties();
-//				String body = "";
-//				if (message instanceof TextMessage) {
-//					body = ((TextMessage) message).getText();
-//				} else if (message instanceof MapMessage) {
-//					MapMessage msg = (MapMessage) message;
-//
-//				} else {
-//					byte[] byteMsg = message.getBytes();
-//					body = new String(byteMsg);
-//
-//				}
-//				ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//
-//				String cid = map.get(BrsConstants.CID) != null ? map.get(BrsConstants.CID).toString() : "";
-//				String messageId = map.get(BrsConstants.MESSAGE_ID) != null ? map.get(BrsConstants.MESSAGE_ID).toString() : "";
-//				log.info("Request MessageId : " + messageId);
-//				log.info("Request CID : " + cid);
-//				log.info("Request Body : " + body);
-//
-//				BrsMessageCommonUtils brsMessageCommonUtils = ApplicationContextProvider.getBean(BrsMessageCommonUtils.class);
-//				BrsResponseIVO brsResponseIVO = new BrsResponseIVO();
-//
-//				message.ackMessage(); // manual ack mode 일 경우 명시적 추가
-//				log.info("================ Solace Method Completed");
-//				log.info("Response Time (Success): " + CommonDate.getTimeUI(System.currentTimeMillis()));
-			} catch (Exception e) {
-//				message.ackMessage();
-//				log.error("Exception Message : " + ExceptionUtils.getMessage(e));
-//				log.error("Exception StackTrace : " + ExceptionUtils.getFullStackTrace(e));
-//
-//				log.info("================ Solace Method Completed");
-//				log.info("Response Time (Fail): " + CommonDate.getTimeUI(System.currentTimeMillis()));
-//				log.info("Response Exception :" + e.toString());
-//				throw e;
-			}
 		}
 
 		@Override

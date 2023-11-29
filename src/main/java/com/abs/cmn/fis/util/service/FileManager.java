@@ -24,7 +24,7 @@ public class FileManager {
 
 	public Boolean isLocalMode(){
 		if(localMode == null){
-			localMode = FisPropertyObject.getInstance().getFileMode().equals(FisConstant.local.name()) ? true : false;
+			localMode = FisSftpPropertyObject.getInstance().getFileMode().equals(FisConstant.local.name()) ? true : false;
 		}
 		return localMode;
 	}
