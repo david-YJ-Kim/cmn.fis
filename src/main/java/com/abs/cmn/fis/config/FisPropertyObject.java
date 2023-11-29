@@ -1,7 +1,8 @@
 package com.abs.cmn.fis.config;
 
 import com.abs.cmn.fis.util.FisCommonUtil;
-import com.abs.cmn.fis.util.vo.ParsingRuleVo;
+import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
+import com.abs.cmn.fis.util.vo.ParseRuleVo;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -21,13 +22,11 @@ public class FisPropertyObject {
     private String siteName;
     @Value("${ap.info.env}")
     private String envType;
-
-    @Value("${ap.file.mode}")
-    private String fileMode;
-
     @Value("${ap.info.sequence}")
     private String processSeq;
+    
     private String clientName;
+    
     @Value("${ap.interface.destination.receive.queue}")
     private String receiveQueueName;
     @Value("${ap.interface.destination.receive.init}")
@@ -35,15 +34,17 @@ public class FisPropertyObject {
     @Value("${ap.interface.destination.send.topic}")
     private String sendTopicName;
     
-
-    @Value("${ap.query.parsing.Inpection}")
-    private String insertParsingInspectionDataSql;
-
-    @Value("${ap.query.parsing.Measure}")
-    private String insertParsingMeasurementDataSql;
-
-    @Value("${ap.query.parsing.rollback}")
-    private String rollbackQuery;
+    @Value("${ap.query.batchSize}")
+    private Integer batchSize;
+    @Value("${ap.query.table-name.insp}")
+    private String tableNameInsp;
+    @Value("${ap.query.table-name.meas}")
+    private String tableNameMeas;
+    
+    @Value("${ap.query.insert-template}")
+    private String insertBatchTemplate;    
+    @Value("${ap.query.del-template}")
+    private String deleteBatchTemplate;
     
     @Value("${ap.query.rule.parsing}")
     private String selectParsingRuleDataSql;
@@ -52,23 +53,17 @@ public class FisPropertyObject {
     private String selectMappingRuleDataSql;
     
     // 프로세스에서 사용하는 룰 객체 
-    private List<ParsingRuleVo> parsingRule;
-    private List<ParsingRuleVo> mappingRule;
+    private List<ParseRuleVo> parsingRule;
+    private List<ParseRuleRelVo> mappingRule;
     
     // 패치 예정인 룰정보
-    private List<ParsingRuleVo> prepParsingRule;
-    private List<ParsingRuleVo> prepMappingRule;
+    private List<ParseRuleVo> prepParsingRule;
+    private List<ParseRuleRelVo> prepMappingRule;
     
     // 직전 사용 하던 룰 정보 - 롤백을 대비한 보관
-    private List<ParsingRuleVo> pastParsingRule;
-    private List<ParsingRuleVo> pastMappingRule;
+    private List<ParseRuleVo> pastParsingRule;
+    private List<ParseRuleRelVo> pastMappingRule;
     
-    
-    private String[] inspectionColumList;
-
-    private String[] measurementColumList;
-
-
 
     private static FisPropertyObject instance;
 
@@ -98,35 +93,28 @@ public class FisPropertyObject {
         instance = this;
     }
 
-    public void setParsingRule(List<ParsingRuleVo> parsingRule) {
+    public void setParsingRule(List<ParseRuleVo> parsingRule) {
         this.parsingRule = parsingRule;
     }
 
-    public void setMappingRule(List<ParsingRuleVo> mappingRule) {
+    public void setMappingRule(List<ParseRuleRelVo> mappingRule) {
         this.mappingRule = mappingRule;
     }
     
-    public void setPrepParsingRule(List<ParsingRuleVo> parsingRule) {
+    public void setPrepParsingRule(List<ParseRuleVo> parsingRule) {
         this.prepParsingRule = parsingRule;
     }
 
-    public void setPrepMappingRule(List<ParsingRuleVo> mappingRule) {
+    public void setPrepMappingRule(List<ParseRuleRelVo> mappingRule) {
         this.prepMappingRule = mappingRule;
     }
     
-    public void setPastParsingRule(List<ParsingRuleVo> parsingRule) {
+    public void setPastParsingRule(List<ParseRuleVo> parsingRule) {
         this.pastParsingRule = parsingRule;
     }
 
-    public void setPastMappingRule(List<ParsingRuleVo> mappingRule) {
+    public void setPastMappingRule(List<ParseRuleRelVo> mappingRule) {
         this.pastMappingRule = mappingRule;
     }
 
-    public void setInspectionColumList(String[] inspectionColumList) {
-        this.inspectionColumList = inspectionColumList;
-    }
-
-    public void setMeasurementColumList(String[] measurementColumList) {
-        this.measurementColumList = measurementColumList;
-    }
 }

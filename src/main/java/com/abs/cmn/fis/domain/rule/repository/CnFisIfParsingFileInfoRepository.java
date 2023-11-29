@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingFileInfo;
+import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 
-public interface CnFisIfParsingFileInfoRepository extends JpaRepository<CnFisIfParsingFileInfo, Long> {
+public interface CnFisIfParsingFileInfoRepository extends JpaRepository<CnFisIfParseRule, Long> {
 	
 	@Override
-	List<CnFisIfParsingFileInfo> findAll();
+	List<CnFisIfParseRule> findAll();
 	
 }

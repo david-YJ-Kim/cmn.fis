@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingDataMappingInfo;
+import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 
-public interface CnFisIfParsingDataMappingInfoRepository extends JpaRepository<CnFisIfParsingDataMappingInfo, Long> {
+public interface CnFisIfParsingDataMappingInfoRepository extends JpaRepository<CnFisIfParseRuleRel, Long> {
 		
-	List<CnFisIfParsingDataMappingInfo> findAll();
+	List<CnFisIfParseRuleRel> findAll();
 	
 }

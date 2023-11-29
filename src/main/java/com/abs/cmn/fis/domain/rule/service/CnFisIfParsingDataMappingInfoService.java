@@ -1,6 +1,6 @@
 package com.abs.cmn.fis.domain.rule.service;
 
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParsingDataMappingInfo;
+import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 import com.abs.cmn.fis.domain.rule.repository.CnFisIfParsingDataMappingInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class CnFisIfParsingDataMappingInfoService {
 
     private final CnFisIfParsingDataMappingInfoRepository repository;
 
-    public List<CnFisIfParsingDataMappingInfo> getAllEntities(){
+    public List<CnFisIfParseRuleRel> getAllEntities(){
         return this.repository.findAll();
     }
 }
