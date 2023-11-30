@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 
-public interface CnFisIfParsingDataMappingInfoRepository extends JpaRepository<CnFisIfParseRuleRel, Long> {
+public interface CnFisIfParseRuleRelRepository extends JpaRepository<CnFisIfParseRuleRel, Long> {
 		
 	List<CnFisIfParseRuleRel> findAll();
 	

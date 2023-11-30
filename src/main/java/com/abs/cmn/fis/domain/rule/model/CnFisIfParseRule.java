@@ -14,8 +14,8 @@ import java.sql.Timestamp;
 public class CnFisIfParseRule {
 
     @javax.persistence.Id
-    @GeneratedValue(generator = "psSeqGenerator")
-    @GenericGenerator(name = "psSeqGenerator", strategy = "increment")
+    @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
+    @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
     @Column(name = "OBJ_ID", nullable = false)
     private String objId;
     

@@ -8,6 +8,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 
 @NoArgsConstructor
 @Getter
@@ -15,7 +16,8 @@ import javax.persistence.Entity;
 public class CnFisIfParseRuleRel {
 
     @javax.persistence.Id
-    @GenericGenerator(name = "pmSeqGenerator", strategy = "increment")
+    @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
+    @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
     @Column(name = "OBJ_ID", nullable = false)
     private String objId;
     

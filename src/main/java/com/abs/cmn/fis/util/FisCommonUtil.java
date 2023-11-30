@@ -6,13 +6,13 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingDataMappingInfoService;
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingFileInfoService;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
@@ -23,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 public class FisCommonUtil {
 	
 	@Autowired
-    private static CnFisIfParsingDataMappingInfoService cnFisIfParsingDataMappingInfoService;
+    private static CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
 	
 	@Autowired
-    private static CnFisIfParsingFileInfoService cnFisIfParsingFileInfoService;
+    private static CnFisIfParseRuleService cnFisIfParseRuleService;
 
     public static String generateClientName(String groupName, String siteName, String envType, String processSeq){
         return String.format("%s-%s-%s-", groupName, siteName, envType) + String.format("%04d", Integer.valueOf(processSeq) );
@@ -251,11 +251,11 @@ public class FisCommonUtil {
     public static boolean reloadBaseRuleData() {
     	try {
 	    	// DB에서 기준 정보 읽어옴
-	    	List<CnFisIfParseRuleRel> mappingInfoEntities = cnFisIfParsingDataMappingInfoService.getAllEntities();
+	    	List<CnFisIfParseRuleRel> mappingInfoEntities = cnFisIfParseRuleRelService.getAllEntities();
 	        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
 	        FisPropertyObject.getInstance().setPrepMappingRule(mappingInfoVos);
 	
-	        List<CnFisIfParseRule> parsingInfoEntities = cnFisIfParsingFileInfoService.getAllEntities();
+	        List<CnFisIfParseRule> parsingInfoEntities = cnFisIfParseRuleService.getAllEntities();
 	        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
 	        FisPropertyObject.getInstance().setPrepParsingRule(parsingInfoVos);
 	        
