@@ -2,6 +2,8 @@ package com.abs.cmn.fis.activator;
 
 import java.util.List;
 
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
+import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -12,8 +14,6 @@ import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingDataMappingInfoService;
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParsingFileInfoService;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
@@ -36,22 +36,22 @@ public class FisApStartedActivator implements ApplicationRunner {
     private CnFisWorkService workService;
 
     @Autowired
-    private CnFisIfParsingDataMappingInfoService cnFisIfParsingDataMappingInfoService;
+    private CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
 
     @Autowired
-    private CnFisIfParsingFileInfoService cnFisIfParsingFileInfoService;
+    private CnFisIfParseRuleService cnFisIfParseRuleService;
 
     @Override
     public void run(ApplicationArguments args){
         
         // TODO 기준정보 초기화 >> VO명칭 변경  CnFisIfParsingDataMappingInfo >  CnFisIfParseRuleRel
 //    	 rule Vo 와 Mapping Vo 를 나누어 1 : N 구조롤 나눈다. 
-        List<CnFisIfParseRuleRel> mappingInfoEntities = this.cnFisIfParsingDataMappingInfoService.getAllEntities();
+        List<CnFisIfParseRuleRel> mappingInfoEntities = this.cnFisIfParseRuleRelService.getAllEntities();
         List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
         FisPropertyObject.getInstance().setMappingRule(mappingInfoVos);
 
         // CnFisIfParsingFileInfo > VO 명을 현행화 CnFisIfParseRule
-        List<CnFisIfParseRule> parsingInfoEntities = this.cnFisIfParsingFileInfoService.getAllEntities();
+        List<CnFisIfParseRule> parsingInfoEntities = this.cnFisIfParseRuleService.getAllEntities();
         List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
         FisPropertyObject.getInstance().setParsingRule(parsingInfoVos);
 
