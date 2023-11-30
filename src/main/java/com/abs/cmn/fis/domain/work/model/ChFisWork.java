@@ -13,13 +13,16 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @Getter
 @Entity(name = "CN_FIS_WORK")
-public class CnFisWork {
+public class ChFisWork {
 
-    @javax.persistence.Id
+    @Id
     @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
     @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
     @Column(name = "OBJ_ID")
     private String objId;
+
+    @Column(name = "REF_OBJ_ID")
+    private String refObjId;
 
     @Column(name = "FILE_NM")
     private String fileName;
@@ -52,8 +55,8 @@ public class CnFisWork {
 
 
     @Builder
-    public CnFisWork(String objId, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
-        this.objId = objId;
+    public ChFisWork(String refObjId, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
+        this.refObjId = refObjId;
         this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
@@ -66,10 +69,12 @@ public class CnFisWork {
         this.updateDate = updateDate;
     }
 
+
     @Override
     public String toString() {
-        return "CnFisWork{" +
+        return "ChFisWork{" +
                 "objId='" + objId + '\'' +
+                ", refObjId='" + refObjId + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +
                 ", fileType=" + fileType +
