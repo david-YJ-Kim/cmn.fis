@@ -58,7 +58,65 @@ public class InterfaceSolacePub {
         return instance;
     }
 
-    public void sendBasicTextMessage(String cid, String payload, String topicName, String fileType){
+    public void sendTextMessage(String cid, String payload, String topicName, String fileType){
+        try{
+
+            XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
+            TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+
+            SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
+
+            String sendCid = null;
+
+            if ( fileType.equals(FisFileType.INSP.name()) )
+            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+            else
+            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+
+            userPropMap.putString("cid", sendCid);
+            txtMsg.setText(payload);
+            txtMsg.setProperties(userPropMap);
+
+            txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
+            prod.send(txtMsg, createTopic(topicName));
+        }catch (Exception e){
+
+            e.printStackTrace();
+        }
+    }
+
+
+    public void sendQueueMessage(String cid, String payload, String queueName){
+        try{
+
+            XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
+            TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+
+            SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
+
+//            String sendCid = null;
+//
+//            if ( fileType.equals(FisFileType.INSP.name()) )
+//            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+//            else
+//            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+
+            userPropMap.putString("cid", cid);
+            txtMsg.setText(payload);
+            txtMsg.setProperties(userPropMap);
+
+            txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
+            prod.send(txtMsg, JCSMPFactory.onlyInstance().createQueue(queueName));
+
+            log.info("Message has been sent. cid: {}, payload : {}, queue: {}."
+                    , cid, payload, queueName);
+        }catch (Exception e){
+
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBasicTextMessage(String cid, String payload, String topicName){
         try{
 
             XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
@@ -66,19 +124,22 @@ public class InterfaceSolacePub {
 
             SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
             
-            String sendCid = null;
+//            String sendCid = null;
+//
+//            if ( fileType.equals(FisFileType.INSP.name()) )
+//            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+//            else
+//            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
             
-            if ( fileType.equals(FisFileType.INSP.name()) )
-            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
-            else 
-            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
-            
-            userPropMap.putString("cid", sendCid);
+            userPropMap.putString("cid", cid);
             txtMsg.setText(payload);
             txtMsg.setProperties(userPropMap);
             
             txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
             prod.send(txtMsg, createTopic(topicName));
+
+            log.info("Message has been sent. cid: {}, payload : {}, topic: {}."
+                    , cid, payload, topicName);
         }catch (Exception e){
 
             e.printStackTrace();
