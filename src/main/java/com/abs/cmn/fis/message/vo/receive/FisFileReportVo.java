@@ -9,10 +9,10 @@ import lombok.Data;
 @Data
 public class FisFileReportVo extends FisMsgCommonVo {
 
-    FisInterfaceReqBody body;
+    FisFileReportBody body;
 
     @Data
-    public static class FisInterfaceReqBody extends FisMsgBody {
+    public static class FisFileReportBody extends FisMsgBody {
 
         String eqpId;
         String fileType;

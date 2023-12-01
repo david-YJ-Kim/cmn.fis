@@ -1,4 +1,4 @@
-package com.abs.cmn.fis.message.vo.head;
+package com.abs.cmn.fis.message.vo.common;
 
 import lombok.Data;
 
