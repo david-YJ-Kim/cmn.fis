@@ -17,6 +17,7 @@ import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.code.FisQeuryValues;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
 
@@ -44,7 +45,7 @@ public class FisCommonUtil {
     }
 
     public static List<ParseRuleRelVo> convertParseRuleRelVo(List<CnFisIfParseRuleRel> entities){
-
+    	
         ArrayList<ParseRuleRelVo> voList = new ArrayList<>();
         for(CnFisIfParseRuleRel e : entities){
 
@@ -340,27 +341,37 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     }
     
     // 파일 유형당 쿼리 생성 
-    private static String makeBatchInsertQuery(String fileType, String parsingObjectId, List<ParseRuleRelVo> mappingList) {
-    	String query = FisPropertyObject.getInstance().getInsertBatchTemplate();
+    private static String makeBatchInsertQuery(String fileType, String objId, List<ParseRuleRelVo> mappingList) {
+    	String baseQuery = FisPropertyObject.getInstance().getInsertBatchTemplate();
+    	String[] replaceStr1 = null;
+    	String[] replaceStr2 = null;
     	String dbColm = "";
-    	String value = "";   	
-//    	String fileType = "";
+    	String value = "";
+    	String returnSql = "";
     	ParseRuleRelVo vo = null;
     	
-    	log.info("## FisCommonUtil-makeBatchInsertQuery() -- in ");
-    	log.info("## ObjectId:{} , mappingList.size :{}", parsingObjectId, mappingList.size());
+    	List<ParseRuleRelVo> myList = new ArrayList<ParseRuleRelVo>();
     	
-    	// TODO 쿼리 만든다!루프 돌아서, dbColm, value 만들기!
     	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
     		vo = mappingList.get(i);
-    		if ( parsingObjectId.equals( vo.getObjId()) ) {
+    		if ( objId.equals( vo.getObjId()) ) {
+    			myList.add(vo);
+    		} else {
+    			continue;
+    		}
+    	}
+    	
+    	// TODO 쿼리 만든다!루프 돌아서, dbColm, value 만들기!
+    	for( int i = 0 ; i < myList.size() ; i ++ ) {
+    		vo = myList.get(i);
+    		if ( objId.equals( vo.getObjId()) ) {
     			dbColm += vo.getMpngClmNm();
     			value += "?";
     		} else {
     			log.info("");
     		}
     		
-    		if ( i == (mappingList.size()-1) ) {
+    		if ( i == (myList.size()-1) ) {
     			break;
     		} else {
     			dbColm += ",";
@@ -369,18 +380,25 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     		// TODO  file type from join parsing rule, param으로 fileType 가져오기!
     	}
     	
+    	replaceStr1 = baseQuery.split(FisQeuryValues.TABLE_NAME.name());
     	// Table Name Choise
-    	if (fileType.equals(FisFileType.INSP.name()))
-    		query.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameInsp());
-    	else
-    		query.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameMeas());
+    	if (fileType.equals(FisFileType.INSP.name())) {
+    		returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameInsp()+replaceStr1[1];
+    	} else {
+    		returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameMeas()+replaceStr1[1];
+    	}
     	
-    	query.replace("COLUM", dbColm);
-    	query.replace("VALUE", value);
+    	replaceStr2 = returnSql.split( FisQeuryValues.COLUM.name() );
     	
-    	log.info("## FisCommonUtil-makeBatchInsertQuery(), sql :" , query);
+		String addClms = replaceStr2[0]+dbColm+replaceStr2[1];
+		
+		replaceStr1 = addClms.split(FisQeuryValues.INPUT.name());
+		
+		returnSql = replaceStr1[0]+value+replaceStr1[1];
     	
-    	return query;
+    	System.out.println("##@@!! change values returnSql :" +returnSql);
+    	
+    	return returnSql;
     }
     
     // SQL 작성및 inserbatch 시 비교을 위한 Mapping Colum List 만들기 
@@ -479,22 +497,6 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     	return returnList;
     }
     
-    // 쿼리 가져오는 method 
-    public static String getQuery(String objId) {
-    	String query = "";
-    	List<ParseRuleVo> rule = FisPropertyObject.getInstance().getParsingRule();
-    	
-    	for ( int i = 0 ; i < rule.size() ; i++ ) {
-    		if ( objId.equals(rule.get(i).getObjId()) ) {
-    			query = rule.get(i).getQueryInsertBatch();
-    			break;
-    		} else {
-    			continue;
-    		}
-    	}
-    	
-    	return query;
-    }
     
     public static int changeClmTitlVal(String clmVal) {    	
     	int input, aVal = Integer.valueOf('A'), num = 0;
@@ -554,21 +556,15 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     }
     
     public static boolean checkDataInList(int[] dataTypeList, int val) {
-    	for (int i = 0 ; i < dataTypeList.length ; i ++) {
-    		if ( dataTypeList[i] == val)
-    			return true;
-    		else
-    			continue;
-    	}
+    	if ( dataTypeList != null ) {
+	    	for (int i = 0 ; i < dataTypeList.length ; i ++) {
+	    		if ( dataTypeList[i] == val)
+	    			return true;
+	    		else
+	    			continue;
+	    	}
+    	} 
     	return false;
-    }
-    
-    public static void main(String[] args) {
-    	String a = "0-2500";
-    	String[] infos = a.split("-");
-    	int size = ( Integer.valueOf(infos[1]) - Integer.valueOf(infos[0]) ) +1;
-    	log.info(">> size "+size);
-    	
     }
     
 }
