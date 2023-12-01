@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
-import javax.xml.ws.Response;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +51,7 @@ public class Receiver implements Runnable {
 
 
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
-//		this.latch = latch;
 		this.session = session;
-//		this.queueList = queueList;
 		this.queue_name = queue_name;
 		this.thread_name = thread_name;
 	}
@@ -106,14 +102,16 @@ public class Receiver implements Runnable {
 			try{
 				String cid = null;				
 				SDTMap userProperty = message.getProperties();				
-				
+
+				// TODO 기준정보 초기화하는 것도 Executor로 분리
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
 					
 					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
 					// 				  2. 대체	ELSE
-					if ( userProperty.getString("cid").equals(FisConstant.RELOAD_RULE.name()) )
+
+					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) )
 						FisCommonUtil.reloadBaseRuleData();
-					else if ( userProperty.getString("cid").equals(FisConstant.PATCH_RULE.name()) )
+					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
 						FisCommonUtil.applicationNewBaseRulse();
 					else 
 						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
@@ -227,5 +225,7 @@ public class Receiver implements Runnable {
 			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException("Unimplemented method 'onException'");
 		}
+
+
 	}
 }

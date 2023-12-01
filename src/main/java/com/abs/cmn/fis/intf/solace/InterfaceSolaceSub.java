@@ -16,12 +16,12 @@ public class InterfaceSolaceSub implements Runnable {
 
 	private JCSMPSession session;
 
-    private static final String SAMPLE_NAME = InterfaceSolaceSub.class.getSimpleName();
-    private static String QUEUE_NAME = "SVM_DEV_BRS_LOT_00";		// used queue name ex ) PROP_RMP_00
-    private static final String API = "JCSMP";
-    private static volatile int msgRecvCounter = 0;                 // num messages received
-    private static volatile boolean hasDetectedRedelivery = false;  // detected any messages being redelivered?
-    private static volatile boolean isShutdown = false;             // are we done?
+//    private static final String SAMPLE_NAME = InterfaceSolaceSub.class.getSimpleName();
+//    private static String QUEUE_NAME = "SVM_DEV_BRS_LOT_00";		// used queue name ex ) PROP_RMP_00
+//    private static final String API = "JCSMP";
+//    private static volatile int msgRecvCounter = 0;                 // num messages received
+//    private static volatile boolean hasDetectedRedelivery = false;  // detected any messages being redelivered?
+//    private static volatile boolean isShutdown = false;             // are we done?
     private final JCSMPSession subSession;
     private static FlowReceiver flowQueueReceiver;
     private final Queue queue;
@@ -46,7 +46,10 @@ public class InterfaceSolaceSub implements Runnable {
         try {
             start();
         } catch (JCSMPException | IOException | InterruptedException e) {
+            e.printStackTrace();
             log.error(e.toString());
+
+            throw new RuntimeException("Solace receiver fail to start to interface");
         }
     }
 
@@ -60,10 +63,10 @@ public class InterfaceSolaceSub implements Runnable {
 			//session 연결 - Application별로 최소 연결 권장(쓰레드를 사용할 경우 공유 사용 권장)
 			session.connect();
 
-			FisPropertyObject obj = FisPropertyObject.getInstance();
+			FisPropertyObject fisPropertyObject = FisPropertyObject.getInstance();
 
-			String threadName = obj.getClientName() + "-" + FisConstant.receiver.name();
-			String receiveQueueName = obj.getReceiveQueueName();
+			String threadName = fisPropertyObject.getClientName() + "-" + FisConstant.receiver.name();
+			String receiveQueueName = fisPropertyObject.getReceiveQueueName();
 
 			Receiver receiver = new Receiver(session, threadName, receiveQueueName);
 
@@ -71,7 +74,9 @@ public class InterfaceSolaceSub implements Runnable {
 			thread.start();
 
         } catch (OperationNotSupportedException | JCSMPErrorResponseException e) {  // not allowed to do this
+            e.printStackTrace();
 			log.error(e.toString());
+            throw new RuntimeException("Solace receiver fail to start to interface");
         }
     }
 
