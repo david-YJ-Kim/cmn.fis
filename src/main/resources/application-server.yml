@@ -25,8 +25,7 @@ spring:
 #        - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
-#    url: jdbc:oracle:thin:@dev-mes-oracle.ctj5pd0b3rdj.us-east-1.rds.amazonaws.com:1522:ORCL
+    url: jdbc:oracle:thin:@dev-mes-oracle.ctj5pd0b3rdj.us-east-1.rds.amazonaws.com:1522:ORCL
     username: mesadm
     password: absolics12#
 #    driver-class-name: oracle.jdbc.driver.OracleDriver
@@ -76,7 +75,7 @@ ap:
     
   interface:
     solace:
-      host: 52.79.64.176:55555
+      host: solacedev.absolicsinc.com:55555
       vpn: MES 
       client:
         username: default
