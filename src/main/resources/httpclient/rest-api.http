@@ -2,3 +2,8 @@ GET http://localhost:9010/fis/management/test
 Accept: application/json
 
 ###
+
+
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=PAHT&fileName=FILE.csv
+
+###
