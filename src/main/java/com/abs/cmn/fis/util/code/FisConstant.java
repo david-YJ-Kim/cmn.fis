@@ -3,7 +3,7 @@ package com.abs.cmn.fis.util.code;
 public enum FisConstant {
 
     cid,
-
+    messageId,
    R,
    local,
    remote,

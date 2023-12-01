@@ -1,6 +1,7 @@
 package com.abs.cmn.fis.intf.solace;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
@@ -102,7 +103,8 @@ public class InterfaceSolacePub {
 //            else
 //            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
 
-            userPropMap.putString("cid", cid);
+            userPropMap.putString(FisConstant.cid.name(), cid);
+            userPropMap.putString(FisConstant.messageId.name(), "MSG-KEY-TMP-" + UUID.randomUUID() + "-" + System.currentTimeMillis());
             txtMsg.setText(payload);
             txtMsg.setProperties(userPropMap);
 
