@@ -125,7 +125,7 @@ public class FisCommonUtil {
 
     }
 
-    public static ParseRuleVo getParsingRule(String eqpId, String fileType, String fileFormatType){
+    public static ParseRuleVo getParsingRule(String eqpId, String fileType){
         // TODO 기준 정보 순회
     	
         List<ParseRuleVo> rule =  FisPropertyObject.getInstance().getParsingRule();
@@ -133,7 +133,7 @@ public class FisCommonUtil {
         ParseRuleVo parsingRule = null;
         
         for (ParseRuleVo vo : rule) {
-        	if ( vo.getEqpName().equals(eqpId) && vo.getFileType().equals(fileType) && vo.getFileFormatType().equals(fileFormatType) ) {
+        	if ( vo.getEqpName().equals(eqpId) && vo.getFileType().equals(fileType)) {
         		parsingRule = vo;
         		break;
         	} else {

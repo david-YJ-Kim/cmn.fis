@@ -56,7 +56,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     @Override
     public Map<String, String> execute(String fileType, String fileName, String filePath,
-                                String eqpId, String reqSystem, String fileFormatType) throws Exception {
+                                String eqpId, String reqSystem) throws Exception {
 
         log.info("Start to parsing file. type:{}, name:{}, path:{}", fileType, fileName, filePath);
 
@@ -79,7 +79,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         // TODO 파싱 시작 해더 가져오기
         // 빈차장 소스 머지
-        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(eqpId, fileType, fileFormatType);
+        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(eqpId, fileType);
         
         int startHeader = 0;
         if (fileRule.getParseRowValList() == null )

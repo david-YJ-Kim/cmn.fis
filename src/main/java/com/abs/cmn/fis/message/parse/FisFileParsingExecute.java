@@ -6,5 +6,5 @@ public interface FisFileParsingExecute {
 
     void init();
 
-    Map<String, String> execute(String fileType, String fileName, String filePath, String eqpId, String reqSystem, String fileFormatType) throws  Exception;
+    Map<String, String> execute(String fileType, String fileName, String filePath, String eqpId, String reqSystem) throws  Exception;
 }
