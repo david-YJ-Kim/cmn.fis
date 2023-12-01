@@ -44,21 +44,41 @@ public class FisApStartedActivator implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args){
         
-        // TODO 기준정보 초기화 >> VO명칭 변경  CnFisIfParsingDataMappingInfo >  CnFisIfParseRuleRel
-//    	 rule Vo 와 Mapping Vo 를 나누어 1 : N 구조롤 나눈다. 
-        List<CnFisIfParseRuleRel> mappingInfoEntities = this.cnFisIfParseRuleRelService.getAllEntities();
-        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
-        FisPropertyObject.getInstance().setMappingRule(mappingInfoVos);
+        this.initializeRuleData();
+        log.info("Complete initialize rule data.");
+
+        this.initializeSolaceResources();
+        log.info("Complete initialize solace resources.");
+
+
+    }
+
+
+    private void initializeRuleData(){
+
+        // 기준정보 (CN_FIS_PARSE_RULE)
+        List<CnFisIfParseRule> cnFisIfParseRules = this.cnFisIfParseRuleService.getAllEntities();
+        log.info("Get parsing rules : {}", cnFisIfParseRules);
+
+        // 매핑 정보 (CN_FIS_PARSE_RULE_REL)
+        List<CnFisIfParseRuleRel> cnFisIfParseRuleRelations = this.cnFisIfParseRuleRelService.getAllEntities();
+        log.info("Get rule relation infos: {}", cnFisIfParseRuleRelations);
+
+
+        List<ParseRuleRelVo> relationInfoVos = FisCommonUtil.convertParseRuleRelVo(cnFisIfParseRuleRelations);
+        FisPropertyObject.getInstance().setMappingRule(relationInfoVos);
 
         // CnFisIfParsingFileInfo > VO 명을 현행화 CnFisIfParseRule
-        List<CnFisIfParseRule> parsingInfoEntities = this.cnFisIfParseRuleService.getAllEntities();
-        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
+        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(cnFisIfParseRules, relationInfoVos);
         FisPropertyObject.getInstance().setParsingRule(parsingInfoVos);
 
         log.info("기준정보 로딩 완료. MappingInfos: {}, ParsingInfo: {}",
                 FisPropertyObject.getInstance().getMappingRule().toString(), FisPropertyObject.getInstance().getParsingRule().toString());
 
 
+    }
+
+    private void initializeSolaceResources(){
 
         SolaceSessionConfiguration sessionConfiguration = SolaceSessionConfiguration.createSessionConfiguration(env);
 
@@ -77,5 +97,4 @@ public class FisApStartedActivator implements ApplicationRunner {
         }
 
     }
-
 }

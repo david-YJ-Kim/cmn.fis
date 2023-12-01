@@ -21,6 +21,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FisCommonUtil {
+
+	public static void main(String[] args) {
+
+		System.out.println(
+
+				parsingRangeInfos("AD-AG")
+		);
+	}
 	
 	@Autowired
     private static CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
@@ -49,7 +57,8 @@ public class FisCommonUtil {
             		.objId(String.valueOf(e.getRefObjId()))
             		.refObjId(String.valueOf(e.getRefObjId()))
             		.fileClmVal(e.getFileClmVal())
-            		.fileClmNumIntVal(changeClmTitlVal(e.getFileClmVal()))
+//            		.fileClmNumIntVal(changeClmTitlVal(e.getFileClmVal()))
+					.fileClmNumIntVal(columnToIndex(e.getFileClmVal()))
                     .fileClmName(e.getFileClmNm())
                     .mpngClmNm(e.getMpngClmNm())
                     .clmDataTyp(e.getClmDataTyp())
@@ -224,8 +233,10 @@ public class FisCommonUtil {
     // 값이 a-g 일 때 a ~ g 까지의  값을 모두 갖는 문자 배열을 리턴함  - 컬럼정보, 로우정보 둘다 배열화 할 때
     private static String[] parsingRangeInfos(String info) {
         // 'AD-AG' 값을 array[] = {'D', '-', 'G'} 로 변환
-        log.info(info);
         String[] infos = info.split("-");
+		log.info(info);
+
+
         //char[] infos = info.toCharArray();
 
         // 값 확인
@@ -444,8 +455,27 @@ public class FisCommonUtil {
     	
     	return query;
     }
-    
-    public static int changeClmTitlVal(String clmVal) {    	
+
+	/**
+	 * COLUMN (A,B,C,AA,AD,DV,..)를 index 숫자로 변환
+	 * @param column
+	 * @return
+	 */
+	public static int columnToIndex(String column) {
+		int result = 0;
+		int base = 26; // Number of letters in the alphabet
+
+		for (int i = 0; i < column.length(); i++) {
+			char c = column.charAt(i);
+			result = result * base + (c - 'A' + 1);
+		}
+
+		// Adjusting to 0-based index
+		return result - 1;
+	}
+
+
+	public static int changeClmTitlVal(String clmVal) {
     	int num = Integer.valueOf(clmVal);
     	return num - Integer.valueOf("A");
     }

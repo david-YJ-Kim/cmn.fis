@@ -71,7 +71,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                                     .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .build();
-        String key = this.workService.saveEntity(vo).getWorkId();
+        String key = this.workService.saveEntity(vo).getObjId();
         
         // TODO 파일 읽기
         File file = this.fileManager.getFile(filePath, fileName);
