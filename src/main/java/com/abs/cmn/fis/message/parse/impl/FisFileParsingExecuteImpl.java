@@ -71,7 +71,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                                     .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                     .build();
-        String key = this.workService.saveEntity(vo).getWorkId();
+        String key = this.workService.saveEntity(vo).getObjId();
         
         // TODO 파일 읽기
         File file = this.fileManager.getFile(filePath, fileName);
@@ -80,7 +80,12 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         // TODO 파싱 시작 해더 가져오기
         // 빈차장 소스 머지
         ParseRuleVo fileRule = FisCommonUtil.getParsingRule(eqpId, fileType, fileFormatType);
-        int startHeader = fileRule.getParseRowValList()[0];
+        
+        int startHeader = 0;
+        if (fileRule.getParseRowValList() == null )
+        	startHeader = 0;
+        else
+        	startHeader = fileRule.getParseRowValList()[0];
         
         // TODO 파일 파싱하기
         long parsingStartTime = System.currentTimeMillis();

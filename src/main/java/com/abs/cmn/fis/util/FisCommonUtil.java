@@ -8,6 +8,9 @@ import java.util.regex.Pattern;
 
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
@@ -84,11 +87,11 @@ public class FisCommonUtil {
             else inputParsingRowStringArray = FisCommonUtil.parsingArrayStringValues(inputParsingRowInfo);
             
             int[] inputParsingRowIntArray = null;
-            if (inputParsingRowStringArray.length > 1 ) inputParsingRowIntArray = FisCommonUtil.setRowNumList(inputParsingRowStringArray);
+            if (inputParsingRowStringArray!= null && inputParsingRowStringArray.length > 1 ) inputParsingRowIntArray = FisCommonUtil.setRowNumList(inputParsingRowStringArray);
             else inputParsingRowIntArray = new int[0];
             
-            log.info(">> inputParsingRowStringArray : " + inputParsingRowStringArray.toString());
-            log.info(">> inputParsingRowIntArray : " + inputParsingRowIntArray.toString());
+//            log.info(">> inputParsingRowStringArray : " + inputParsingRowStringArray.toString());
+//            log.info(">> inputParsingRowIntArray : " + inputParsingRowIntArray.toString());
             
             String objId = e.getObjId();
             String query = FisCommonUtil.makeBatchInsertQuery(e.getFileTyp(), objId, parseRuleRelVos);
@@ -162,26 +165,35 @@ public class FisCommonUtil {
     // TODO 전체선택 (*)도 여기서 대응
     private static String[] parsingArrayStringValues(String info) {
         String[] ps = null;
+        String result = "";
 
         if (info.indexOf(",") != -1 && info.indexOf("-") != -1) {
             // header info 에 ',' 와  '-' 함께 있을 때
             ps = info.split(",");
             String[] split = null;
             for(int i = 0 ; i < ps.length ; i ++) {
+            	String oldInfo = ps[i];
                 String newInfo = "";
-                if( ps[i].indexOf("-") != -1 ) {
+                if( oldInfo.indexOf("-") != -1 ) {
                     // , ,의 값 사이에 있는   - 영역을 파싱 해옴
-                    split = FisCommonUtil.parsingRangeInfos(ps[i]);
+                    split = FisCommonUtil.parsingRangeInfos(oldInfo);
 
                     // 파싱해 온 값을 해당 열에 , 어레이 String 으로 저장
                     for (String c : split) {
                         newInfo += c.concat(",");
                     }
                 }
-                info.replaceAll(ps[i], newInfo);
+//                newInfo.substring(0, newInfo.lastIndexOf(","));
+//                log.info("******************************* "+oldInfo);
+//                log.info("++++++++++++++++++++++++++++++ "+newInfo);
+                result = result + newInfo;
+//                log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ "+result);
             }
+            
+            result = result.substring(0, result.lastIndexOf(","));
+log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
             // 변경 저장된 값으로 다시 나눔
-            ps = info.split(",");
+            ps = result.split(",");
             // haeder info를 다시 String으로
 
         } else if ( info.indexOf(",") != -1 ) {
@@ -223,29 +235,61 @@ public class FisCommonUtil {
 
     // 값이 a-g 일 때 a ~ g 까지의  값을 모두 갖는 문자 배열을 리턴함  - 컬럼정보, 로우정보 둘다 배열화 할 때
     private static String[] parsingRangeInfos(String info) {
-        // 'AD-AG' 값을 array[] = {'D', '-', 'G'} 로 변환
-        log.info(info);
+        // 'AD-AG' 값을 array[] = {'D', '-', 'G'} 로 변환 info = 'D-G' , '0-10000'
+    	
+        log.info(">> "+info);
         String[] infos = info.split("-");
-        //char[] infos = info.toCharArray();
+        
+        int size = 0;
+        String[] result = null;
+        
+        // 정수 String 
+		try  {
+			int parsIntS = Integer.parseInt( infos[0] );
+        	int parsIntE = Integer.parseInt(infos[1]);
+			
+        	log.info(">> parsIntS "+parsIntS+" parsIntE "+parsIntE);
+        	size =  parsIntE - parsIntS;
+        	log.info(">> size "+size);
+        	result = new String[size];
 
-        // 값 확인
-        //for(char a : infos) log.info("to char array : "+(int) a+"  "+ a);
-        for (String s : infos) log.info("to char array : "+Integer.valueOf(s)+"  "+ s);
-
-        // 구간 값( array[0], array[1] )의 차수 구함
-        //int size = ( (int)infos[2] - (int)infos[0] ) +1;
-        int size = ( Integer.valueOf(infos[1]) - Integer.valueOf(infos[0]) ) +1;
-
-        log.info("size : "+size);	// 배열 사이즈 확인
-
-        String[] result = new String[size];
-
-        for ( int i = 0 ; i < size ; i++) {
-            result[i] = String.valueOf((char) (i+Integer.valueOf(infos[0])) );
-            log.info( result[i] );
+            for ( int i = 0 ; i < size ; i++) {
+                result[i] = i+Integer.valueOf(infos[0])+"";
+            }
+		} catch (NumberFormatException nfe) {
+        // 알파벳 일 때,
+    		int s = cvsCmlStrToInt(infos[0]);
+    		int e = cvsCmlStrToInt(infos[1])+1;
+        	size = e - s;
+        	result = new String[size];
+            for (int i = s ; i < e ; i++) {
+            	result[i-s] = cvsCmlIntToStr( i );
+            }
         }
-
+        
         return result;
+    }
+    
+    private static int cvsCmlStrToInt(String clm) {
+    	int val = 0;
+    	for (char ch : clm.toUpperCase().toCharArray())
+    		val = val * 26 + (ch -'A'+1);
+    	return val;
+    }
+    
+    private static String cvsCmlIntToStr(int val) {
+    	String str = "";
+    	while ( val > 0 ) {
+    		int idx = (val - 1) % 26; 
+    		str = (char)(idx + 'A') + str;
+    		val = ( val -1 )/ 26;
+    	}
+    	
+    	return str;
+    }
+    
+    public static boolean isNumber(String str) {
+    	return str!=null && str.matches("[0-9.]+");// str.matches("[-+]?\\d#\\.?\\d+");
     }
     
     public static boolean reloadBaseRuleData() {
@@ -346,6 +390,7 @@ public class FisCommonUtil {
     	int arrayCnt = 0;
     	
     	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
+    		vo = mappingList.get(i);
     		if  ( objId.equals( vo.getObjId()) ) arrayCnt++;
     	}
     	
@@ -415,14 +460,20 @@ public class FisCommonUtil {
     			continue;
     		
     	}
-    	if (timeStmpColums.lastIndexOf(",") == timeStmpColums.length()-1)
-    		timeStmpColumList = timeStmpColums.substring(0, timeStmpColums.length()-1).split(",");
-    	else
+    	log.info("!@# timeStmpColums : " + timeStmpColums);
+    	int[] returnList = null;
+    	if ( timeStmpColums != null && timeStmpColums.length() > 0 ) {
+//	    	if (timeStmpColums.lastIndexOf(",") == timeStmpColums.length()-1)
+//	    		timeStmpColumList = timeStmpColums.substring(0, timeStmpColums.length()-1).split(",");
+//	    	else
     		timeStmpColumList = timeStmpColums.split(",");
-    	
-    	int[] returnList =  new int[timeStmpColumList.length];
-    	for( int i = 0 ; i < timeStmpColumList.length ; i ++ ) {
-    		returnList[i] = Integer.valueOf(timeStmpColumList[i]);
+	    	
+    		if ( timeStmpColumList.length > 0 ) {
+		    	returnList =  new int[timeStmpColumList.length];
+		    	for( int i = 0 ; i < timeStmpColumList.length ; i ++ ) {
+		    		returnList[i] = Integer.valueOf(timeStmpColumList[i]);
+		    	}
+    		}
     	}
     	
     	return returnList;
@@ -446,8 +497,47 @@ public class FisCommonUtil {
     }
     
     public static int changeClmTitlVal(String clmVal) {    	
-    	int num = Integer.valueOf(clmVal);
-    	return num - Integer.valueOf("A");
+    	int input, aVal = Integer.valueOf('A'), num = 0;
+    	int cycleMax = Integer.valueOf('Z') - aVal;
+    	
+    	if (clmVal.length() < 2 ) {
+    		input = Integer.valueOf( clmVal.charAt(0) );
+    		num = input - aVal;
+    	} else {
+    		int val0 = Integer.valueOf( clmVal.charAt(0));
+    		int val1 = Integer.valueOf( clmVal.charAt(1));
+
+    		for (int i = 0 ; i < val0-aVal ; i ++ ) {
+    			num += cycleMax;
+        	}
+    		num += (val1-aVal)+1;
+    	} 
+    	
+    	return num;
+    }
+    
+    private static String changeClmIntToString(int val) {    	
+    	int input, aVal = Integer.valueOf('A'), num = 0;
+    	int cycleMax = Integer.valueOf('Z') - aVal;
+    	String strVal = "";
+    	
+    	if (val < cycleMax ) {
+    		strVal = String.valueOf( (char)val );
+    	} else {
+    		int cnt = 0;
+    		int rmnn = 0;
+    		for (int i = val ; i < cycleMax ; i-= cycleMax ) {
+    			if (i > cycleMax ) {
+    				cnt++;
+				} else {
+					rmnn = i;
+				}
+        	}
+	    	strVal = String.valueOf( (char) aVal+cnt );
+    		strVal += String.valueOf( (char) rmnn );
+    	} 
+    	
+    	return strVal;
     }
     
     // file 유형의 objId 를 가져와서, 해당 vo 내에 있는 mappingColumList를 가져와야함.
@@ -471,6 +561,14 @@ public class FisCommonUtil {
     			continue;
     	}
     	return false;
+    }
+    
+    public static void main(String[] args) {
+    	String a = "0-2500";
+    	String[] infos = a.split("-");
+    	int size = ( Integer.valueOf(infos[1]) - Integer.valueOf(infos[0]) ) +1;
+    	log.info(">> size "+size);
+    	
     }
     
 }
