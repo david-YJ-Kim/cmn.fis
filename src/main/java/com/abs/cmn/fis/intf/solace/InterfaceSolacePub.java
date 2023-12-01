@@ -5,6 +5,7 @@ import java.util.HashMap;
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.abs.cmn.fis.util.FisMessageList;
+import com.abs.cmn.fis.util.code.FisConstant;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,7 +74,7 @@ public class InterfaceSolacePub {
             else
             	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
 
-            userPropMap.putString("cid", sendCid);
+            userPropMap.putString(FisConstant.cid.name(), sendCid);
             txtMsg.setText(payload);
             txtMsg.setProperties(userPropMap);
 

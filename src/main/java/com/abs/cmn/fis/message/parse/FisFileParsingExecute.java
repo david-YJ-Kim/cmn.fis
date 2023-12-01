@@ -1,10 +1,13 @@
 package com.abs.cmn.fis.message.parse;
 
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.util.vo.ExecuteResultVo;
+
 import java.util.Map;
 
 public interface FisFileParsingExecute {
 
     void init();
 
-    Map<String, String> execute(String fileType, String fileName, String filePath, String eqpId, String reqSystem) throws  Exception;
+    ExecuteResultVo execute(FisFileReportVo fisFileReportVo) throws  Exception;
 }

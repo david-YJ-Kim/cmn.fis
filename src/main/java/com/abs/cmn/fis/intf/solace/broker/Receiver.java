@@ -1,10 +1,13 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
 import java.io.File;
+import java.io.InvalidObjectException;
 import java.util.ArrayList;
 import java.util.Map;
 
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
@@ -126,10 +129,10 @@ public class Receiver implements Runnable {
 					JSONObject msg = null;
 					String payload = "";
 			
-					log.info("@@ dump : "+message.dump());
+//					log.info("@@ dump : "+message.dump());
 //					cid = userProperty.getString("cid");
 					
-					log.info("cid "+userProperty.getString("cid") );
+//					log.info("cid "+userProperty.getString("cid") );
 					
 					if ( message instanceof TextMessage) {
 						payload = ((TextMessage) message).getText();					
@@ -137,27 +140,15 @@ public class Receiver implements Runnable {
 						payload = new String( message.getBytes(), "UTF-8");
 					}
 					
-//					payload ="{\r\n" + 
-//							"	\"body\":{\r\n" + 
-//							"		\"fileType\":\"INSP\",\r\n" + 
-//							"		\"filePath\":\"D:\\\\work-spaces\\\\FIS-work-space\\\\fis\\\\src\\\\main\\\\resources\\\\\",\r\n" + 
-//							"		\"fileName\":\"검사결과_파일표준_20231116.csv\",\r\n" + 
-//							"		\"eqpId\":\"AM-YG-09-01\",\r\n" + 
-//							"		\"userId\":\"BRS\",\r\n" + 
-//							"		\"fileFormatType\":\"FORMAT\",\r\n" + 
-//							"	}\r\n" + 
-//							"}"; 
-							
+//					log.info("payload: "+payload);
 					
-					log.info("payload: "+payload);
-					
-					msg = new JSONObject(payload);
-										
-					if (msg != null) log.info("msg : "+msg.toString());
-					
-					JSONObject msgbody = new JSONObject(msg.get(FisConstant.body.name()).toString());
-					
-					log.info("msgbody : "+ msgbody.toString());
+//					msg = new JSONObject(payload);
+//
+//					if (msg != null) log.info("msg : "+msg.toString());
+//
+//					JSONObject msgbody = new JSONObject(msg.get(FisConstant.body.name()).toString());
+//
+//					log.info("msgbody : "+ msgbody.toString());
 					
 //					String fileType =  msgbody.getString("fileType");
 //					String fileName = msgbody.getString("fileName");
@@ -170,22 +161,38 @@ public class Receiver implements Runnable {
 					case FisMessageList.FIS_FILE_REPORT:
 
 						FisFileReportVo vo = mapper.readValue(payload, FisFileReportVo.class);
-						log.info(
-								vo.getBody().toString()
+						log.info("Incoming request: {}. It's content: {}"
+								, cid, vo.getBody().toString()
 						);
 
 						// TODO : Work table 상태 P (파싱)
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
 
-						// Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);
+
+						ExecuteResultVo resultVo = fisFileParsingExecute.execute(vo);
+						log.info("Complete request. details: {}", resultVo.toString());
+						
+						// TODO EDC 메시지 송신:
+						String sendCid = null;
+
+						if(vo.getBody().getFileType().equals(FisFileType.INSP)){
+							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+						}else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
+							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+
+						}else{
+							throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
+											, vo.getBody().getFileType().name(), FisFileType.values().toString()));
+						}
+
+						// InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
+						// TODO 파일 이동
 
 
-						Map<String, String> result = fisFileParsingExecute.execute(vo.getBody().getFileType(),
-								vo.getBody().getFileName(),
-								vo.getBody().getFilePath(),
-								vo.getBody().getEqpId(),
-								vo.getHead().getSrc());
+						// TODO 메시지 Ack
+						message.ackMessage();
+						break;
 
 
 
@@ -232,7 +239,9 @@ public class Receiver implements Runnable {
 				message.ackMessage();
 				
 			}catch (Exception e){
-				log.error("##  Receiver.onReceive() Exception : ", e); 
+				e.printStackTrace();
+				log.error("##  Receiver.onReceive() Exception : ", e);
+				message.ackMessage();
 			}
 
 		}

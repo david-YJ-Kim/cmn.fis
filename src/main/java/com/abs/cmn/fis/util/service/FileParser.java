@@ -15,6 +15,7 @@ import java.util.Map;
 
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
 
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 public class FileParser {
 
 
-    public List<Map<String, String>> parsCsvLine(File file, int header, String workId, ParseRuleVo parseRule) throws IOException{
+    public List<Map<String, String>> parseCsvLine(ExecuteResultVo resultVo, File file, int headerStartOffset, String workId, ParseRuleVo parseRule) throws IOException{
 
     	Charset charset = Charset.forName("UTF-8");	 // TODO 문의 : 확인 - 상위 단계에서 미리 설정해 놓을 수 있는지
 
@@ -38,20 +39,27 @@ public class FileParser {
         String[] columList = null;
 
         try {
+
+            long fileReadStartTime = System.currentTimeMillis();
+            log.info("Start Read File by using buffered reader.");
+
             bufferedReader = new BufferedReader(new FileReader(file));
-            if (bufferedReader != null) {
-                log.info("Check reader exist - "+ bufferedReader.toString());
-            }
-            
+
             int[] clmValList = parseRule.getParseClmIdValIntList();
             int[] rowValeList = parseRule.getParseRowValList();
             if (parseRule.getParseRowVal().equals("*"))
-            	header = 0;
+                headerStartOffset = 0;
             
             columList = new String[clmValList.length];
             
             listMapResult = new ArrayList<Map<String, String>>();
-            
+
+            resultVo.setFileReadElapsedTime(System.currentTimeMillis() - fileReadStartTime);
+            log.info("Read file done. result: {}", resultVo.toString());
+
+
+
+            long insertStartTime = System.currentTimeMillis();
             // Header Row info 필요
             int cnt = 0;
             String csvLine = "";
@@ -62,7 +70,7 @@ public class FileParser {
 
                 // 컬럼 짤라 오기, >> 컬럼을 숫자로 >> 
                 // column 정보  > 추후 colum info가 있는 line을  읽어야 함.
-                if ( cnt == header ) {
+                if ( cnt == headerStartOffset ) {
                 	String[] parsed = csvLine.split(",");
                 	int j = 0;
                 	for ( int i = 0 ; i < parsed.length ; i++ ) {
@@ -72,27 +80,33 @@ public class FileParser {
                 		} else continue;
                 	}
                     cnt++;
-                    log.info("[Colum] Count : {}, headerStartCount:{},  headerLine : {}", cnt, header, csvLine);
+                    log.info("[Colum] Count : {}, headerStartCount:{},  headerLine : {}", cnt, headerStartOffset, csvLine);
                     
-                } else if(cnt > header && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
+                } else if(cnt > headerStartOffset && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
                 	
                 	listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
                     cnt++;
                     
-                } else if(cnt > header && FisCommonUtil.checkDataInList(rowValeList, cnt) ){ // 로우 필터  >> *는 로우에서만 
+                } else if(cnt > headerStartOffset && FisCommonUtil.checkDataInList(rowValeList, cnt) ){ // 로우 필터  >> *는 로우에서만
                 	
                 	
                     listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
                     cnt++;
-                    log.info("[Row] Count : {}, header:{},  csvLine : {}", cnt, header, csvLine);
+                    log.debug("[Row] Count : {}, header:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
 
                 }else{
-                    log.info("[Row-Else] Count : {}, header:{},  csvLine : {}", cnt, header, csvLine);
+                    log.debug("[Row-Else] Count : {}, header:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
                     cnt++;
                 }
 
-                log.info("Add csvLine :{}, And data:{}", cnt, csvLineObject.toString());
+                log.debug("Add csvLine :{}, And data:{}", cnt, csvLineObject.toString());
             }
+
+            resultVo.setRowCount(cnt);
+            resultVo.setParsingElapsedTime(System.currentTimeMillis() - insertStartTime);
+            log.info("Parsing file done. result: {}", resultVo.toString());
+
+
 
         } catch (FileNotFoundException  e) {
 

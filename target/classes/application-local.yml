@@ -2,8 +2,7 @@ property:
   type: dev
 
 server:
-#  port: 9010
-  port: 8008
+  port: 9010
   shutdown: graceful
 
 
@@ -90,14 +89,14 @@ ap:
       send:
         topic: SVM/DEV/EDC/CMN/00
       receive:
-        queue: SVM_DEV_FIS_CMN
+        queue: SVM_DEV_FIS_CMN_00
         init: SVM/DEV/FIS/CMN/INIT
   query:
     batchSize: 1000
     table-name:
       insp: CN_FIS_INSP_DATA
       meas: CN_FIS_MEAS_DATA
-    insert-template: INSERT INTO TABLE_NAME ( EQP_NM,FILE_FM_TPY,FILE_TPY,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL,COLUM ) VALUES ( ?,?,?,?,?,?,VALUE )
+    insert-template: INSERT INTO TABLE_NAME ( EQP_NM,FILE_FM_TPY,FILE_TPY,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL,COLUM ) VALUES ( ?,?,?,?,?,?,INPUT )
     del-template: DELETE FROM TABLE_NAME WHERE WORK_ID = ?
     rule:
       parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE

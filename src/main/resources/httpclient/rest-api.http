@@ -4,6 +4,6 @@ Accept: application/json
 ###
 
 
-GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=PAHT&fileName=FILE.csv
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv
 
 ###

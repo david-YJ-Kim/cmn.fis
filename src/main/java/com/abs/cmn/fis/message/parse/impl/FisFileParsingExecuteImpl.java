@@ -1,6 +1,7 @@
 package com.abs.cmn.fis.message.parse.impl;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,90 +59,81 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     }
 
     @Override
-    public Map<String, String> execute(String fileType, String fileName, String filePath,
-                                String eqpId, String reqSystem) throws Exception {
+    public ExecuteResultVo execute(FisFileReportVo vo) throws Exception {
 
-        log.info("Start to parsing file. type:{}, name:{}, path:{}", fileType, fileName, filePath);
+        log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
 
-        // TODO WORK INFO 생성
-        CnFisWorkSaveRequestVo vo = CnFisWorkSaveRequestVo.builder()
-                                    .fileName(fileName)
-                                    .filePath(filePath)
-                                    .fileType(fileType)
-                                    .eqpId(eqpId)
-                                    .requestSystemName(reqSystem)
-                                    .processState(FisConstant.R.name())
-                                    .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
-                                    .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
-                                    .build();
-        String key = this.workService.saveEntity(vo).getObjId();
+        ExecuteResultVo resultVo = new ExecuteResultVo();
+        long executeStartTime = System.currentTimeMillis();
+
+        String key = this.createWorkId(vo);
+        resultVo.setWorkId(key);
         
-        // TODO 파일 읽기
-        File file = this.fileManager.getFile(filePath, fileName);
+        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
 
 
-        // TODO 파싱 시작 해더 가져오기
-        // 빈차장 소스 머지
-        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(eqpId, fileType);
+        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(), vo.getBody().getFileType().name());
         
-        int startHeader = 0;
-        if (fileRule.getParseRowValList() == null )
-        	startHeader = 0;
-        else
-        	startHeader = fileRule.getParseRowValList()[0];
-        
-        // TODO 파일 파싱하기
-        long parsingStartTime = System.currentTimeMillis();
-        List<Map<String,String>> parsingResult = this.fileParser.parsCsvLine(file, startHeader, key, fileRule);
-        log.info("Parsing ElapsedTime: {}ms", System.currentTimeMillis() - parsingStartTime);
-        long parsingTime = System.currentTimeMillis() - parsingStartTime;
+        // 헤더 시작 위치 초기화
+        int headerStartOffset = 0;
+        if (fileRule.getParseRowValList() != null ){
+            headerStartOffset = fileRule.getParseRowValList()[0];
+        }
+
+
+        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
+                                                            headerStartOffset, key, fileRule);
 
         // TODO Parsing : P 상태로 work table update
-        
+
         String[] columList = parsingResult.get(0).keySet().toArray(new String[0]);
-        log.info(Arrays.toString(columList));
+        log.info("Parsing result.  column List: {}. Its size : {}", Arrays.toString(columList), columList.length);
 
-        // TODO 파싱 결과 > Vo로 변환 필요
 
-        // TEST Entity
-//        ArrayList<CnFisEdcTmpVo> entities = this.testList();
+//        long dbInsertStartTime = System.currentTimeMillis();
+//        String status = this.parsingDataRepository.batchEntityInsert(key, vo.getBody().getFileType(), parsingResult, fileRule);
+//        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
         
-        // >> work history table  
+        // TODO Insert : I 상태로 work table update
+        
+        // TODO status 의 정확한 역할 정의
+        // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )
+//    	if (status.equals(key)) {
+//
+//            this.handleAbnormalCondition(vo, key);
+//    	} else ;
+//
+//
+//        resultVo.setStatus(status);
+        resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
 
-        // TODO DB 적재
-        String fileTypeConstant = fileType; // FisFileType.INSP.name(); // For Test
-        // String status = this.parsingDataRepository.batchInsert(fileTypeConstant, parsingResult, key);
-
-        long startTime = System.currentTimeMillis();
-        String status = "";
-        
-        status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult, fileRule);
-        
-     // TODO Insert : I 상태로 work table update
-        
-        // 장애 케이스 
-    	if (status.equals(key)) { 
-    		this.parsingDataRepository.deleteBatch(fileType, key, FisPropertyObject.getInstance().getBatchSize());	// 삭제 요청
-    		// TODO 장애 케이스로 return 처리, 
-    	} else ;
-        
-//        for (int i=0 ; i < Math.ceil((double)parsingResult.size()/1000); i ++) {
-//        	status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult);
-//        	if (status.equals(key)) break;	// batchinsert 실패시 workId 반환
-//        	else continue;
-//        }
-        
-        log.info("DB Insert ElapsedTime: {}ms, Parsing Time: {}ms", System.currentTimeMillis() - startTime, parsingTime);
-        log.info(status);
-
-        // 리턴 데이터 
-        log.info("Send key to EDC : {}", key);
-        Map<String, String> response = new HashMap<String, String>();
-        response.put("status", status);
-        response.put("workId", key);
-        
      // TODO 결과 status와 키 workId 리턴
-        return response;
+        return resultVo;
+    }
+    
+    // 장애 대응 메소드
+    private void handleAbnormalCondition(FisFileReportVo vo, String key) throws SQLException {
+
+        // 우선 삭제 진행
+        this.parsingDataRepository.deleteBatch(vo.getBody().getFileType().name(), key, FisPropertyObject.getInstance().getBatchSize());	// 삭제 요청
+    }
+
+    private String createWorkId(FisFileReportVo vo){
+
+        String reqSystem = vo.getHead().getSrc();
+        // TODO WORK INFO 생성
+        CnFisWorkSaveRequestVo cnFisWorkSaveRequestVo = CnFisWorkSaveRequestVo.builder()
+                .fileName(vo.getBody().getFileName())
+                .filePath(vo.getBody().getFilePath())
+                .fileType(vo.getBody().getFileType().name())
+                .eqpId(vo.getBody().getEqpId())
+                .requestSystemName(reqSystem)
+                .processState(FisConstant.R.name())
+                .createUserId(reqSystem).createDate(Timestamp.valueOf(LocalDateTime.now()))
+                .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
+
+        return this.workService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
     }
 
 
