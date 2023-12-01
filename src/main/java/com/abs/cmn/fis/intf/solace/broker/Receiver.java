@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +95,8 @@ public class Receiver implements Runnable {
 		@Override
 		public void onReceive(BytesXMLMessage message) {
 
+			ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
 //			String filePath = "D:\\work-spaces\\FIS-work-space\\fis\\src\\main\\resources\\";
 //			String fileName = "Absolics계측결과파일표준_20230918.csv";
 //			String fileType = "INSP";
@@ -100,8 +105,8 @@ public class Receiver implements Runnable {
 			
 
 			try{
-				String cid = null;				
-				SDTMap userProperty = message.getProperties();				
+				SDTMap userProperty = message.getProperties();
+				String cid = userProperty.getString(FisConstant.cid.name());
 
 				// TODO 기준정보 초기화하는 것도 Executor로 분리
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
@@ -122,7 +127,7 @@ public class Receiver implements Runnable {
 					String payload = "";
 			
 					log.info("@@ dump : "+message.dump());
-					cid = userProperty.getString("cid");
+//					cid = userProperty.getString("cid");
 					
 					log.info("cid "+userProperty.getString("cid") );
 					
@@ -150,40 +155,61 @@ public class Receiver implements Runnable {
 										
 					if (msg != null) log.info("msg : "+msg.toString());
 					
-					JSONObject msgbody = new JSONObject(msg.get("body").toString());
+					JSONObject msgbody = new JSONObject(msg.get(FisConstant.body.name()).toString());
 					
 					log.info("msgbody : "+ msgbody.toString());
 					
-					String fileType =  msgbody.getString("fileType"); 
-					String fileName = msgbody.getString("fileName");
-					String filePath = msgbody.getString("filePath");
-					String eqpId = msgbody.getString("eqpId");
-					String reqSystem = msgbody.getString("userId");
-					String fileFormatType = msgbody.getString("fileFormatType");
+//					String fileType =  msgbody.getString("fileType");
+//					String fileName = msgbody.getString("fileName");
+//					String filePath = msgbody.getString("filePath");
+//					String eqpId = msgbody.getString("eqpId");
+//					String reqSystem = msgbody.getString("userId");
+//					String fileFormatType = msgbody.getString("fileFormatType");
 
 					switch (cid){
-					case FisMessageList.FIS_FILE_REQ:
+					case FisMessageList.FIS_FILE_REPORT:
+
+						FisFileReportVo vo = mapper.readValue(payload, FisFileReportVo.class);
+						log.info(
+								vo.getBody().toString()
+						);
+
 						// TODO : Work table 상태 P (파싱)
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
-						Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);	
-						// 장애 상황 대응 필요 >> status 는 'D'로 변경
-						msgbody.put("status", response.get("status"));
-						msgbody.put("workId", response.get("workId"));
-						msg.put("body", msgbody.toString());					
-						InterfaceSolacePub.getInstance().sendBasicTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
-						// TODO : Work table 상태 (파싱 완료)
-						break;
-						
-					case FisMessageList.FIS_INSP_DATA_SAVE_REP:
-					case FisMessageList.FIS_MEAS_DATA_SAVE_REP:
-						// TODO : Work table 상태 C (삭제시작)
-						String workId = msgbody.getString("workId");
-						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
-						fisFileMoveExecute.init();
-						fisFileMoveExecute.execute(fileType, fileName, filePath, workId, FisMessageList.FIS_INTF_COMP);
-						// TODO : Work table 상태 (삭제 완료)
-						break;
+
+						// Map<String, String> response = fisFileParsingExecute.execute(fileType, fileName, filePath, eqpId, reqSystem, fileFormatType);
+
+
+						Map<String, String> result = fisFileParsingExecute.execute(vo.getBody().getFileType(),
+								vo.getBody().getFileName(),
+								vo.getBody().getFilePath(),
+								vo.getBody().getEqpId(),
+								vo.getHead().getSrc());
+
+
+
+
+
+
+
+//						// 장애 상황 대응 필요 >> status 는 'D'로 변경
+//						msgbody.put("status", response.get("status"));
+//						msgbody.put("workId", response.get("workId"));
+//						msg.put("body", msgbody.toString());
+//						InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
+//						// TODO : Work table 상태 (파싱 완료)
+//						break;
+//
+//					case FisMessageList.FIS_INSP_DATA_SAVE_REP:
+//					case FisMessageList.FIS_MEAS_DATA_SAVE_REP:
+//						// TODO : Work table 상태 C (삭제시작)
+//						String workId = msgbody.getString("workId");
+//						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
+//						fisFileMoveExecute.init();
+//						fisFileMoveExecute.execute(fileType, fileName, filePath, workId, FisMessageList.FIS_INTF_COMP);
+//						// TODO : Work table 상태 (삭제 완료)
+//						break;
 					case FisMessageList.FIS_DLT_REQ:
 						// TODO : work table 조회 > 'C', 'D' 상태 읽기
 						// 'C', 'D' 상태의 workid list 롤 만들기, 
