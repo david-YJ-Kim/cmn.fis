@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.message.vo.receive.FisTestMessageVo;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -110,6 +111,7 @@ public class Receiver implements Runnable {
 			try{
 				SDTMap userProperty = message.getProperties();
 				String cid = userProperty.getString(FisConstant.cid.name());
+				String messageId = userProperty.getString(FisConstant.messageId.name());
 
 				// TODO 기준정보 초기화하는 것도 Executor로 분리
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
@@ -157,33 +159,43 @@ public class Receiver implements Runnable {
 //					String reqSystem = msgbody.getString("userId");
 //					String fileFormatType = msgbody.getString("fileFormatType");
 
+					log.info("{} Incoming request: {}", messageId, cid);
 					switch (cid){
+					case FisMessageList.FIS_TEST_MESSAGE:
+						FisTestMessageVo fisTestMessageVo = mapper.readValue(payload, FisTestMessageVo.class);
+						log.info("Request vo: {}", fisTestMessageVo.getBody().toString());
+
+						try{
+							Thread.sleep(fisTestMessageVo.getBody().getSleepTm());
+						}catch (Exception e){
+							e.printStackTrace();
+						}
+
+						break;
 					case FisMessageList.FIS_FILE_REPORT:
 
-						FisFileReportVo vo = mapper.readValue(payload, FisFileReportVo.class);
-						log.info("Incoming request: {}. It's content: {}"
-								, cid, vo.getBody().toString()
-						);
+						FisFileReportVo fisFileReportVo = mapper.readValue(payload, FisFileReportVo.class);
+						log.info("Request vo: {}", fisFileReportVo.getBody().toString());
 
 						// TODO : Work table 상태 P (파싱)
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
 
 
-						ExecuteResultVo resultVo = fisFileParsingExecute.execute(vo);
+						ExecuteResultVo resultVo = fisFileParsingExecute.execute(fisFileReportVo);
 						log.info("Complete request. details: {}", resultVo.toString());
 						
 						// TODO EDC 메시지 송신:
 						String sendCid = null;
 
-						if(vo.getBody().getFileType().equals(FisFileType.INSP)){
+						if(fisFileReportVo.getBody().getFileType().equals(FisFileType.INSP)){
 							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-						}else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
+						}else if(fisFileReportVo.getBody().getFileType().equals(FisFileType.MEAS)){
 							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
 
 						}else{
 							throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-											, vo.getBody().getFileType().name(), FisFileType.values().toString()));
+											, fisFileReportVo.getBody().getFileType().name(), FisFileType.values().toString()));
 						}
 
 						// InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
@@ -235,7 +247,8 @@ public class Receiver implements Runnable {
 					}
 
 				}
-				
+
+				log.info("{} Complete processing: {}", messageId, cid);
 				message.ackMessage();
 				
 			}catch (Exception e){
