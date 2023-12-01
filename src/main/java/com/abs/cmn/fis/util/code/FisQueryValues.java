@@ -1,6 +1,9 @@
 package com.abs.cmn.fis.util.code;
 
-public enum FisQeuryValues {
+public enum FisQueryValues {
+	NUMBER,
+	TIMESTAMP,
+	
 	TABLE_NAME,
 	COLUM,
 	INPUT

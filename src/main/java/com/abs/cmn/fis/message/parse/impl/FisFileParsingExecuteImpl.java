@@ -112,7 +112,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         long startTime = System.currentTimeMillis();
         String status = "";
         
-        status = this.parsingDataRepository.batchEntityInsert(key, fileTypeConstant, parsingResult, fileRule);
+        status = this.parsingDataRepository.batchEntityInsert(fileName, key, fileTypeConstant, parsingResult, fileRule);
         
      // TODO Insert : I 상태로 work table update
         
