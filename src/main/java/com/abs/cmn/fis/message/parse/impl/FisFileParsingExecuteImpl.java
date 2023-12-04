@@ -1,6 +1,7 @@
 package com.abs.cmn.fis.message.parse.impl;
 
 import java.io.File;
+import java.io.InvalidObjectException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -10,10 +11,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
@@ -58,8 +62,9 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     }
 
+    @Async
     @Override
-    public ExecuteResultVo execute(FisFileReportVo vo) throws Exception {
+    public ExecuteResultVo execute(FisFileReportVo vo, String ackKey) throws Exception {
 
         log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
 
@@ -106,6 +111,34 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 //
 //        resultVo.setStatus(status);
         resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
+
+
+
+
+        // TODO EDC 메시지 송신:
+        String sendCid = null;
+
+        if(vo.getBody().getFileType().equals(FisFileType.INSP)){
+            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+        }else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
+            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+
+        }else{
+            throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
+                    , vo.getBody().getFileType().name(), FisFileType.values().toString()));
+        }
+
+        // InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
+        // TODO 파일 이동
+
+
+        // TODO 메시지 Ack
+
+
+//        log.info("{} Complete processing: {}", messageId, cid);
+        FisMessagePool.messageAck(ackKey);
+
+
 
      // TODO 결과 status와 키 workId 리턴
         return resultVo;
@@ -177,4 +210,5 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         }
         return list;
     }
+
 }

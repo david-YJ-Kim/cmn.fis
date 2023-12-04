@@ -2,6 +2,7 @@ package com.abs.cmn.fis.message.vo.receive;
 
 import com.abs.cmn.fis.message.vo.common.FisMsgHead;
 import com.abs.cmn.fis.util.FisMessageList;
+import com.abs.cmn.fis.util.code.FisFileType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,7 +58,7 @@ public class FisFileReportVoTest {
 
         FisFileReportVo.FisFileReportBody body = new FisFileReportVo.FisFileReportBody();
         body.setEqpId("AM-YG-09-01");
-        body.setFileType("INSP");
+        body.setFileType(FisFileType.INSP);
         body.setFilePath("");
         body.setFileName("Name");
 

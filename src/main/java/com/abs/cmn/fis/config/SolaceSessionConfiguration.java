@@ -88,7 +88,7 @@ public class SolaceSessionConfiguration {
 		if(userPassword != null && !userPassword.isEmpty())
 			properties.setProperty(JCSMPProperties.PASSWORD, userPassword);
 		//Allication client name 설정 - 동일 vpn 내에서 uniq 해야 함
-		properties.setProperty(JCSMPProperties.CLIENT_NAME, clientName + "-" + postfixClientName);
+		properties.setProperty(JCSMPProperties.CLIENT_NAME, clientName + "-" + postfixClientName + "-" + System.currentTimeMillis());
 		//endpoint에 등록되어 있는 subscription으로 인해 발생하는 에러 무시
 		properties.setProperty(JCSMPProperties.IGNORE_DUPLICATE_SUBSCRIPTION_ERROR, true);
 

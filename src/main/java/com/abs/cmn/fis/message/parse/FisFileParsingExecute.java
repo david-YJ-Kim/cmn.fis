@@ -5,9 +5,9 @@ import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 
 import java.util.Map;
 
-public interface FisFileParsingExecute {
+public interface FisFileParsingExecute{
 
     void init();
 
-    ExecuteResultVo execute(FisFileReportVo fisFileReportVo) throws  Exception;
+    ExecuteResultVo execute(FisFileReportVo fisFileReportVo, String ackKey) throws  Exception;
 }
