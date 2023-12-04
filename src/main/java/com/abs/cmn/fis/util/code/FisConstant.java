@@ -2,6 +2,8 @@ package com.abs.cmn.fis.util.code;
 
 public enum FisConstant {
 
+    BRS,
+    FIS,
     cid,
     messageId,
    R,
