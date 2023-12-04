@@ -4,9 +4,11 @@ import java.util.List;
 
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
+import com.abs.cmn.fis.message.FisMessagePool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FisApStartedActivator implements ApplicationRunner {
 
-
     @Autowired
     private Environment env;
 
@@ -49,6 +50,9 @@ public class FisApStartedActivator implements ApplicationRunner {
 
         this.initializeSolaceResources();
         log.info("Complete initialize solace resources.");
+
+        FisMessagePool.getMessageManageMap();
+        log.info("Initialize Message Pool. is null?: {}", FisMessagePool.getMessageManageMap() == null);
 
 
     }
@@ -85,16 +89,20 @@ public class FisApStartedActivator implements ApplicationRunner {
         try {
             InterfaceSolacePub interfaceSolacePub = InterfaceSolacePub.getInstance();
             interfaceSolacePub.init();
+            FisPropertyObject.getInstance().setInterfaceSolacePub(interfaceSolacePub);
+
         } catch (JCSMPException e) {
             throw new RuntimeException(e);
         }
 
-        try {
-            InterfaceSolaceSub interfaceSolaceSub = new InterfaceSolaceSub();
-            interfaceSolaceSub.run();
-        } catch (JCSMPException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            InterfaceSolaceSub interfaceSolaceSub = new InterfaceSolaceSub();
+//            interfaceSolaceSub.run();
+//            FisPropertyObject.getInstance().setInterfaceSolaceSub(interfaceSolaceSub);
+//
+//        } catch (JCSMPException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 }

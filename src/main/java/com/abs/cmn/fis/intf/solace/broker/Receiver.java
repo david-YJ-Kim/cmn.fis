@@ -5,12 +5,15 @@ import java.io.InvalidObjectException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.message.vo.receive.FisTestMessageVo;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.service.FileManager;
 import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.solacesystems.jcsmp.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,22 +27,10 @@ import com.abs.cmn.fis.util.ApplicationContextProvider;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisConstant;
-import com.solacesystems.jcsmp.BytesXMLMessage;
-import com.solacesystems.jcsmp.ConsumerFlowProperties;
-import com.solacesystems.jcsmp.EndpointProperties;
-import com.solacesystems.jcsmp.FlowReceiver;
-import com.solacesystems.jcsmp.InvalidPropertiesException;
-import com.solacesystems.jcsmp.JCSMPException;
-import com.solacesystems.jcsmp.JCSMPFactory;
-import com.solacesystems.jcsmp.JCSMPProperties;
-import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.Queue;
-import com.solacesystems.jcsmp.SDTMap;
-import com.solacesystems.jcsmp.TextMessage;
-import com.solacesystems.jcsmp.XMLMessageListener;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 
 @Slf4j
 public class Receiver implements Runnable {
@@ -53,6 +44,8 @@ public class Receiver implements Runnable {
 //	private String module_name;
 	private String thread_name;
 	private String queue_name;
+
+	private boolean stopFlagOn = false;
 	
     private InterfaceSolacePub interfaceSolacePub;
 
@@ -91,13 +84,33 @@ public class Receiver implements Runnable {
 		}
 	}
 
+	private void switchStopFlag(){
+		this.stopFlagOn = true;
+	}
+
+
+	public boolean stopReceiver() throws JCSMPInterruptedException {
+
+//		this.consumer.stopSync();
+		this.switchStopFlag();
+		this.consumer.stop();
+		log.info("Consumer Stop!!");
+		return true;
+	}
+
 	public class MessageListener implements XMLMessageListener {
 		public MessageListener(Receiver receiver) {
 		}
 
+
 		@SneakyThrows
 		@Override
 		public void onReceive(BytesXMLMessage message) {
+
+			if(stopFlagOn){
+				log.warn("Stop flag is on. Stop incoming request.");
+				return;
+			}
 
 			ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -106,12 +119,15 @@ public class Receiver implements Runnable {
 //			String fileType = "INSP";
 //			String fileFormatType = "FORMAT";
 //			String cid = "FIS_FILE_REQ"; // CID
-			
+
+
+			SDTMap userProperty = message.getProperties();
+			String cid = userProperty.getString(FisConstant.cid.name());
+			String key = userProperty.getString(FisConstant.messageId.name());
+			String ackKey = FisMessagePool.putMessageObject(key, message);
+			log.info("ackKey: {} is started managed in map : {}", ackKey, FisMessagePool.getMessageManageMap().size());
 
 			try{
-				SDTMap userProperty = message.getProperties();
-				String cid = userProperty.getString(FisConstant.cid.name());
-				String messageId = userProperty.getString(FisConstant.messageId.name());
 
 				// TODO 기준정보 초기화하는 것도 Executor로 분리
 				if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
@@ -159,7 +175,7 @@ public class Receiver implements Runnable {
 //					String reqSystem = msgbody.getString("userId");
 //					String fileFormatType = msgbody.getString("fileFormatType");
 
-					log.info("{} Incoming request: {}", messageId, cid);
+					log.info("{} Incoming request: {}", ackKey, cid);
 					switch (cid){
 					case FisMessageList.FIS_TEST_MESSAGE:
 						FisTestMessageVo fisTestMessageVo = mapper.readValue(payload, FisTestMessageVo.class);
@@ -182,28 +198,27 @@ public class Receiver implements Runnable {
 						fisFileParsingExecute.init();
 
 
-						ExecuteResultVo resultVo = fisFileParsingExecute.execute(fisFileReportVo);
-						log.info("Complete request. details: {}", resultVo.toString());
+						ExecuteResultVo resultVo = fisFileParsingExecute.execute(fisFileReportVo, ackKey);
+//						log.info("Complete request. details: {}", resultVo.toString());
 						
-						// TODO EDC 메시지 송신:
-						String sendCid = null;
-
-						if(fisFileReportVo.getBody().getFileType().equals(FisFileType.INSP)){
-							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-						}else if(fisFileReportVo.getBody().getFileType().equals(FisFileType.MEAS)){
-							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-
-						}else{
-							throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-											, fisFileReportVo.getBody().getFileType().name(), FisFileType.values().toString()));
-						}
-
-						// InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
-						// TODO 파일 이동
-
-
-						// TODO 메시지 Ack
-						message.ackMessage();
+//						// TODO EDC 메시지 송신:
+//						String sendCid = null;
+//
+//						if(fisFileReportVo.getBody().getFileType().equals(FisFileType.INSP)){
+//							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+//						}else if(fisFileReportVo.getBody().getFileType().equals(FisFileType.MEAS)){
+//							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
+//
+//						}else{
+//							throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
+//											, fisFileReportVo.getBody().getFileType().name(), FisFileType.values().toString()));
+//						}
+//
+//						// InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
+//						// TODO 파일 이동
+//
+//
+//						// TODO 메시지 Ack
 						break;
 
 
@@ -248,13 +263,13 @@ public class Receiver implements Runnable {
 
 				}
 
-				log.info("{} Complete processing: {}", messageId, cid);
-				message.ackMessage();
+//				log.info("{} Complete processing: {}", messageId, cid);
+//				FisMessagePool.messageAck(messageId);
 				
 			}catch (Exception e){
 				e.printStackTrace();
 				log.error("##  Receiver.onReceive() Exception : ", e);
-				message.ackMessage();
+				FisMessagePool.messageAck(ackKey);
 			}
 
 		}

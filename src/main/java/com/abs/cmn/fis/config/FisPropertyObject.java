@@ -1,5 +1,7 @@
 package com.abs.cmn.fis.config;
 
+import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
+import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
@@ -51,6 +53,13 @@ public class FisPropertyObject {
 
     @Value("${ap.query.rule.mapping}")
     private String selectMappingRuleDataSql;
+
+
+    @Value("${ap.shutdown.force.timeout.ms}")
+    private int apShutdownForceTimeoutMs;
+
+    @Value("${ap.shutdown.polling.interval.ms}")
+    private int apShutdownPollingIntervalMs;
     
     // 프로세스에서 사용하는 룰 객체 
     private List<ParseRuleVo> parsingRule;
@@ -63,6 +72,10 @@ public class FisPropertyObject {
     // 직전 사용 하던 룰 정보 - 롤백을 대비한 보관
     private List<ParseRuleVo> pastParsingRule;
     private List<ParseRuleRelVo> pastMappingRule;
+
+    private InterfaceSolaceSub interfaceSolaceSub;
+
+    private InterfaceSolacePub interfaceSolacePub;
     
 
     private static FisPropertyObject instance;
@@ -117,4 +130,11 @@ public class FisPropertyObject {
         this.pastMappingRule = mappingRule;
     }
 
+    public void setInterfaceSolaceSub(InterfaceSolaceSub interfaceSolaceSub) {
+        this.interfaceSolaceSub = interfaceSolaceSub;
+    }
+
+    public void setInterfaceSolacePub(InterfaceSolacePub interfaceSolacePub) {
+        this.interfaceSolacePub = interfaceSolacePub;
+    }
 }

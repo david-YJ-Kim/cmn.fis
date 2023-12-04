@@ -15,6 +15,7 @@ import java.util.Random;
 public class InterfaceSolaceSub implements Runnable {
 
 	private JCSMPSession session;
+    private Receiver receiver;
 
 //    private static final String SAMPLE_NAME = InterfaceSolaceSub.class.getSimpleName();
 //    private static String QUEUE_NAME = "SVM_DEV_BRS_LOT_00";		// used queue name ex ) PROP_RMP_00
@@ -22,10 +23,6 @@ public class InterfaceSolaceSub implements Runnable {
 //    private static volatile int msgRecvCounter = 0;                 // num messages received
 //    private static volatile boolean hasDetectedRedelivery = false;  // detected any messages being redelivered?
 //    private static volatile boolean isShutdown = false;             // are we done?
-    private final JCSMPSession subSession;
-    private static FlowReceiver flowQueueReceiver;
-    private final Queue queue;
-    private final ConsumerFlowProperties consumerFlowProperties;
 
     public InterfaceSolaceSub() throws JCSMPException {
 
@@ -36,9 +33,9 @@ public class InterfaceSolaceSub implements Runnable {
 //        this.queue = JCSMPFactory.onlyInstance().createQueue(queueName);
 //        this.consumerFlowProperties = this.setConsumerFlowProperties();
 
-		subSession = null;
-		queue = null;
-		consumerFlowProperties = null;
+//		subSession = null;
+//		queue = null;
+//		consumerFlowProperties = null;
 	}
 
     @Override
@@ -68,7 +65,7 @@ public class InterfaceSolaceSub implements Runnable {
 			String threadName = fisPropertyObject.getClientName() + "-" + FisConstant.receiver.name();
 			String receiveQueueName = fisPropertyObject.getReceiveQueueName();
 
-			Receiver receiver = new Receiver(session, threadName, receiveQueueName);
+			this.receiver = new Receiver(session, threadName, receiveQueueName);
 
 			Thread thread = new Thread(receiver);
 			thread.start();
@@ -82,10 +79,12 @@ public class InterfaceSolaceSub implements Runnable {
 
     // ##################################################
 
-    public boolean stopFlowQueueReceiver(){
-        flowQueueReceiver.stop();
-        return true;
+    public boolean stopQueueReceiver() throws JCSMPInterruptedException {
+        boolean stopResult = this.receiver.stopReceiver();
+        log.info(String.valueOf(stopResult));
+        return stopResult;
     }
+
 
     /**
      * Call SEQ Library
