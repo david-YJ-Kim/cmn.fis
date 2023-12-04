@@ -111,7 +111,7 @@ public class InterfaceSolacePub {
             txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
             prod.send(txtMsg, JCSMPFactory.onlyInstance().createQueue(queueName));
 
-            log.info("Message has been sent. cid: {}, payload : {}, queue: {}."
+            log.debug("Message has been sent. cid: {}, payload : {}, queue: {}."
                     , cid, payload, queueName);
         }catch (Exception e){
 

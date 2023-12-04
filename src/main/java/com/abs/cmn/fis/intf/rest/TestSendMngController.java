@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 public class TestSendMngController {
 
 
-    public static final String payloadFormat = "\n" +
+    public static final String FIS_FILE_REPORT_FORMAT = "\n" +
             "{\n" +
             "\t\"head\": {\n" +
             "\t\t\"cid\": \"%s\",\n" +
@@ -42,19 +42,54 @@ public class TestSendMngController {
             "\n" +
             "}";
 
+    public static final String FIS_TEST_MESSAGE_FORMAT = "\n" +
+            "{\n" +
+            "\t\"head\": {\n" +
+            "\t\t\"cid\": \"%s\",\n" +
+            "\t\t\"tid\": \"%s\",\n" +
+            "\t\t\"osrc\": \"\",\n" +
+            "\t\t\"otgt\": \"\",\n" +
+            "\t\t\"src\": \"TST\",\n" +
+            "\t\t\"srcEqp\": \"\",\n" +
+            "\t\t\"tgt\": \"FIS\",\n" +
+            "\t\t\"tgtEqp\": []\n" +
+            "\n" +
+            "\t},\n" +
+            "\t\"body\":{\n" +
+            "\t\t\"sleepTm\": %d\n" +
+            "\t}\n" +
+            "\n" +
+            "}";
+
 
     @RequestMapping(value = "/FIS_FILE_REPORT", method = RequestMethod.GET)
-    public String testMethod(String eqpId, String fileType, String filePath, String fileName) throws JCSMPException {
+    public String sendFisFileReport(String eqpId, String fileType, String filePath, String fileName) throws JCSMPException {
 
 
-        String cid = FisMessageList.FIS_FILE_REPORT;
         String tid = "FIS_TID_" + System.currentTimeMillis();
 
-        String payload = String.format(payloadFormat, cid, tid, eqpId, fileType, filePath, fileName);
+        String payload = String.format(FIS_FILE_REPORT_FORMAT, FisMessageList.FIS_FILE_REPORT, tid, eqpId, fileType, filePath, fileName);
 
 
         log.info(payload);
         InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_FILE_REPORT, payload, FisPropertyObject.getInstance().getReceiveQueueName());
         return null;
     }
+
+
+    @RequestMapping(value = "/FIS_TEST_MESSAGE", method = RequestMethod.GET)
+    public String sendFisTestMessage(long sleepTime) throws JCSMPException {
+
+
+        String tid = "FIS_TID_" + System.currentTimeMillis();
+
+        String payload = String.format(FIS_TEST_MESSAGE_FORMAT, FisMessageList.FIS_TEST_MESSAGE, tid, sleepTime);
+
+
+        log.debug(payload);
+        InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_TEST_MESSAGE, payload, FisPropertyObject.getInstance().getReceiveQueueName());
+        return null;
+    }
 }
+
+
