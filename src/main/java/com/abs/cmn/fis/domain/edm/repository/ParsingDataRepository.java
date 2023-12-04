@@ -52,7 +52,7 @@ public class ParsingDataRepository {
 	private JdbcTemplate jdbcTemplate;
 
 
-	public String batchEntityInsert(String workId, String fileType, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
+	public String batchEntityInsert(String fileName, String workId, String fileType, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
 
 		try {
 			
@@ -64,7 +64,9 @@ public class ParsingDataRepository {
 			int[] numberDataList = fileRule.getNumberDtTypList();
 			int[] timeStmpDataList = fileRule.getTimeStmpDrTypList();
 			
-			log.info("Insert For File type : {}", fileRule.getFileType());
+			if (numberDataList != null && timeStmpDataList != null )
+				log.info("Insert For File type : {}", fileRule.getFileType() +" , "+numberDataList.length + ","+timeStmpDataList.length);
+			 
 			jdbcTemplate.setFetchSize(FisPropertyObject.getInstance().getBatchSize()); 
 			
 			jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
@@ -72,15 +74,24 @@ public class ParsingDataRepository {
 				public void setValues(PreparedStatement ps, int i) throws SQLException {
 					// TODO List<MAP> 변환 필요
 					Map<String, String> map = listMap.get(i);
+					ps.setString(1, FisCommonUtil.generateObjKey());
+					ps.setString(2, fileRule.getFileFormatType());
+					ps.setString(3, fileRule.getFileTrgtPosnVal());
+					ps.setString(4, fileName);					
+					ps.setString(5, workId);
+					ps.setString(6, fileRule.getParseRowValList()[i]+"");
+					
 					for(int idx = 0; idx < sqlColumList.length; idx++){
 						log.debug("Column:{}, Value: {}", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
-//						Arrays.stream(array).anyMatch(i -> i == 1);
 						if ( FisCommonUtil.checkDataInList(numberDataList, idx) ) {
-							ps.setInt(idx +1, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
+							ps.setInt(idx +7, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
+							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, idx)){
-							ps.setTimestamp(idx +1, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );;
+							ps.setTimestamp(idx +7, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );
+							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						} else {
-							ps.setString(idx +1, map.getOrDefault(sqlColumList[idx], null));
+							ps.setString(idx +7, map.getOrDefault(sqlColumList[idx], null));
+							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						}
 					}
 

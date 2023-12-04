@@ -1,5 +1,7 @@
 package com.abs.cmn.fis.util;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +19,7 @@ import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 import com.abs.cmn.fis.util.code.FisFileType;
-import com.abs.cmn.fis.util.code.FisQeuryValues;
+import com.abs.cmn.fis.util.code.FisQueryValues;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
 
@@ -97,8 +99,8 @@ public class FisCommonUtil {
             String objId = e.getObjId();
             String query = FisCommonUtil.makeBatchInsertQuery(e.getFileTyp(), objId, parseRuleRelVos);
             String[] mpngClmList = FisCommonUtil.getMappingColums(String.valueOf(objId), parseRuleRelVos);
-            int[] numberDtTypList = FisCommonUtil.getNumberDataTypeList(String.valueOf(objId), parseRuleRelVos);
-            int[] timeStmpDrTypList = FisCommonUtil.getTimeStempTypeList(String.valueOf(objId), parseRuleRelVos);
+            int[] numberDtTypList = FisCommonUtil.getDataTypeList(objId, query, FisQueryValues.NUMBER.name());
+            int[] timeStmpDrTypList = FisCommonUtil.getDataTypeList(objId, query, FisQueryValues.TIMESTAMP.name());
             
             
             ParseRuleVo vo = ParseRuleVo.builder()
@@ -113,7 +115,7 @@ public class FisCommonUtil {
                     .parseRowVal(e.getParsRowVal())
                     .parseRowValList(inputParsingRowIntArray)		// 로우 정보 인트 배열로
                     .mpngClmStrList(mpngClmList)					// SQL 기준 컬럼 비교 컬럼 리스트
-                    .numberDtTypList(numberDtTypList)				// 
+                    .numberDtTypList(numberDtTypList)				// Number 인 컬럼 번호
                     .timeStmpDrTypList(timeStmpDrTypList)
                     .queryInsertBatch(query)
                     .build();
@@ -380,7 +382,7 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     		// TODO  file type from join parsing rule, param으로 fileType 가져오기!
     	}
     	
-    	replaceStr1 = baseQuery.split(FisQeuryValues.TABLE_NAME.name());
+    	replaceStr1 = baseQuery.split(FisQueryValues.TABLE_NAME.name());
     	// Table Name Choise
     	if (fileType.equals(FisFileType.INSP.name())) {
     		returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameInsp()+replaceStr1[1];
@@ -388,15 +390,13 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     		returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameMeas()+replaceStr1[1];
     	}
     	
-    	replaceStr2 = returnSql.split( FisQeuryValues.COLUM.name() );
+    	replaceStr2 = returnSql.split( FisQueryValues.COLUM.name() );
     	
 		String addClms = replaceStr2[0]+dbColm+replaceStr2[1];
 		
-		replaceStr1 = addClms.split(FisQeuryValues.INPUT.name());
+		replaceStr1 = addClms.split(FisQueryValues.INPUT.name());
 		
 		returnSql = replaceStr1[0]+value+replaceStr1[1];
-    	
-    	System.out.println("##@@!! change values returnSql :" +returnSql);
     	
     	return returnSql;
     }
@@ -428,75 +428,54 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     }
     
     // inserbatch 시 number 형 data 타입 갯수 리턴 
-    private static int[] getNumberDataTypeList(String objId, List<ParseRuleRelVo> mappingList) {
-    	String numberColums = "";
-    	String[] numberColumList = null;	
-    	ParseRuleRelVo vo = null;
-    	int cnt = 0;
+    private static int[] getDataTypeList(String objId, String sql, String dataType) {
+    	String parsStr = sql.substring(sql.indexOf("(")+1);
+    	String colum = parsStr.substring(0,parsStr.indexOf("VALUES")-2);
+    	String[] columList = colum.trim().split(",");
+//    	for (String s : columList) log.info(" :" + s);
+    	List<ParseRuleRelVo> mappingList = FisPropertyObject.getInstance().getMappingRule();
+    	List<ParseRuleRelVo> currentList = new ArrayList<ParseRuleRelVo>();
+    	String matchType = "";
     	
-    	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
-    		vo = mappingList.get(i);
-    		if  ( objId.equals( vo.getObjId()) && vo.getClmDataTyp().equals("NUMBER")) {
-    			numberColums += String.valueOf(cnt);
-    			numberColums += String.valueOf(",");
-    			cnt++;
-    		} else if  ( objId.equals( vo.getObjId()) ) {
-    			cnt++;
-    		} else
-    			continue;
+    	for (ParseRuleRelVo vo : mappingList ) {
+    		if ( vo.getObjId().equals(objId))
+    			currentList.add(vo);
+    	}
     		
-    	}
-    	if (numberColums.lastIndexOf(",") == numberColums.length()-1)
-    		numberColumList = numberColums.substring(0, numberColums.length()-1).split(",");
-    	else
-    		numberColumList = numberColums.split(",");
     	
-    	int[] returnList =  new int[numberColumList.length];
-    	for( int i = 0 ; i < numberColumList.length ; i ++ ) {
-    		returnList[i] = Integer.valueOf(numberColumList[i]);
-    	}
-    	
-    	return returnList;
-    }
-    
-    // inserbatch 시 number 형 data 타입 갯수 리턴 
-    private static int[] getTimeStempTypeList(String objId, List<ParseRuleRelVo> mappingList) {
-    	String timeStmpColums = "";
-    	String[] timeStmpColumList = null;	
-    	ParseRuleRelVo vo = null;
-    	int cnt = 0;
-    	
-    	for( int i = 0 ; i < mappingList.size() ; i ++ ) {
-    		vo = mappingList.get(i);
-    		if  ( objId.equals( vo.getObjId()) && vo.getClmDataTyp().equals("TIMESTAMP")) {
-    			timeStmpColums += String.valueOf(cnt);
-    			timeStmpColums += String.valueOf(",");
-    			cnt++;
-    		} else if  ( objId.equals( vo.getObjId()) ) {
-    			cnt++;
-    		} else
-    			continue;
-    		
-    	}
-    	log.info("!@# timeStmpColums : " + timeStmpColums);
-    	int[] returnList = null;
-    	if ( timeStmpColums != null && timeStmpColums.length() > 0 ) {
-//	    	if (timeStmpColums.lastIndexOf(",") == timeStmpColums.length()-1)
-//	    		timeStmpColumList = timeStmpColums.substring(0, timeStmpColums.length()-1).split(",");
-//	    	else
-    		timeStmpColumList = timeStmpColums.split(",");
-	    	
-    		if ( timeStmpColumList.length > 0 ) {
-		    	returnList =  new int[timeStmpColumList.length];
-		    	for( int i = 0 ; i < timeStmpColumList.length ; i ++ ) {
-		    		returnList[i] = Integer.valueOf(timeStmpColumList[i]);
-		    	}
+		for (int i = 0 ; i < columList.length ; i++ ) {
+			for (ParseRuleRelVo vo : currentList) {
+    			if ( columList[i].contentEquals(vo.getMpngClmNm()) ) {
+    				if ( vo.getClmDataTyp().equals(dataType) ) {
+    					log.info(vo.getMpngClmNm()+" , "+vo.getClmDataTyp()+" , " + columList[i]);
+	    				matchType +=",";
+	    				matchType +=i+"";
+    				}
+    			}
     		}
     	}
+		log.info("@#$ 1 matchType : "+matchType);
+    	
+    	int[] returnList = null;
+    	
+    	if (matchType.length() > 0) {
+    		String subMatchType = matchType.substring(1);
+    		columList = subMatchType.split(",");
+    		returnList = new int[columList.length];
+	    	for( int i = 0 ; i < columList.length ; i ++ ) {
+	    		returnList[i] = Integer.parseInt(columList[i]);
+	    	}
+    	} else {
+			returnList = new int[0];
+		}
+    	log.info("@#$ 1 returnList : "+returnList.length);
+    	
+    	if (returnList != null )
+    		for ( int i = 0 ; i < returnList.length ; i ++)
+    			log.info(" ## "+returnList[i]);
     	
     	return returnList;
     }
-    
     
     public static int changeClmTitlVal(String clmVal) {    	
     	int input, aVal = Integer.valueOf('A'), num = 0;
@@ -516,30 +495,6 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     	} 
     	
     	return num;
-    }
-    
-    private static String changeClmIntToString(int val) {    	
-    	int input, aVal = Integer.valueOf('A'), num = 0;
-    	int cycleMax = Integer.valueOf('Z') - aVal;
-    	String strVal = "";
-    	
-    	if (val < cycleMax ) {
-    		strVal = String.valueOf( (char)val );
-    	} else {
-    		int cnt = 0;
-    		int rmnn = 0;
-    		for (int i = val ; i < cycleMax ; i-= cycleMax ) {
-    			if (i > cycleMax ) {
-    				cnt++;
-				} else {
-					rmnn = i;
-				}
-        	}
-	    	strVal = String.valueOf( (char) aVal+cnt );
-    		strVal += String.valueOf( (char) rmnn );
-    	} 
-    	
-    	return strVal;
     }
     
     // file 유형의 objId 를 가져와서, 해당 vo 내에 있는 mappingColumList를 가져와야함.
@@ -567,4 +522,28 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     	return false;
     }
     
+
+	public static Timestamp stringToTimestamp(String value) throws ParseException {
+
+    	Timestamp timestamp = Timestamp.valueOf(value);
+
+    	return timestamp;
+
+   	}
+
+    
+    public static void main(String[] args) {
+    	String subNumberColums="INSERT INTO CN_FIS_INSP_DATA ( EQP_NM,FILE_FM_TPY,FILE_TPY,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL,CRT_DT,SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N) VALUES ( ?,?,?,?,?,?,SYSTIMESTAMP,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? )";
+//    	String[] numberColums = subNumberColums.split(" ( ");
+    	String toPars = subNumberColums.substring(subNumberColums.indexOf("(")+1);
+    	String colum = toPars.substring(0, toPars.indexOf(")")).trim();	// colum
+    	
+    	String toPars2 = toPars.substring(subNumberColums.indexOf("VALUES"));
+    	System.out.println( subNumberColums.indexOf("(")+","+ subNumberColums.substring(subNumberColums.indexOf("(")+1) );
+    	System.out.println(colum);
+    	System.out.println(toPars2);
+//    		System.out.println( numberColums[i] );
+    	
+    	
+    }
 }

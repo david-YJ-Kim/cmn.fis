@@ -79,7 +79,7 @@ public class FisApStartedActivator implements ApplicationRunner {
         log.info("기준정보 로딩 완료. MappingInfos: {}, ParsingInfo: {}",
                 FisPropertyObject.getInstance().getMappingRule().toString(), FisPropertyObject.getInstance().getParsingRule().toString());
 
-
+//        System.exit(0);
     }
 
     private void initializeSolaceResources(){
