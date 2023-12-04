@@ -18,17 +18,11 @@ logging:
    
 
 spring:
-#  boot:
-#    antoconfigure:
-#      exclude:
-#        - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
     url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
-#    url: jdbc:oracle:thin:@dev-mes-oracle.ctj5pd0b3rdj.us-east-1.rds.amazonaws.com:1522:ORCL
     username: mesadm
     password: absolics12#
-#    driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     properties:
       hibernate:
@@ -36,7 +30,6 @@ spring:
           lob:
             non_contextual_creation: true
           batch_size: 1000
-#        dialect: org.hibernate.dialect.Oracle12cDialect\
     show-sql: true
     database-platform: org.hibernate.dialect.OracleDialect
   transaction:
@@ -72,7 +65,6 @@ ap:
         user-passwd: absadmin
         remote-target-dir: ./backup/
     local-path: D:\\parsingfile.csv
-    
   interface:
     solace:
       host: 52.79.64.176:55555
@@ -101,3 +93,10 @@ ap:
     rule:
       parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
       mapping: SELECT OBJ_ID,REF_OBJ_ID,FILE_CLM_VAL,FILE_CLM_NM,MPNG_CLM_NM,CLM_DATA_TYP FROM CN_FIS_IF_PARSE_RULE_REL
+  shutdown:
+    force:
+      timeout:
+        ms: 100000
+    polling:
+      interval:
+        ms: 10
