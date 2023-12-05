@@ -136,11 +136,11 @@ public class ParsingDataRepository {
 			}
 		};
 		
-		String deletBatch = FisPropertyObject.getInstance().getDeleteBatchTemplate();
-		if (fileType.equals(FisFileType.INSP.name()))
-			deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameInsp());
-    	else
-    		deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameMeas()); 
+		String deletBatch = FisCommonUtil.getDelteQuery(FisPropertyObject.getInstance().getDeleteBatchTemplate(), fileType);
+//		if (fileType.equals(FisFileType.INSP.name()))
+//			deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameInsp());
+//    	else
+//    		deletBatch.replace("TABLE_NAME", FisPropertyObject.getInstance().getTableNameMeas()); 
 		
 		deletedRowNum = jdbcTemplate.batchUpdate(deletBatch, batchSetter);
 		

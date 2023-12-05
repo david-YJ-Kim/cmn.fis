@@ -400,6 +400,20 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     	return returnSql;
     }
     
+    public static String getDelteQuery(String templat, String type ) {
+    	String query = null;
+    	String[] splt = templat.split(FisQueryValues.TABLE_NAME.name());
+    	
+    	if (type.equals(FisFileType.INSP.name()))
+    		query = splt[0] + FisPropertyObject.getInstance().getTableNameInsp()+splt[1];
+    	else
+    		query = splt[0] + FisPropertyObject.getInstance().getTableNameMeas()+splt[1]; 
+    	
+    	
+    	return query;
+    }
+    
+    
     // SQL 작성및 inserbatch 시 비교을 위한 Mapping Colum List 만들기 
     private static String[] getMappingColums(String objId, List<ParseRuleRelVo> mappingList) {
     	String[] mappingColums = null;	
