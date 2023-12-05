@@ -22,9 +22,6 @@ public class CnFisIfParseRule {
     @Column(name = "EQP_NM")
     private String eqpNm;
 
-    @Column(name = "FILE_FM_TYP")
-    private char fileFmTyp;
-
     @Column(name = "FILE_TYP")
     private String fileTyp;
 
@@ -50,12 +47,11 @@ public class CnFisIfParseRule {
     private String mdfyUserId;
 
     @Builder
-    public CnFisIfParseRule(String objId, String eqpNm, char fileFmTyp, String fileTyp, String fileTrgtPosnVal,
+    public CnFisIfParseRule(String objId, String eqpNm, String fileTyp, String fileTrgtPosnVal,
                                   String parsClmIdVal, String parsRowVal, Timestamp crtDt, String crtUserId,
                                   Timestamp mdfyDt, String mdfyUserId) {
         this.objId = objId;
         this.eqpNm = eqpNm;
-        this.fileFmTyp = fileFmTyp;
         this.fileTyp = fileTyp;
         this.fileTrgtPosnVal = fileTrgtPosnVal;
         this.parsClmIdVal = parsClmIdVal;
@@ -71,7 +67,6 @@ public class CnFisIfParseRule {
         return "CnFisIfParsingFileInfo{" +
                 "objId=" + objId +
                 ", eqpNm='" + eqpNm + '\'' +
-                ", fileFmTpy=" + fileFmTyp +
                 ", fileTpy='" + fileTyp + '\'' +
                 ", fileTrgtPosnVal='" + fileTrgtPosnVal + '\'' +
                 ", parsClmIdVal='" + parsClmIdVal + '\'' +

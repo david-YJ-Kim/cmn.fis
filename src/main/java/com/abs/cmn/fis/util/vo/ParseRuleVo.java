@@ -15,9 +15,6 @@ public class ParseRuleVo {
 	// EQP_NM
 	private String eqpName;				// 장비명
 	
-	// FILE_FORMAT_TYP
-	private String fileFormatType;		// 파일 정규 비정규 유형
-	
 	// FILE_TYP
 	private String fileType;			// 파일 유형 검/계측
 	
@@ -50,13 +47,12 @@ public class ParseRuleVo {
 	public ParseRuleVo() {}
 	
 	@Builder
-	public ParseRuleVo(String objId, String eqpName, String fileFormatType,	String fileType,
+	public ParseRuleVo(String objId, String eqpName, String fileType,
 			String fileTrgtPosnVal, String parsingColmIdVal, String[] parseClmIdValStrList, 
 			int[] parseClmIdValIntList, String parseRowVal, int[] parseRowValList,
 			String[] mpngClmStrList, int[] numberDtTypList, int[] timeStmpDrTypList, String queryInsertBatch) {
 		this.objId=objId;
 		this.eqpName = eqpName;
-		this.fileFormatType = fileFormatType;
 		this.fileType = fileType;
 		this.fileTrgtPosnVal = fileTrgtPosnVal;
 		this.parsingColmIdVal = parsingColmIdVal;

@@ -106,7 +106,6 @@ public class FisCommonUtil {
             ParseRuleVo vo = ParseRuleVo.builder()
             		.objId(e.getObjId())
                     .eqpName(e.getEqpNm())
-                    .fileFormatType(String.valueOf(e.getFileFmTyp()))
                     .fileType(e.getFileTyp())
                     .fileTrgtPosnVal(e.getFileTrgtPosnVal())
                     .parsingColmIdVal(e.getParsClmIdVal())

@@ -52,7 +52,7 @@ public class ParsingDataRepository {
 	private JdbcTemplate jdbcTemplate;
 
 
-	public String batchEntityInsert(String fileName, String workId, String fileType, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
+	public String batchEntityInsert(String fileName, String workId, int headerOffSet, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
 
 		try {
 			
@@ -75,22 +75,21 @@ public class ParsingDataRepository {
 					// TODO List<MAP> 변환 필요
 					Map<String, String> map = listMap.get(i);
 					ps.setString(1, FisCommonUtil.generateObjKey());
-					ps.setString(2, fileRule.getFileFormatType());
-					ps.setString(3, fileRule.getFileTrgtPosnVal());
-					ps.setString(4, fileName);					
-					ps.setString(5, workId);
-					ps.setString(6, fileRule.getParseRowValList()[i]+"");
+					ps.setString(2, fileRule.getFileTrgtPosnVal());
+					ps.setString(3, fileName);					
+					ps.setString(4, workId);
+					ps.setInt(5, i+headerOffSet);
 					
 					for(int idx = 0; idx < sqlColumList.length; idx++){
 						log.debug("Column:{}, Value: {}", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
 						if ( FisCommonUtil.checkDataInList(numberDataList, idx) ) {
-							ps.setInt(idx +7, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
+							ps.setInt(idx +6, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
 							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, idx)){
-							ps.setTimestamp(idx +7, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );
+							ps.setTimestamp(idx +6, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );
 							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						} else {
-							ps.setString(idx +7, map.getOrDefault(sqlColumList[idx], null));
+							ps.setString(idx +6, map.getOrDefault(sqlColumList[idx], null));
 							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						}
 					}
