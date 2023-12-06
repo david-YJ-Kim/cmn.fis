@@ -6,19 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
-import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
-
-import com.abs.cmn.fis.util.code.FisConstant;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
+import com.abs.cmn.fis.util.code.FisConstant;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.code.FisQueryValues;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
@@ -29,13 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FisCommonUtil {
 
-		@Autowired
-		private static CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
-
-		@Autowired
-		private static CnFisIfParseRuleService cnFisIfParseRuleService;
-
-		public static String generateClientName(String groupName, String siteName, String envType, String processSeq){
+	public static String generateClientName(String groupName, String siteName, String envType, String processSeq){
         return String.format("%s-%s-%s-", groupName, siteName, envType) + String.format("%04d", Integer.valueOf(processSeq) );
     }
 
@@ -242,54 +229,6 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     
     public static boolean isNumber(String str) {
     	return str!=null && str.matches("[0-9.]+");// str.matches("[-+]?\\d#\\.?\\d+");
-    }
-    
-    public static boolean reloadBaseRuleData() {
-    	try {
-	    	// DB에서 기준 정보 읽어옴
-	    	List<CnFisIfParseRuleRel> mappingInfoEntities = cnFisIfParseRuleRelService.getAllEntities();
-	        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
-	        FisPropertyObject.getInstance().setPrepMappingRule(mappingInfoVos);
-	
-	        List<CnFisIfParseRule> parsingInfoEntities = cnFisIfParseRuleService.getAllEntities();
-//	        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
-			List<ParseRuleVo> parsingInfoVos = null;
-	        FisPropertyObject.getInstance().setPrepParsingRule(parsingInfoVos);
-	        
-	        // 현재 운영 룰 past에 저장 해 놓음
-//	        FisPropertyObject.getInstance().setPastMappingRule(
-//	        		FisPropertyObject.getInstance().getMappingRule()
-//	        		);
-//	        FisPropertyObject.getInstance().setPastParsingRule(
-//	        		FisPropertyObject.getInstance().getParsingRule()
-//	        		);
-	        
-	        return true;
-        
-    	} catch (Exception e) {
-    		log.info("## FisCommonUtil, reloadBaseRuleData ", e);
-    		return false;
-    	}       
-    	
-    }
-    
-    // 준비된 기준정보를 적용 
-    public static boolean applicationNewBaseRulse() {
-    	try {
-    		
-//    		FisPropertyObject.getInstance().setMappingRule(
-//	        		FisPropertyObject.getInstance().getPrepMappingRule()
-//	        		);
-//	        FisPropertyObject.getInstance().setParsingRule(
-//	        		FisPropertyObject.getInstance().getPrepParsingRule()
-//	        		);
-    		
-    		return true;
-    	} catch (Exception e) {    		
-    		log.info("## FisCommonUtil, applicationNewBaseRulse ", e);
-    		return false;
-    	}
-    	
     }
     
     // 파일 유형당 쿼리 생성 
@@ -509,21 +448,21 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
 
     
     public static void main(String[] args) {
-    	String subNumberColums="INSERT INTO CN_FIS_INSP_DATA ( EQP_NM,FILE_FM_TPY,FILE_TPY,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL,CRT_DT,SITE_ID,PROD_DEF_ID,PROC_DEF_ID,PROC_SGMT_ID,EQP_ID,LOT_ID,PROD_MTRL_ID,SUB_PROD_MTRL_ID,MTRL_FACE_CD,INSP_REPT_CNT,X_VAL,Y_VAL,GRD_ID,DFCT_ID,INSP_DT,IMG_FILE_NM,REVIEW_IMG_FILE_NM,INSP_FILE_NM,ATTR_1,ATTR_2,ATTR_N) VALUES ( ?,?,?,?,?,?,SYSTIMESTAMP,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? )";
-//    	String[] numberColums = subNumberColums.split(" ( ");
-    	String toPars = subNumberColums.substring(subNumberColums.indexOf("(")+1);
-    	String colum = toPars.substring(0, toPars.indexOf(")")).trim();	// colum
     	
-    	String toPars2 = toPars.substring(subNumberColums.indexOf("VALUES"));
-    	System.out.println( subNumberColums.indexOf("(")+","+ subNumberColums.substring(subNumberColums.indexOf("(")+1) );
-    	System.out.println(colum);
-    	System.out.println(toPars2);
-//    		System.out.println( numberColums[i] );
-    	
-    	
+    	String str = "123abc456def";
+
+        // 정규식을 사용하여 숫자를 찾습니다.
+        boolean containsNumber = str.matches(".*[a-zA-Z].*");
+        System.out.println("test 1 : " +containsNumber); // true
+
+        // 숫자로 변환할 수 있는지 확인합니다.
+        boolean canParseNumber = Integer.parseInt(str) != 0;
+        System.out.println(canParseNumber); // true
     }
 
 	public static String generateRuleStoreKey(String eqpId, String fileTyp){
 		return eqpId.concat(FisConstant._.name()) + fileTyp;
 	}
+	
+	
 }

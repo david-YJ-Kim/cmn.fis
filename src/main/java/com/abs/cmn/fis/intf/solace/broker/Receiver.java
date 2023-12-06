@@ -1,37 +1,41 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
-import java.io.File;
-import java.io.InvalidObjectException;
 import java.util.ArrayList;
-import java.util.Map;
 
-import com.abs.cmn.fis.message.FisMessagePool;
-import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
-import com.abs.cmn.fis.message.vo.receive.FisTestMessageVo;
-import com.abs.cmn.fis.util.code.FisFileType;
-import com.abs.cmn.fis.util.service.FileManager;
-import com.abs.cmn.fis.util.vo.ExecuteResultVo;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solacesystems.jcsmp.*;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.json.JsonParser;
+import org.springframework.core.task.TaskRejectedException;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
+import com.abs.cmn.fis.domain.work.controller.FisWorkTableManageController;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
-import com.abs.cmn.fis.message.move.FisFileMoveExecute;
+import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.message.vo.receive.FisTestMessageVo;
 import com.abs.cmn.fis.util.ApplicationContextProvider;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisConstant;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.ConsumerFlowProperties;
+import com.solacesystems.jcsmp.EndpointProperties;
+import com.solacesystems.jcsmp.FlowReceiver;
+import com.solacesystems.jcsmp.InvalidPropertiesException;
+import com.solacesystems.jcsmp.JCSMPException;
+import com.solacesystems.jcsmp.JCSMPFactory;
+import com.solacesystems.jcsmp.JCSMPInterruptedException;
+import com.solacesystems.jcsmp.JCSMPProperties;
+import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.Queue;
+import com.solacesystems.jcsmp.SDTMap;
+import com.solacesystems.jcsmp.TextMessage;
+import com.solacesystems.jcsmp.XMLMessageListener;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskRejectedException;
-import org.springframework.scheduling.annotation.Async;
 
 @Slf4j
 public class Receiver implements Runnable {
@@ -49,7 +53,6 @@ public class Receiver implements Runnable {
 	private boolean stopFlagOn = false;
 	
     private InterfaceSolacePub interfaceSolacePub;
-
 
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
 		this.session = session;
@@ -134,11 +137,14 @@ public class Receiver implements Runnable {
 					
 					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
 					// 				  2. 대체	ELSE
-
-					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) )
-						FisCommonUtil.reloadBaseRuleData();
+					CnFisIfRuleManager cnFisIfRuleManager = ApplicationContextProvider.getBean(CnFisIfRuleManager.class);
+					cnFisIfRuleManager.init();
+					
+					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
+						cnFisIfRuleManager.reloadBaseRuleData();
+					}
 					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
-						FisCommonUtil.applicationNewBaseRulse();
+						cnFisIfRuleManager.applicationNewBaseRulse();
 					else 
 						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
 					
@@ -177,11 +183,13 @@ public class Receiver implements Runnable {
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
 
-
 						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
 
 						break;
-
+					case FisMessageList.FIS_DLT_REQ:
+						FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(FisWorkTableManageController.class); 
+						workctlr.moveToDatasWorkHistory();
+						
 					default:
 						log.error("## Invalied cid : "+cid);
 						break;

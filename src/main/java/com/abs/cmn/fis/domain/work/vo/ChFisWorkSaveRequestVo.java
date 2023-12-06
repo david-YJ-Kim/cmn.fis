@@ -1,16 +1,18 @@
 package com.abs.cmn.fis.domain.work.vo;
 
+import java.sql.Timestamp;
+
 import com.abs.cmn.fis.domain.work.model.ChFisWork;
-import com.abs.cmn.fis.domain.work.model.CnFisWork;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.code.ProcessStateCode;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.sql.Timestamp;
+import lombok.Setter;
 
 @NoArgsConstructor
+@Setter
 @Getter
 public class ChFisWorkSaveRequestVo {
 

@@ -19,6 +19,7 @@ import com.abs.cmn.fis.message.vo.send.BrsInspDataSaveReqVo;
 import com.abs.cmn.fis.message.vo.send.BrsMeasDataSaveReqVo;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.code.ProcessStateCode;
 import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -104,6 +105,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
         
         // TODO Insert : I 상태로 work table update
+        this.workService.updateEntity(key, ProcessStateCode.I);
         
         // TODO status 의 정확한 역할 정의
         // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )

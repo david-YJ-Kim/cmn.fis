@@ -5,6 +5,8 @@ import com.abs.cmn.fis.util.code.ProcessStateCode;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -12,6 +14,7 @@ import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
+@Setter
 @Entity(name = "CN_FIS_WORK")
 public class CnFisWork {
 

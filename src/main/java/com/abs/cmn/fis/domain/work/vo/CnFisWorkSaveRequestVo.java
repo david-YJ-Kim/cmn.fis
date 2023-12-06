@@ -6,11 +6,13 @@ import com.abs.cmn.fis.util.code.ProcessStateCode;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
+@Setter
 public class CnFisWorkSaveRequestVo {
 	
 	private String workId;

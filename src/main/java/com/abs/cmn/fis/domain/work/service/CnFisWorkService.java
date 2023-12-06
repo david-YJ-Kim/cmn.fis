@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,5 +54,13 @@ public class CnFisWorkService {
     public void deleteEntityByObjId(String objId){
         this.repository.deleteById(objId);
     }
-
+    
+    public List<CnFisWork> getDeleteEntities() {
+    	
+    	String[] values = {ProcessStateCode.C.name(), ProcessStateCode.D.name()};
+    	Iterable<String> statuses = Arrays.asList(values);
+    	List<CnFisWork> delList = this.repository.findAllById(statuses);
+    	
+    	return delList;
+    }
 }
