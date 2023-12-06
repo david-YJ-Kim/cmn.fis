@@ -425,6 +425,19 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
 		return result;
 
     }
+
+	public static String getDelteQuery(String templat, String type ) {
+		String query = null;
+		String[] splt = templat.split(FisQueryValues.TABLE_NAME.name());
+
+		if (type.equals(FisFileType.INSP.name()))
+			query = splt[0] + FisPropertyObject.getInstance().getTableNameInsp()+splt[1];
+		else
+			query = splt[0] + FisPropertyObject.getInstance().getTableNameMeas()+splt[1];
+
+
+		return query;
+	}
     
     public static int changeClmTitlVal(String clmVal) {    	
     	int input, aVal = Integer.valueOf('A'), num = 0;

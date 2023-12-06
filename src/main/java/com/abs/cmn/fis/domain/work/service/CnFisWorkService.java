@@ -3,6 +3,8 @@ package com.abs.cmn.fis.domain.work.service;
 import com.abs.cmn.fis.domain.work.model.CnFisWork;
 import com.abs.cmn.fis.domain.work.repository.CnFisWorkRepository;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
+import com.abs.cmn.fis.util.code.ProcessStateCode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +36,16 @@ public class CnFisWorkService {
     }
     
     // update work_id status
-    public void updateEntity(String objId, String status) {
+    public void updateEntity(String objId, ProcessStateCode value) {
     	Optional<CnFisWork> vo = this.repository.findById(objId);
     	
+    	if ( vo.isPresent() ) {
+    		CnFisWork row = vo.get();
+    		row.setProcessState(value);
+    		this.repository.save(row);
+    	} else {
+    		log.error("[updateEntity] Occured Error : "+objId+" value : "+value.name());
+    	}
     }
 
     // delete work_id
