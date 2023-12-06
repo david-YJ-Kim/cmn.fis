@@ -71,8 +71,9 @@ public class FisMessagePool {
 
             BytesXMLMessage message = messageManageMap.get(messageId);
 
-//            message.ackMessage();
-            message.settle(XMLMessage.Outcome.ACCEPTED);
+            message.ackMessage();
+//            message.settle(XMLMessage.Outcome.ACCEPTED);
+//            message.setAckImmediately(true);
 
             if(message.isAckImmediately()){
                 log.info("MessageID:{} has been acknowledged.", messageId);

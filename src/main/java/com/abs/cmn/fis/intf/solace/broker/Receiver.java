@@ -30,6 +30,7 @@ import com.abs.cmn.fis.util.code.FisConstant;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Async;
 
 @Slf4j
@@ -85,6 +86,11 @@ public class Receiver implements Runnable {
 	}
 
 	private void switchStopFlag(){
+		try {
+			this.session.deleteSubscriber();
+		} catch (JCSMPException e) {
+			e.printStackTrace();
+		}
 		this.stopFlagOn = true;
 	}
 
@@ -114,12 +120,6 @@ public class Receiver implements Runnable {
 
 			ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-//			String filePath = "D:\\work-spaces\\FIS-work-space\\fis\\src\\main\\resources\\";
-//			String fileName = "Absolics계측결과파일표준_20230918.csv";
-//			String fileType = "INSP";
-//			String fileFormatType = "FORMAT";
-//			String cid = "FIS_FILE_REQ"; // CID
-
 
 			SDTMap userProperty = message.getProperties();
 			String cid = userProperty.getString(FisConstant.cid.name());
@@ -147,33 +147,13 @@ public class Receiver implements Runnable {
 					JSONObject msg = null;
 					String payload = "";
 			
-//					log.info("@@ dump : "+message.dump());
-//					cid = userProperty.getString("cid");
-					
-//					log.info("cid "+userProperty.getString("cid") );
-					
+
 					if ( message instanceof TextMessage) {
 						payload = ((TextMessage) message).getText();					
 					} else {
 						payload = new String( message.getBytes(), "UTF-8");
 					}
 					
-//					log.info("payload: "+payload);
-					
-//					msg = new JSONObject(payload);
-//
-//					if (msg != null) log.info("msg : "+msg.toString());
-//
-//					JSONObject msgbody = new JSONObject(msg.get(FisConstant.body.name()).toString());
-//
-//					log.info("msgbody : "+ msgbody.toString());
-					
-//					String fileType =  msgbody.getString("fileType");
-//					String fileName = msgbody.getString("fileName");
-//					String filePath = msgbody.getString("filePath");
-//					String eqpId = msgbody.getString("eqpId");
-//					String reqSystem = msgbody.getString("userId");
-//					String fileFormatType = msgbody.getString("fileFormatType");
 
 					log.info("{} Incoming request: {}", ackKey, cid);
 					switch (cid){
@@ -198,64 +178,10 @@ public class Receiver implements Runnable {
 						fisFileParsingExecute.init();
 
 
-						ExecuteResultVo resultVo = fisFileParsingExecute.execute(fisFileReportVo, ackKey);
-//						log.info("Complete request. details: {}", resultVo.toString());
-						
-//						// TODO EDC 메시지 송신:
-//						String sendCid = null;
-//
-//						if(fisFileReportVo.getBody().getFileType().equals(FisFileType.INSP)){
-//							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-//						}else if(fisFileReportVo.getBody().getFileType().equals(FisFileType.MEAS)){
-//							log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-//
-//						}else{
-//							throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-//											, fisFileReportVo.getBody().getFileType().name(), FisFileType.values().toString()));
-//						}
-//
-//						// InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
-//						// TODO 파일 이동
-//
-//
-//						// TODO 메시지 Ack
+						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
+
 						break;
 
-
-
-
-
-
-
-//						// 장애 상황 대응 필요 >> status 는 'D'로 변경
-//						msgbody.put("status", response.get("status"));
-//						msgbody.put("workId", response.get("workId"));
-//						msg.put("body", msgbody.toString());
-//						InterfaceSolacePub.getInstance().sendTextMessage(cid, msg.toString(), FisPropertyObject.getInstance().getSendTopicName(), fileType);
-//						// TODO : Work table 상태 (파싱 완료)
-//						break;
-//
-//					case FisMessageList.FIS_INSP_DATA_SAVE_REP:
-//					case FisMessageList.FIS_MEAS_DATA_SAVE_REP:
-//						// TODO : Work table 상태 C (삭제시작)
-//						String workId = msgbody.getString("workId");
-//						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
-//						fisFileMoveExecute.init();
-//						fisFileMoveExecute.execute(fileType, fileName, filePath, workId, FisMessageList.FIS_INTF_COMP);
-//						// TODO : Work table 상태 (삭제 완료)
-//						break;
-					case FisMessageList.FIS_DLT_REQ:
-						// TODO : work table 조회 > 'C', 'D' 상태 읽기
-						// 'C', 'D' 상태의 workid list 롤 만들기, 
-						// DeleteBatch() 하고, 
-						// Work History 에 insert > work table 삭제
-//						break;
-//					case FisMessageList.FIS_INTF_FAIL:	//데이터만 삭제 - BRS에서 입력 실패 파일에 대한 메세지를 송신 해 줄 때 사용 (미정) 
-//						String workId = msgbody.getString("workId");
-//						FisFileMoveExecute fisFileMoveExecute =  ApplicationContextProvider.getBean(FisFileMoveExecute.class);
-//						fisFileMoveExecute.init();
-//						fisFileMoveExecute.execute(filePath, fileName, tofilePath, workId);
-//						break;
 					default:
 						log.error("## Invalied cid : "+cid);
 						break;
@@ -263,13 +189,14 @@ public class Receiver implements Runnable {
 
 				}
 
-//				log.info("{} Complete processing: {}", messageId, cid);
-//				FisMessagePool.messageAck(messageId);
-				
+			}catch(TaskRejectedException taskRejectedException){
+				taskRejectedException.printStackTrace();
+				log.error("Over capacity. It's overflow.");
+
+
 			}catch (Exception e){
 				e.printStackTrace();
 				log.error("##  Receiver.onReceive() Exception : ", e);
-				FisMessagePool.messageAck(ackKey);
 			}
 
 		}
