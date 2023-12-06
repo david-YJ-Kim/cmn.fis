@@ -15,6 +15,7 @@ import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.code.ProcessStateCode;
 import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -70,7 +71,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         ExecuteResultVo resultVo = new ExecuteResultVo();
         long executeStartTime = System.currentTimeMillis();
-
+        
+        // workId == key
         String key = this.createWorkId(vo);
         resultVo.setWorkId(key);
         
@@ -83,20 +85,23 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         int headerStartOffset = 0;
         if (fileRule.getParseRowValList() != null ){
             headerStartOffset = fileRule.getParseRowValList()[0];
-        }
+        } else if (fileRule.getParseRowVal().equals("*")) {
+            headerStartOffset = 0;
+    	}
 
 
         List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
                                                             headerStartOffset, key, fileRule);
 
         // TODO Parsing : P 상태로 work table update
+        workService.updateEntity(key, ProcessStateCode.I);
 
         String[] columList = parsingResult.get(0).keySet().toArray(new String[0]);
         log.info("Parsing result.  column List: {}. Its size : {}", Arrays.toString(columList), columList.length);
 
 
 //        long dbInsertStartTime = System.currentTimeMillis();
-//        String status = this.parsingDataRepository.batchEntityInsert(key, vo.getBody().getFileType(), parsingResult, fileRule);
+//        String status = this.parsingDataRepository.batchEntityInsert(key, headerStartOffset, parsingResult, fileRule);
 //        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
         
         // TODO Insert : I 상태로 work table update
@@ -168,7 +173,17 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         return this.workService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
     }
+    
+    private String updateWorkStatus(String key, String status){
 
+//        String reqSystem = vo.getHead().getSrc();
+        // TODO WORK INFO 생성
+        CnFisWorkSaveRequestVo cnFisWorkSaveRequestVo = CnFisWorkSaveRequestVo.builder()
+                .processState(status)
+                .build();
+
+        return this.workService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
+    }
 
     private ArrayList<CnFisEdcTmpVo> testList(){
         ArrayList<CnFisEdcTmpVo> list = new ArrayList<>();
