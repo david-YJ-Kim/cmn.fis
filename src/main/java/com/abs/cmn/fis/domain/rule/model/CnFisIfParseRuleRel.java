@@ -27,9 +27,6 @@ public class CnFisIfParseRuleRel {
     @Column(name = "FILE_CLM_VAL")
     private String fileClmVal;
 
-    @Column(name = "FILE_CLM_NM")
-    private String fileClmNm;
-
     @Column(name = "MPNG_CLM_NM")
     private String mpngClmNm;
     
@@ -50,12 +47,11 @@ public class CnFisIfParseRuleRel {
 
 
     @Builder
-    public CnFisIfParseRuleRel(String objId, String refObjId, String fileClmVal, String fileClmNm, String mpngClmNm, 
+    public CnFisIfParseRuleRel(String objId, String refObjId, String fileClmVal, String mpngClmNm,
     							String clmDataTyp, String crtDt, String crtUserId, String mdfyDt, String mdfyUserId) {
         this.objId = objId;
         this.refObjId = refObjId;
         this.fileClmVal = fileClmVal;
-        this.fileClmNm = fileClmNm;
         this.mpngClmNm = mpngClmNm;
         this.clmDataTyp = clmDataTyp;
         this.crtDt = crtDt;
@@ -70,7 +66,6 @@ public class CnFisIfParseRuleRel {
                 "objId=" + objId +
                 ", refObjId='" + refObjId + '\'' +
                 ", fileClmVal='" + fileClmVal + '\'' +
-                ", fileClmNm='" + fileClmNm + '\'' +
                 ", mpngClmNm='" + mpngClmNm + '\'' +
                 ", clmDataTyp='" + clmDataTyp + '\'' +
                 ", crtDt='" + crtDt + '\'' +

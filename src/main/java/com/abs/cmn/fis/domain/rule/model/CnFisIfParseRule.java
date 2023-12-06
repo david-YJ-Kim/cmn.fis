@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.domain.rule.model;
 
+import com.abs.cmn.fis.util.code.FisFileType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,17 +20,18 @@ public class CnFisIfParseRule {
     @Column(name = "OBJ_ID", nullable = false)
     private String objId;
     
-    @Column(name = "EQP_NM")
-    private String eqpNm;
-
-    @Column(name = "FILE_FM_TYP")
-    private char fileFmTyp;
+    @Column(name = "EQP_ID")
+    private String eqpId;
 
     @Column(name = "FILE_TYP")
-    private String fileTyp;
+    @Enumerated(EnumType.STRING)
+    private FisFileType fileTyp;
 
-    @Column(name = "FILE_TRGT_POSN_VAL")
-    private String fileTrgtPosnVal;
+    @Column(name = "START_HDR_VAL")
+    private int startHdrVal;
+
+    @Column(name = "FILE_TGT_POSN_VAL")
+    private String fileTgtPosnVal;
 
     @Column(name = "PARS_CLM_ID_VAL")
     private String parsClmIdVal;
@@ -50,14 +52,14 @@ public class CnFisIfParseRule {
     private String mdfyUserId;
 
     @Builder
-    public CnFisIfParseRule(String objId, String eqpNm, char fileFmTyp, String fileTyp, String fileTrgtPosnVal,
+    public CnFisIfParseRule(String objId, String eqpId,String fileTyp, int startHdrVal, String fileTgtPosnVal,
                                   String parsClmIdVal, String parsRowVal, Timestamp crtDt, String crtUserId,
                                   Timestamp mdfyDt, String mdfyUserId) {
         this.objId = objId;
-        this.eqpNm = eqpNm;
-        this.fileFmTyp = fileFmTyp;
-        this.fileTyp = fileTyp;
-        this.fileTrgtPosnVal = fileTrgtPosnVal;
+        this.eqpId = eqpId;
+        this.fileTyp = FisFileType.valueOf(fileTyp);
+        this.startHdrVal = startHdrVal;
+        this.fileTgtPosnVal = fileTgtPosnVal;
         this.parsClmIdVal = parsClmIdVal;
         this.parsRowVal = parsRowVal;
         this.crtDt = crtDt;
@@ -68,12 +70,12 @@ public class CnFisIfParseRule {
 
     @Override
     public String toString() {
-        return "CnFisIfParsingFileInfo{" +
-                "objId=" + objId +
-                ", eqpNm='" + eqpNm + '\'' +
-                ", fileFmTpy=" + fileFmTyp +
-                ", fileTpy='" + fileTyp + '\'' +
-                ", fileTrgtPosnVal='" + fileTrgtPosnVal + '\'' +
+        return "CnFisIfParseRule{" +
+                "objId='" + objId + '\'' +
+                ", eqpId='" + eqpId + '\'' +
+                ", fileTyp='" + fileTyp + '\'' +
+                ", startHdrVal=" + startHdrVal +
+                ", fileTgtPosnVal='" + fileTgtPosnVal + '\'' +
                 ", parsClmIdVal='" + parsClmIdVal + '\'' +
                 ", parsRowVal='" + parsRowVal + '\'' +
                 ", crtDt=" + crtDt +

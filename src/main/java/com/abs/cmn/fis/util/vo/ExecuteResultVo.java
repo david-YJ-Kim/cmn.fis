@@ -19,6 +19,13 @@ public class ExecuteResultVo {
 
     int rowCount;
 
+    String sendCid;
+
+    String sendPayload;
+
+    String movedFilePath;
+    String movedFileName;
+
 
 
 

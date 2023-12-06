@@ -23,7 +23,6 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.NClob;
 import java.sql.ParameterMetaData;
@@ -37,10 +36,9 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Repository
 @Slf4j
@@ -52,49 +50,90 @@ public class ParsingDataRepository {
 	private JdbcTemplate jdbcTemplate;
 
 
-	public String batchEntityInsert(String fileName, String workId, String fileType, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
+	public String batchEntityInsert(String fileName, String workId, int startHeaderOffset, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
 
 		try {
+			log.info("Data size: {} ", listMap.size());
 			
 			// TODO 파일 유형의 ObjId를 가져와야 한다. 위에 패스에서 확인 할 것.
 			sqlColumList = fileRule.getMpngClmStrList();
 			
 			String query = fileRule.getQueryInsertBatch();	// TODO objId 로 전달 할 수 있도록 objId 관련 로직 전에 확인 하기
 			
-			int[] numberDataList = fileRule.getNumberDtTypList();
-			int[] timeStmpDataList = fileRule.getTimeStmpDrTypList();
+			int[] numberDataList = FisCommonUtil.convertToIntArray(fileRule.getNumberDataTypList());
+			int[] timeStmpDataList = FisCommonUtil.convertToIntArray(fileRule.getTimeStampDataTypList());
 			
 			if (numberDataList != null && timeStmpDataList != null )
-				log.info("Insert For File type : {}", fileRule.getFileType() +" , "+numberDataList.length + ","+timeStmpDataList.length);
+				log.info("Insert For File type : {}", fileRule.getFileTyp().name() +" , "+numberDataList.length + ","+timeStmpDataList.length);
 			 
 			jdbcTemplate.setFetchSize(FisPropertyObject.getInstance().getBatchSize()); 
 			
 			jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
 				@Override
 				public void setValues(PreparedStatement ps, int i) throws SQLException {
+
+
+					log.info("CheckDataType SQL: {}", query);
+
+
 					// TODO List<MAP> 변환 필요
 					Map<String, String> map = listMap.get(i);
 					ps.setString(1, FisCommonUtil.generateObjKey());
-					ps.setString(2, fileRule.getFileFormatType());
-					ps.setString(3, fileRule.getFileTrgtPosnVal());
-					ps.setString(4, fileName);					
-					ps.setString(5, workId);
-					ps.setString(6, fileRule.getParseRowValList()[i]+"");
+					ps.setString(2, fileRule.getFileTgtPosnVal());
+					ps.setString(3, fileName);
+					ps.setString(4, workId);
+					ps.setInt(5, i + startHeaderOffset);
 					
 					for(int idx = 0; idx < sqlColumList.length; idx++){
-						log.debug("Column:{}, Value: {}", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
-						if ( FisCommonUtil.checkDataInList(numberDataList, idx) ) {
-							ps.setInt(idx +7, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
-							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
-						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, idx)){
-							ps.setTimestamp(idx +7, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)) );
-							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+						int addIdx = idx + 6;
+//						log.info("Column:{}, Value: {}", sqlColumList[addIdx], map.getOrDefault(sqlColumList[addIdx], null));
+						if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
+
+							ps.setInt(addIdx, Integer.valueOf( map.getOrDefault(sqlColumList[idx], null)) );
+							log.info(addIdx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+
+//						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
+						} else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
+
+							log.info("CHECKDATEFORMAT columnName: {}, getInMap : {}",sqlColumList[idx], map.get(sqlColumList[idx]));
+
+//							ps.setTimestamp(addIdx, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)));
+							ps.setTimestamp(addIdx, Timestamp.valueOf(this.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
+
+							log.info(addIdx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+
 						} else {
-							ps.setString(idx +7, map.getOrDefault(sqlColumList[idx], null));
-							log.info(idx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+
+							ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
+							log.info(addIdx+" , " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 						}
 					}
 
+				}
+
+				private String convertDateFormat(String inputDate) {
+
+					log.info(inputDate);
+
+					try {
+						// Parse the input date string
+//						SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+//						Date parsedDate = inputFormat.parse(inputDate);
+
+						SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+						Date parsedDate = inputFormat.parse(inputDate);
+
+						// Format the date into the desired format
+						SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+						String formattedDate = outputFormat.format(parsedDate);
+
+						// Print the formatted date
+						log.info(formattedDate);
+						return formattedDate;
+					} catch (ParseException e) {
+						e.printStackTrace();
+						return null;
+					}
 				}
 
 				@Override
@@ -115,6 +154,7 @@ public class ParsingDataRepository {
 		
 		return workId;
 	}
+
 
 	
 	public String deleteBatch(String fileType, String key, int batchSize) throws SQLException {

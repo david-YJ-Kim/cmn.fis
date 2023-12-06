@@ -11,6 +11,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Component
@@ -60,10 +62,23 @@ public class FisPropertyObject {
 
     @Value("${ap.shutdown.polling.interval.ms}")
     private int apShutdownPollingIntervalMs;
-    
+
+    @Value("${ap.worker.pool-size.core}")
+    private int corePoolSize;  // 기본 실행 대기하는 Thread 수
+
+    @Value("${ap.worker.pool-size.max}")
+    private int maxPoolSize;  // 동시 동작하는 최대 Thread 수
+
+    @Value("${ap.worker.capacity}")
+    private int queueCapacity;  // MaxPoolSize 초과 요청 시, 최대 Queue 저장 수
+
+    @Value("${ap.worker.name.prefix}")
+    private String threadPrefixName; // 생성되는 Thread 접두사 명
+
+
     // 프로세스에서 사용하는 룰 객체 
-    private List<ParseRuleVo> parsingRule;
-    private List<ParseRuleRelVo> mappingRule;
+//    private List<ParseRuleVo> parsingRule;
+//    private List<ParseRuleRelVo> mappingRule;
     
     // 패치 예정인 룰정보
     private List<ParseRuleVo> prepParsingRule;
@@ -72,6 +87,8 @@ public class FisPropertyObject {
     // 직전 사용 하던 룰 정보 - 롤백을 대비한 보관
     private List<ParseRuleVo> pastParsingRule;
     private List<ParseRuleRelVo> pastMappingRule;
+
+    private Map<String, ParseRuleVo> ruleVoMap;
 
     private InterfaceSolaceSub interfaceSolaceSub;
 
@@ -95,6 +112,10 @@ public class FisPropertyObject {
             instance.clientName = FisCommonUtil.generateClientName(instance.groupName, instance.siteName, instance.envType, instance.processSeq);
         }
 
+        if(instance.ruleVoMap == null){
+            instance.ruleVoMap = new ConcurrentHashMap<>();
+        }
+
         return instance;
     }
 
@@ -106,13 +127,13 @@ public class FisPropertyObject {
         instance = this;
     }
 
-    public void setParsingRule(List<ParseRuleVo> parsingRule) {
-        this.parsingRule = parsingRule;
-    }
-
-    public void setMappingRule(List<ParseRuleRelVo> mappingRule) {
-        this.mappingRule = mappingRule;
-    }
+//    public void setParsingRule(List<ParseRuleVo> parsingRule) {
+//        this.parsingRule = parsingRule;
+//    }
+//
+//    public void setMappingRule(List<ParseRuleRelVo> mappingRule) {
+//        this.mappingRule = mappingRule;
+//    }
     
     public void setPrepParsingRule(List<ParseRuleVo> parsingRule) {
         this.prepParsingRule = parsingRule;
@@ -136,5 +157,12 @@ public class FisPropertyObject {
 
     public void setInterfaceSolacePub(InterfaceSolacePub interfaceSolacePub) {
         this.interfaceSolacePub = interfaceSolacePub;
+    }
+
+    public Map<String, ParseRuleVo> getRuleVoMap() {
+        if(ruleVoMap == null){
+            ruleVoMap = new ConcurrentHashMap<>();
+        }
+        return ruleVoMap;
     }
 }
