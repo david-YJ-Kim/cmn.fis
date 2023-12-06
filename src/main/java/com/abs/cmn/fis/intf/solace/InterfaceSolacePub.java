@@ -60,6 +60,30 @@ public class InterfaceSolacePub {
         return instance;
     }
 
+
+
+    public void sendTopicMessage(String sendCid, String payload, String topicName){
+        try{
+
+            XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
+            TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+
+            SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
+
+            userPropMap.putString(FisConstant.cid.name(), sendCid);
+            txtMsg.setText(payload);
+            txtMsg.setProperties(userPropMap);
+
+            txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
+            prod.send(txtMsg, createTopic(topicName));
+        }catch (Exception e){
+
+            e.printStackTrace();
+        }
+    }
+
+
+    @Deprecated
     public void sendTextMessage(String cid, String payload, String topicName, String fileType){
         try{
 

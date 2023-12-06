@@ -71,11 +71,20 @@ public class TestSendMngController {
         String payload = String.format(FIS_FILE_REPORT_FORMAT, FisMessageList.FIS_FILE_REPORT, tid, eqpId, fileType, filePath, fileName);
 
 
-        log.info(payload);
+        log.debug(payload);
         InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_FILE_REPORT, payload, FisPropertyObject.getInstance().getReceiveQueueName());
         return null;
     }
 
+    @RequestMapping(value = "/LOOP/FIS_FILE_REPORT", method = RequestMethod.GET)
+    public String sendLoopFisFileReport(String eqpId, String fileType, String filePath, String fileName, int loop) throws JCSMPException {
+
+
+        for (int i = 0; i < loop; i++) {
+            this.sendFisFileReport(eqpId, fileType, filePath, fileName);
+        }
+        return null;
+    }
 
     @RequestMapping(value = "/FIS_TEST_MESSAGE", method = RequestMethod.GET)
     public String sendFisTestMessage(long sleepTime) throws JCSMPException {
@@ -90,6 +99,6 @@ public class TestSendMngController {
         InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_TEST_MESSAGE, payload, FisPropertyObject.getInstance().getReceiveQueueName());
         return null;
     }
-}
 
+}
 
