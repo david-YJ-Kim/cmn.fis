@@ -47,8 +47,8 @@ public class FileParser {
 
             int[] clmValList = parseRule.getParseClmIdValIntList();
             int[] rowValeList = parseRule.getParseRowValList();
-            if (parseRule.getParseRowVal().equals("*"))
-                headerStartOffset = 0;
+//            if (parseRule.getParseRowVal().equals("*"))
+//                headerStartOffset = 0;
             
             columList = new String[clmValList.length];
             
@@ -96,7 +96,7 @@ public class FileParser {
 
                 }else{
                     log.debug("[Row-Else] Count : {}, header:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
-                    cnt++;
+//                    cnt++;
                 }
 
                 log.debug("Add csvLine :{}, And data:{}", cnt, csvLineObject.toString());

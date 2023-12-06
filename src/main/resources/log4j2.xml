@@ -31,7 +31,7 @@
 
   <Loggers>
     <Logger name="com.abs.cmn" additivity="false">
-        <AppenderRef ref="LogApp" level="info" />
+        <AppenderRef ref="LogApp" level="debug" />
         <AppenderRef ref="LogToConsole" level="info" />
         <AppenderRef ref="LogException" level="error"/>
     </Logger>

@@ -50,6 +50,67 @@ public class FileManager {
 		return false;
 	}
 
+	public boolean copyFile(String fromPath, String fileName, String toPath, String newFileName) {
+		if (this.isLocalMode()) {
+			return copyLocalFile(fromPath, fileName, toPath, newFileName);
+		} else {
+			return copyRemoteFile(fromPath, fileName, toPath, newFileName);
+		}
+	}
+
+	private boolean copyLocalFile(String fromPath, String fileName, String toPath, String newFileName) {
+		File fromFile = new File(fromPath, fileName);
+		File toFile = new File(toPath, newFileName == null || newFileName.equals("") ? fileName : newFileName);
+
+		if (!fromFile.exists()) {
+			log.error("Source file does not exist.");
+			return false;
+		}
+
+		if (!toFile.getParentFile().exists()) {
+			boolean created = toFile.getParentFile().mkdirs();
+			if (!created) {
+				log.error("Failed to create destination directory.");
+				return false;
+			}
+		}
+
+		Path sourcePath = fromFile.toPath();
+		Path destinationPath = toFile.toPath();
+		try {
+			Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean copyRemoteFile(String fromPath, String fileName, String toPath, String newFileName) {
+		File fromFile = null;
+		File toFile = new File(toPath, newFileName == null || newFileName.equals("") ? fileName : newFileName);
+
+		try {
+			fromFile = this.getFileFromRemote(fromPath, fileName);
+
+			if (!fromFile.exists()) {
+				log.error("Source file does not exist at remote Server.");
+				return false;
+			}
+
+			if (this.insertFileToRemote(fromPath, toPath, fileName)) {
+				// You may need to modify the logic based on your specific requirements for remote copying
+				return true;
+			} else {
+				return false;
+			}
+
+		} catch (Exception e) {
+			log.error("## FileManager, copyRemoteFile : ", e);
+			return false;
+		}
+	}
+
 
 	public boolean moveFile(String fromPath, String fileName, String toPath){
 		if(this.isLocalMode()){

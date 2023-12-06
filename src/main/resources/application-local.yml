@@ -15,7 +15,7 @@ logging:
             JdbcTemplate : debug
 #    '[org.springframework]': debug
 #    '[org.springframework.web]': debug
-   
+
 
 spring:
   datasource:
@@ -23,6 +23,7 @@ spring:
     url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
     username: mesadm
     password: absolics12#
+
   jpa:
     properties:
       hibernate:
@@ -55,6 +56,13 @@ ap:
     site: SVM
     env: DEV
     sequence: 1
+  worker:
+    pool-size:
+      core: 5
+      max: 50
+    capacity: 1000
+    name:
+      prefix: FIS-ASYNC-
   file:
     mode: local
     nas:
@@ -88,15 +96,15 @@ ap:
     table-name:
       insp: CN_FIS_INSP_DATA
       meas: CN_FIS_MEAS_DATA
-    insert-template: INSERT INTO TABLE_NAME ( OBJ_ID,FILE_FM_TYP,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,?,SYSTIMESTAMP,INPUT )
+    insert-template: INSERT INTO TABLE_NAME ( OBJ_ID,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,SYSTIMESTAMP,INPUT )
     del-template: DELETE FROM TABLE_NAME WHERE WORK_ID = ?
     rule:
-      parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
+      parsing: SELECT OBJ_ID,EQP_NM,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
       mapping: SELECT OBJ_ID,REF_OBJ_ID,FILE_CLM_VAL,FILE_CLM_NM,MPNG_CLM_NM,CLM_DATA_TYP FROM CN_FIS_IF_PARSE_RULE_REL
   shutdown:
     force:
       timeout:
-        ms: 100000
+        ms: 1000
     polling:
       interval:
         ms: 10
