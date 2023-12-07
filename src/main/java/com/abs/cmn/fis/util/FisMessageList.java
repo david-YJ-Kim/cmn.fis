@@ -15,5 +15,9 @@ public final class FisMessageList {
     
     public static final String FIS_INSP_DATA_SAVE_REP = "FIS_INSP_DATA_SAVE_REP";
     public static final String FIS_MEAS_DATA_SAVE_REP = "FIS_MEAS_DATA_SAVE_REP";
+    
+    
+    public static final String RELOAD_RULE = "RELOAD_RULE";
+    public static final String PATCH_RULE = "PATCH_RULE";
 
 }

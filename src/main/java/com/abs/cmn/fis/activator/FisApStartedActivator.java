@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
+import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
@@ -44,6 +45,9 @@ public class FisApStartedActivator implements ApplicationRunner {
 
     @Autowired
     private CnFisIfParseRuleService cnFisIfParseRuleService;
+    
+    @Autowired
+    private CnFisIfRuleManager cnFisIfRuleManager;
 
     @Override
     public void run(ApplicationArguments args){
@@ -51,6 +55,7 @@ public class FisApStartedActivator implements ApplicationRunner {
         try{
 
             this.initializeRuleData();
+//        	cnFisIfRuleManager.initializeRuleData();
             log.info("Complete initialize rule data.");
         }catch (Exception e){
             e.printStackTrace();
