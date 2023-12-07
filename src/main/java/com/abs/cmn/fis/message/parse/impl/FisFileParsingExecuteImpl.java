@@ -146,7 +146,9 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         resultVo.setSendPayload(messageObject.toString());
         InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messageObject.toString(), FisPropertyObject.getInstance().getSendTopicName());
 
-
+        // TODO Insert : I 상태로 work table update
+        this.workService.updateEntity(key, ProcessStateCode.M);
+        
          // TODO 파일 이동
         // 이동한 폴더 패턴
         String moveFilePattern = "/base_path/${eqpId}/${date}";
