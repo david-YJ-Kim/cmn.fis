@@ -3,7 +3,6 @@ package com.abs.cmn.fis.intf.solace;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisConstant;
@@ -95,9 +94,9 @@ public class InterfaceSolacePub {
             String sendCid = null;
 
             if ( fileType.equals(FisFileType.INSP.name()) )
-            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
             else
-            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
             userPropMap.putString(FisConstant.cid.name(), sendCid);
             txtMsg.setText(payload);

@@ -3,11 +3,9 @@ package com.abs.cmn.fis.message.move.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.message.move.FisFileMoveExecute;
-import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.service.FileManager;
 
 import lombok.extern.slf4j.Slf4j;

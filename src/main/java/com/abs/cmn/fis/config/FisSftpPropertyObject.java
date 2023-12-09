@@ -1,16 +1,21 @@
 package com.abs.cmn.fis.config;
 
-import com.abs.cmn.fis.util.code.FisConstant;
-import com.jcraft.jsch.*;
-import lombok.Getter;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.Properties;
+import com.abs.cmn.fis.util.code.FisConstant;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+
+import lombok.Getter;
 
 @Getter
 @Component

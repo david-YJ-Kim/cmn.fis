@@ -1,5 +1,9 @@
 package com.abs.cmn.fis.domain.work.service;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.abs.cmn.fis.domain.work.model.CnFisWork;
 import com.abs.cmn.fis.domain.work.repository.CnFisWorkRepository;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
@@ -7,23 +11,18 @@ import com.abs.cmn.fis.util.code.ProcessStateCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CnFisWorkService {
-    private final CnFisWorkRepository repository;
+    private final CnFisWorkRepository cnFisWorkRepository;
 
     public CnFisWork saveEntity(CnFisWorkSaveRequestVo vo){
         try{
             CnFisWork entity = vo.toEntity();
             log.info(entity.toString());
-            return this.repository.save(entity);
+            return this.cnFisWorkRepository.save(entity);
         }catch (Exception e){
             e.printStackTrace();
             log.error(e.getMessage());
@@ -34,17 +33,17 @@ public class CnFisWorkService {
 
     // return work_id
     public Optional<CnFisWork> getEntityByObjId(String objId){
-        return Optional.of(this.repository.findById(objId).get());
+        return Optional.of(this.cnFisWorkRepository.findById(objId).get());
     }
     
     // update work_id status
     public void updateEntity(String objId, ProcessStateCode value) {
-    	Optional<CnFisWork> vo = this.repository.findById(objId);
+    	Optional<CnFisWork> vo = this.cnFisWorkRepository.findById(objId);
     	
     	if ( vo.isPresent() ) {
     		CnFisWork row = vo.get();
     		row.setProcessState(value);
-    		this.repository.save(row);
+    		this.cnFisWorkRepository.save(row);
     	} else {
     		log.error("[updateEntity] Occured Error : "+objId+" value : "+value.name());
     	}
@@ -52,15 +51,19 @@ public class CnFisWorkService {
 
     // delete work_id
     public void deleteEntityByObjId(String objId){
-        this.repository.deleteById(objId);
+        this.cnFisWorkRepository.deleteById(objId);
     }
     
-    public List<CnFisWork> getDeleteEntities() {
-    	
-    	String[] values = {ProcessStateCode.C.name(), ProcessStateCode.D.name()};
-    	Iterable<String> statuses = Arrays.asList(values);
-    	List<CnFisWork> delList = this.repository.findAllById(statuses);
-    	
-    	return delList;
-    }
+//    public List<CnFisWork> getDeleteEntities() {
+//    	
+//    	log.info("1. CnFisWorkService , getDeleteEntities() "); 
+//    	String[] values = {ProcessStateCode.C.name(), ProcessStateCode.D.name()};
+//    	Iterable<String> statuses = Arrays.asList(values);
+////    	String sql = "SELECT * FROM CN_FIS_WORK cfw WHERE PROC_STATE ='C'OR PROC_STATE ='D'";
+//    	List<CnFisWork> delList = this.cnFisWorkRepository.findAllById(statuses);
+//    	
+//    	log.info("3. CnFisWorkService , getDeleteEntities() ");
+//    	
+//    	return delList;
+//    }
 }

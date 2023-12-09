@@ -1,10 +1,10 @@
 package com.abs.cmn.fis.message;
 
-import com.solacesystems.jcsmp.BytesXMLMessage;
-import com.solacesystems.jcsmp.XMLMessage;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.solacesystems.jcsmp.BytesXMLMessage;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FisMessagePool {

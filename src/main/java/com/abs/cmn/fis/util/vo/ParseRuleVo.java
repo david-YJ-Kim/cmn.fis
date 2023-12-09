@@ -1,14 +1,12 @@
 package com.abs.cmn.fis.util.vo;
 
 
+import java.util.ArrayList;
+
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisFileType;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-import java.util.ArrayList;
+import lombok.Data;
 
 @Data
 public class ParseRuleVo {

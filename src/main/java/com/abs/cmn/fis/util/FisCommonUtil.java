@@ -2,7 +2,9 @@ package com.abs.cmn.fis.util;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -121,16 +123,19 @@ public class FisCommonUtil {
                     for (String c : split) {
                         newInfo += c.concat(",");
                     }
+                    
+                    result += newInfo;
+                } else {
+                	result += oldInfo+",";
                 }
-//                newInfo.substring(0, newInfo.lastIndexOf(","));
+                
 //                log.info("******************************* "+oldInfo);
 //                log.info("++++++++++++++++++++++++++++++ "+newInfo);
-                result = result + newInfo;
 //                log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ "+result);
             }
             
-            result = result.substring(0, result.lastIndexOf(","));
-log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
+            result = result.substring(0, result.length()-1);
+            log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
             // 변경 저장된 값으로 다시 나눔
             ps = result.split(",");
             // haeder info를 다시 String으로
@@ -365,7 +370,8 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
 
     }
 
-	public static String getDelteQuery(String templat, String type ) {
+	public static String getDelteQuery(String type ) {
+		String templat = FisPropertyObject.getInstance().getDeleteBatchTemplate();
 		String query = null;
 		String[] splt = templat.split(FisQueryValues.TABLE_NAME.name());
 
@@ -373,7 +379,6 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
 			query = splt[0] + FisPropertyObject.getInstance().getTableNameInsp()+splt[1];
 		else
 			query = splt[0] + FisPropertyObject.getInstance().getTableNameMeas()+splt[1];
-
 
 		return query;
 	}
@@ -436,7 +441,30 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
 
 		return intArray;
 	}
-    
+	public static String convertDateFormat(String inputDate) {
+
+		log.info(inputDate);
+
+		try {
+			// Parse the input date string
+//			SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+//			Date parsedDate = inputFormat.parse(inputDate);
+
+			SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+			Date parsedDate = inputFormat.parse(inputDate);
+
+			// Format the date into the desired format
+			SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+			String formattedDate = outputFormat.format(parsedDate);
+
+			// Print the formatted date
+			log.info(formattedDate);
+			return formattedDate;
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	public static Timestamp stringToTimestamp(String value) throws ParseException {
 
@@ -449,15 +477,18 @@ log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "+result);
     
     public static void main(String[] args) {
     	
-    	String str = "123abc456def";
+//    	String str = "123abc456def";
+//
+//        // 정규식을 사용하여 숫자를 찾습니다.
+//        boolean containsNumber = str.matches(".*[a-zA-Z].*");
+//        System.out.println("test 1 : " +containsNumber); // true
+//
+//        // 숫자로 변환할 수 있는지 확인합니다.
+//        boolean canParseNumber = Integer.parseInt(str) != 0;
+//        System.out.println(canParseNumber); // true
 
-        // 정규식을 사용하여 숫자를 찾습니다.
-        boolean containsNumber = str.matches(".*[a-zA-Z].*");
-        System.out.println("test 1 : " +containsNumber); // true
-
-        // 숫자로 변환할 수 있는지 확인합니다.
-        boolean canParseNumber = Integer.parseInt(str) != 0;
-        System.out.println(canParseNumber); // true
+    	for (int i = 0 ; i < 26; i++ )
+    		System.out.println(generateObjKey());
     }
 
 	public static String generateRuleStoreKey(String eqpId, String fileTyp){

@@ -2,6 +2,7 @@ package com.abs.cmn.fis.message.vo.receive;
 
 import com.abs.cmn.fis.message.vo.FisMsgCommonVo;
 import com.abs.cmn.fis.message.vo.common.FisMsgBody;
+
 import lombok.Data;
 
 @Data

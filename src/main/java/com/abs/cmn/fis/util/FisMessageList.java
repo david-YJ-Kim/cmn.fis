@@ -10,8 +10,8 @@ public final class FisMessageList {
     public static final String FIS_INTF_FAIL = "FIS_INTF_FAIL";
     public static final String FIS_DLT_REQ = "FIS_DLT_REQ";
     
-    public static final String BRS_INSP_DATA_SAVE_REQ = "BRS_INSP_DATA_SAVE_REQ";
-    public static final String BRS_MEAS_DATA_SAVE_REQ = "BRS_MEAS_DATA_SAVE_REQ";
+    public static final String BRS_INSP_DATA_SAVE = "BRS_INSP_DATA_SAVE";
+    public static final String BRS_MEAS_DATA_SAVE = "BRS_MEAS_DATA_SAVE";
     
     public static final String FIS_INSP_DATA_SAVE_REP = "FIS_INSP_DATA_SAVE_REP";
     public static final String FIS_MEAS_DATA_SAVE_REP = "FIS_MEAS_DATA_SAVE_REP";

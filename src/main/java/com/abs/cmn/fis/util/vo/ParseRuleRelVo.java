@@ -2,8 +2,6 @@ package com.abs.cmn.fis.util.vo;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 public class ParseRuleRelVo {

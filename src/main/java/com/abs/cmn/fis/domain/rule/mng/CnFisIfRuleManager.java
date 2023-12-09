@@ -11,7 +11,6 @@ public interface CnFisIfRuleManager {
 	public void init();
 	
 	public boolean reloadBaseRuleData() ;
-	
 	public boolean applicationNewBaseRulse(); 
 
 	// 김연준 매니저 작성

@@ -13,6 +13,7 @@ import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleRelService;
 import com.abs.cmn.fis.domain.rule.service.CnFisIfParseRuleService;
+import com.abs.cmn.fis.util.ApplicationContextProvider;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisQueryValues;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
@@ -27,38 +28,46 @@ import lombok.extern.slf4j.Slf4j;
 public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
 	
 	@Autowired
-	private static CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
+	private CnFisIfParseRuleRelService cnFisIfParseRuleRelService;
 
 	@Autowired
-	private static CnFisIfParseRuleService cnFisIfParseRuleService;
+	private CnFisIfParseRuleService cnFisIfParseRuleService;
 
-	
 	@Override
 	public void init() {
-		
+		cnFisIfParseRuleRelService = ApplicationContextProvider.getBean(CnFisIfParseRuleRelService.class);
+		cnFisIfParseRuleService = ApplicationContextProvider.getBean(CnFisIfParseRuleService.class);
 	}
 	
 	@Override
 	public boolean reloadBaseRuleData() {
     	try {
-	    	// DB에서 기준 정보 읽어옴
-	    	List<CnFisIfParseRuleRel> mappingInfoEntities = cnFisIfParseRuleRelService.getAllEntities();
-	        List<ParseRuleRelVo> mappingInfoVos = FisCommonUtil.convertParseRuleRelVo(mappingInfoEntities);
-	        FisPropertyObject.getInstance().setPrepMappingRule(mappingInfoVos);
-	
-	        List<CnFisIfParseRule> parsingInfoEntities = cnFisIfParseRuleService.getAllEntities();
-//	        List<ParseRuleVo> parsingInfoVos = FisCommonUtil.convertParseRuleVo(parsingInfoEntities, mappingInfoVos);
-			List<ParseRuleVo> parsingInfoVos = null;
-	        FisPropertyObject.getInstance().setPrepParsingRule(parsingInfoVos);
+    		Map<String, ParseRuleVo> ruleVoMap = FisPropertyObject.getInstance().getNextRuleVoMap();
+            log.info("Map is null ? : {}", ruleVoMap == null);
+     
+            // 기준정보 (CN_FIS_PARSE_RULE)
+            List<CnFisIfParseRule> cnFisIfParseRules = this.cnFisIfParseRuleService.getAllEntities();
+            log.info("Get parsing rules : {}", cnFisIfParseRules);
+     
+            // 매핑 정보 (CN_FIS_PARSE_RULE_REL)
+            List<CnFisIfParseRuleRel> cnFisIfParseRuleRelations = this.cnFisIfParseRuleRelService.getAllEntities();
+            log.info("Get rule relation infos: {}", cnFisIfParseRuleRelations);
+     
+     
+     
+            for(CnFisIfParseRule entity : cnFisIfParseRules){
+                String mapKey = FisCommonUtil.generateRuleStoreKey(entity.getEqpId(), entity.getFileTyp().name());
+                ruleVoMap.put(mapKey, this.setParsingRuleVo(entity, cnFisIfParseRuleRelations));
+            }
+     
+            log.info("기준정보 로딩 완료. Rule Info: {}",
+                    FisPropertyObject.getInstance().getRuleVoMap().toString());
 	        
-	        // 현재 운영 룰 past에 저장 해 놓음
-//	        FisPropertyObject.getInstance().setPastMappingRule(
-//	        		FisPropertyObject.getInstance().getMappingRule()
-//	        		);
-//	        FisPropertyObject.getInstance().setPastParsingRule(
-//	        		FisPropertyObject.getInstance().getParsingRule()
-//	        		);
-	        
+            
+	        FisPropertyObject.getInstance().setPrevRuleVoMap(
+	        		FisPropertyObject.getInstance().getRuleVoMap()
+	        		);
+            
 	        return true;
         
     	} catch (Exception e) {
@@ -73,12 +82,9 @@ public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
     public boolean applicationNewBaseRulse() {
     	try {
     		
-//    		FisPropertyObject.getInstance().setMappingRule(
-//	        		FisPropertyObject.getInstance().getPrepMappingRule()
-//	        		);
-//	        FisPropertyObject.getInstance().setParsingRule(
-//	        		FisPropertyObject.getInstance().getPrepParsingRule()
-//	        		);
+    		FisPropertyObject.getInstance().setRuleVoMap(
+	        		FisPropertyObject.getInstance().getNextRuleVoMap()
+	        		);
     		
     		return true;
     	} catch (Exception e) {    		
@@ -110,7 +116,7 @@ public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
         }
  
         log.info("기준정보 로딩 완료. Rule Info: {}",
-                FisPropertyObject.getInstance().getRuleVoMap().toString());
+                FisPropertyObject.getInstance().getNextRuleVoMap().toString());
  
     }
  

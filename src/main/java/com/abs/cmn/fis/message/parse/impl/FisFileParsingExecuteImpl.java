@@ -6,21 +6,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
-import com.abs.cmn.fis.message.FisMessagePool;
-import com.abs.cmn.fis.message.vo.common.FisMsgHead;
-import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
-import com.abs.cmn.fis.message.vo.send.BrsInspDataSaveReqVo;
-import com.abs.cmn.fis.message.vo.send.BrsMeasDataSaveReqVo;
-import com.abs.cmn.fis.util.FisMessageList;
-import com.abs.cmn.fis.util.code.FisFileType;
-import com.abs.cmn.fis.util.code.ProcessStateCode;
-import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -30,13 +18,22 @@ import com.abs.cmn.fis.domain.edm.model.CnFisEdcTmpVo;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
+import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
+import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
+import com.abs.cmn.fis.message.vo.common.FisMsgHead;
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.message.vo.send.BrsInspDataSaveReqVo;
+import com.abs.cmn.fis.message.vo.send.BrsMeasDataSaveReqVo;
 import com.abs.cmn.fis.util.FisCommonUtil;
+import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisConstant;
+import com.abs.cmn.fis.util.code.FisFileType;
+import com.abs.cmn.fis.util.code.ProcessStateCode;
 import com.abs.cmn.fis.util.service.FileManager;
-//import com.abs.cmn.fisnew.util.service.FileParser;
 import com.abs.cmn.fis.util.service.FileParser;
+import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -79,26 +76,23 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String key = this.createWorkId(vo);
         resultVo.setWorkId(key);
         
-        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
-
+//        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
+        String tmpPath = "D:\\\\documents\\\\dev-docs\\\\FIS-Sample-File\\\\";
+        File file = this.fileManager.getFile(tmpPath, vo.getBody().getFileName());
+        
+        
+        
 
         ParseRuleVo fileRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(), vo.getBody().getFileType().name());
         
         // 헤더 시작 위치 초기화
-        int headerStartOffset = 0;
-        if (!fileRule.getParseRowVal().equals("*") && fileRule.getParseRowValList() != null){
-            headerStartOffset = fileRule.getParseRowValList()[0];
-        }
-
+        int headerStartOffset = fileRule.getStartHdrVal();
 
         List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
                                                             headerStartOffset, key, fileRule);
 
         // TODO Parsing : P 상태로 work table update
-
-        String[] columList = parsingResult.get(0).keySet().toArray(new String[0]);
-        log.info("Parsing result.  result size: {}, column List: {}. Its size : {}", parsingResult.size(), Arrays.toString(columList), columList.length);
-
 
         long dbInsertStartTime = System.currentTimeMillis();
         String status = this.parsingDataRepository.batchEntityInsert(vo.getBody().getFileName(), key, headerStartOffset, parsingResult, fileRule);
@@ -113,13 +107,10 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             this.handleAbnormalCondition(vo, key);
     	}
 
-
         resultVo.setStatus(status);
         resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
 
         log.info(resultVo.toString());
-
-
 
 
         // TODO EDC 메시지 송신:
@@ -127,14 +118,14 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         Object messageObject = null;
 
         if(vo.getBody().getFileType().equals(FisFileType.INSP)){
-            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE_REQ);
-            sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
+            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE);
+            sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
 
             messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
 
         }else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
-            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE_REQ);
-            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
+            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
             messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
             
@@ -152,8 +143,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
          // TODO 파일 이동
         // 이동한 폴더 패턴
         String moveFilePattern = "/base_path/${eqpId}/${date}";
-        String testMoveFolder = "C:\\Users\\DavidKim\\Desktop\\fis_test\\move_folder";
-//        String testMoveFolder = "/home/ab_messerv/data/abs/mos_cmn/fis/test";
+//        String testMoveFolder = "C:\\Users\\DavidKim\\Desktop\\fis_test\\move_folder";
+        String testMoveFolder = "D:\\MVD\\";
 
 
 //        fileManager.moveFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder);
@@ -168,9 +159,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         log.info("{} Complete processing. details: {}", key, resultVo.toString());
 
 
-
-
-     // TODO 결과 status와 키 workId 리턴
+        // TODO 결과 status와 키 workId 리턴
         return resultVo;
     }
 
@@ -188,8 +177,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             return brsInspDataSaveReqVo;
 
         }else if(fileType.equals(FisFileType.MEAS)){
-            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE_REQ);
-            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
+            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
+            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
             BrsMeasDataSaveReqVo brsMeasDataSaveReqVo = new BrsMeasDataSaveReqVo();
             BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody body = new BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody();
@@ -217,8 +206,14 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     // 장애 대응 메소드
     private void handleAbnormalCondition(FisFileReportVo vo, String key) throws SQLException {
 
+    	String sql = FisCommonUtil.getDelteQuery(vo.getBody().getFileType().name());
         // 우선 삭제 진행
-        this.parsingDataRepository.deleteBatch(vo.getBody().getFileType().name(), key, FisPropertyObject.getInstance().getBatchSize());	// 삭제 요청
+        this.parsingDataRepository.deleteBatch(
+        		vo.getBody().getFileType().name(),
+        		key, 
+        		FisPropertyObject.getInstance().getBatchSize(),
+        		sql
+        		);	// 삭제 요청
     }
 
     private String createWorkId(FisFileReportVo vo){

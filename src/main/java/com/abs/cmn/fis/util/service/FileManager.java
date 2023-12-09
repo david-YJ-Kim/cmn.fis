@@ -9,7 +9,6 @@ import java.nio.file.StandardCopyOption;
 
 import org.springframework.stereotype.Service;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.FisSftpPropertyObject;
 import com.abs.cmn.fis.util.code.FisConstant;
 import com.jcraft.jsch.SftpException;

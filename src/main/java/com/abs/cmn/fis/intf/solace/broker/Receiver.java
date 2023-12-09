@@ -1,23 +1,18 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
-import java.util.ArrayList;
-
-import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskRejectedException;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
 import com.abs.cmn.fis.domain.work.controller.FisWorkTableManageController;
-import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.message.vo.receive.FisTestMessageVo;
 import com.abs.cmn.fis.util.ApplicationContextProvider;
-import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.abs.cmn.fis.util.code.FisConstant;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.ConsumerFlowProperties;
@@ -42,8 +37,6 @@ public class Receiver implements Runnable {
 
 
 	private JCSMPSession session;
-	private ArrayList<String> queueList;
-	private Queue queue;
 	private EndpointProperties endPointProps;
 	private FlowReceiver consumer;
 //	private String module_name;
@@ -52,8 +45,9 @@ public class Receiver implements Runnable {
 
 	private boolean stopFlagOn = false;
 	
-    private InterfaceSolacePub interfaceSolacePub;
-
+	@Autowired
+	private CnFisIfRuleManager cnFisIfRuleManager;
+	
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
 		this.session = session;
 		this.queue_name = queue_name;
@@ -99,7 +93,7 @@ public class Receiver implements Runnable {
 
 
 	public boolean stopReceiver() throws JCSMPInterruptedException {
-
+ 
 //		this.consumer.stopSync();
 		this.switchStopFlag();
 		this.consumer.stop();
@@ -121,7 +115,9 @@ public class Receiver implements Runnable {
 				return;
 			}
 
-			ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			ObjectMapper mapper = new ObjectMapper()
+					.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true)
+					.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
 
 
 			SDTMap userProperty = message.getProperties();
@@ -137,7 +133,6 @@ public class Receiver implements Runnable {
 					
 					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
 					// 				  2. 대체	ELSE
-					CnFisIfRuleManager cnFisIfRuleManager = ApplicationContextProvider.getBean(CnFisIfRuleManager.class);
 					cnFisIfRuleManager.init();
 					
 					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
@@ -150,7 +145,6 @@ public class Receiver implements Runnable {
 					
 				} else {
 				
-					JSONObject msg = null;
 					String payload = "";
 			
 
@@ -174,7 +168,7 @@ public class Receiver implements Runnable {
 						}
 
 						break;
-					case FisMessageList.FIS_FILE_REPORT:
+					case FisMessageList.FIS_FILE_REPORT:	// 파일 파싱 , 워크 생성 - R, 파일 저장, 
 
 						FisFileReportVo fisFileReportVo = mapper.readValue(payload, FisFileReportVo.class);
 						log.info("Request vo: {}", fisFileReportVo.getBody().toString());
@@ -186,10 +180,11 @@ public class Receiver implements Runnable {
 						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
 
 						break;
-					case FisMessageList.FIS_DLT_REQ:
+					case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
 						FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(FisWorkTableManageController.class); 
-						workctlr.moveToDatasWorkHistory();
-						
+						workctlr.startDeleteLogic();
+						message.ackMessage();
+						break;
 					default:
 						log.error("## Invalied cid : "+cid);
 						break;

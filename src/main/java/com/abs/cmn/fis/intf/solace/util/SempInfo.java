@@ -1,12 +1,20 @@
 package com.abs.cmn.fis.intf.solace.util;
 
-import com.solacesystems.common.config.Version;
-import com.solacesystems.jcsmp.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
+import com.solacesystems.common.config.Version;
+import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.CapabilityType;
+import com.solacesystems.jcsmp.JCSMPException;
+import com.solacesystems.jcsmp.JCSMPRuntime;
+import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
+import com.solacesystems.jcsmp.SessionEventArgs;
+import com.solacesystems.jcsmp.SessionEventHandler;
+import com.solacesystems.jcsmp.XMLMessageListener;
 
 public abstract class SempInfo {
 	protected JCSMPSession session = null;

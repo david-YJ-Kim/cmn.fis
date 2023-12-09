@@ -1,15 +1,15 @@
 package com.abs.cmn.fis.domain.rule.service;
 
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
-import com.abs.cmn.fis.domain.rule.repository.CnFisIfParseRuleRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRule;
+import com.abs.cmn.fis.domain.rule.repository.CnFisIfParseRuleRepository;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CnFisIfParseRuleService {
 

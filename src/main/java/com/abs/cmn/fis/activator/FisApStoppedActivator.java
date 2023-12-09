@@ -1,14 +1,14 @@
 package com.abs.cmn.fis.activator;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.config.SolaceSessionConfiguration;
-import com.abs.cmn.fis.message.FisMessagePool;
-import com.solacesystems.jcsmp.JCSMPInterruptedException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.stereotype.Component;
+
+import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.message.FisMessagePool;
+import com.solacesystems.jcsmp.JCSMPInterruptedException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component

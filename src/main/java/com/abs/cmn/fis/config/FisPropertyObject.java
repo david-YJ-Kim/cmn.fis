@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.config;
 
+import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.util.FisCommonUtil;
@@ -49,14 +50,19 @@ public class FisPropertyObject {
     private String insertBatchTemplate;    
     @Value("${ap.query.del-template}")
     private String deleteBatchTemplate;
+    @Value("${ap.query.getDelList}")
+    private String getDeleteListSql;
+    @Value("${ap.query.deleteCnWork}")
+    private String deleteCnWork;
+    @Value("${ap.query.insertWorkHistory}")
+    private String insertWorkHistory;
     
     @Value("${ap.query.rule.parsing}")
     private String selectParsingRuleDataSql;
 
     @Value("${ap.query.rule.mapping}")
     private String selectMappingRuleDataSql;
-
-
+    
     @Value("${ap.shutdown.force.timeout.ms}")
     private int apShutdownForceTimeoutMs;
 
@@ -89,10 +95,14 @@ public class FisPropertyObject {
     private List<ParseRuleRelVo> pastMappingRule;
 
     private Map<String, ParseRuleVo> ruleVoMap;
+    private Map<String, ParseRuleVo> nextRuleVoMap;
+    private Map<String, ParseRuleVo> prevRuleVoMap;
 
     private InterfaceSolaceSub interfaceSolaceSub;
 
     private InterfaceSolacePub interfaceSolacePub;
+    
+    private CnFisIfRuleManager cnFisIfRuleManager;
     
 
     private static FisPropertyObject instance;
@@ -158,11 +168,36 @@ public class FisPropertyObject {
     public void setInterfaceSolacePub(InterfaceSolacePub interfaceSolacePub) {
         this.interfaceSolacePub = interfaceSolacePub;
     }
+    
+    public void setCnFisIfRuleManager(CnFisIfRuleManager cnFisIfRuleManager) {
+        this.cnFisIfRuleManager = cnFisIfRuleManager;
+    }
 
+    
+    
     public Map<String, ParseRuleVo> getRuleVoMap() {
         if(ruleVoMap == null){
             ruleVoMap = new ConcurrentHashMap<>();
         }
         return ruleVoMap;
     }
+    
+    public Map<String, ParseRuleVo> getNextRuleVoMap() {
+        if(nextRuleVoMap == null){
+        	nextRuleVoMap = new ConcurrentHashMap<>();
+        }
+        return nextRuleVoMap;
+    }
+
+	public void setRuleVoMap(Map<String, ParseRuleVo> ruleVoMap) {
+		this.ruleVoMap = ruleVoMap;
+	}
+
+	public void setNextRuleVoMap(Map<String, ParseRuleVo> nextRuleVoMap) {
+		this.nextRuleVoMap = nextRuleVoMap;
+	}
+
+	public void setPrevRuleVoMap(Map<String, ParseRuleVo> prevRuleVoMap) {
+		this.prevRuleVoMap = prevRuleVoMap;
+	}
 }

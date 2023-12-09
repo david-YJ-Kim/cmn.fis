@@ -13,13 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ChFisWorkService {
-    private final ChFisWorkRepository repository;
+    private final ChFisWorkRepository chWorkRepository;
 
     public ChFisWork saveEntity(ChFisWorkSaveRequestVo vo){
         try{
             ChFisWork entity = vo.toEntity();
             log.info(entity.toString());
-            return this.repository.save(entity);
+            return this.chWorkRepository.save(entity);
         }catch (Exception e){
             e.printStackTrace();
             log.error(e.getMessage());

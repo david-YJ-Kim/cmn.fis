@@ -3,6 +3,7 @@ package com.abs.cmn.fis.message.vo.receive;
 import com.abs.cmn.fis.message.vo.FisMsgCommonVo;
 import com.abs.cmn.fis.message.vo.common.FisMsgBody;
 import com.abs.cmn.fis.util.code.FisFileType;
+
 import lombok.Data;
 
 
