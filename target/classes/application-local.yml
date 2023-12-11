@@ -6,6 +6,17 @@ server:
   shutdown: graceful
 
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+
+
+
 logging:
   level:
     org:
@@ -89,7 +100,7 @@ ap:
       send:
         topic: SVM/DEV/EDC/CMN/00
       receive:
-        queue: SVM_DEV_FIS_CMN
+        queue: SVM_DEV_FIS_CMN_00
         init: SVM/DEV/FIS/CMN/RELOAD
   query:
     batchSize: 1000

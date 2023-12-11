@@ -44,6 +44,8 @@ public class Receiver implements Runnable {
 	private String queue_name;
 
 	private boolean stopFlagOn = false;
+
+	private boolean isShutdown = false;
 	
 //	@Autowired
 //	private CnFisIfRuleManager cnFisIfRuleManager;
@@ -88,6 +90,7 @@ public class Receiver implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 
 	private void switchStopFlag(){
@@ -103,9 +106,12 @@ public class Receiver implements Runnable {
 	public boolean stopReceiver() throws JCSMPInterruptedException {
  
 //		this.consumer.stopSync();
-		this.switchStopFlag();
+//		this.switchStopFlag();
 		this.consumer.stop();
+		this.session.closeSession();
 		log.info("Consumer Stop!!");
+		Thread.currentThread().interrupt();
+
 		return true;
 	}
 
@@ -113,12 +119,18 @@ public class Receiver implements Runnable {
 
 		System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
 
+		this.isShutdown = true;
+
 //		isAlive = false;
 
 	}
 
 	public class MessageListener implements XMLMessageListener {
+
+		Receiver receiver;
 		public MessageListener(Receiver receiver) {
+
+			this.receiver = receiver;
 		}
 
 
@@ -196,10 +208,10 @@ public class Receiver implements Runnable {
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
 
-						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
+						log.info("Executor Done. Vo: {}", fisFileParsingExecute.execute(fisFileReportVo, ackKey));
 
-//						break;
-						return;
+						break;
+
 					case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
 						FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(FisWorkTableManageController.class); 
 						workctlr.startDeleteLogic();
@@ -210,18 +222,28 @@ public class Receiver implements Runnable {
 						break;
 					}
 
+					if(isShutdown){
+
+						this.receiver.stopReceiver();
+						return;
+					}
+
 				}
 
 			}catch(TaskRejectedException taskRejectedException) {
 				taskRejectedException.printStackTrace();
 				log.error("Over capacity. It's overflow.");
 
-			}catch (InterruptedException interruptedException) {
-				interruptedException.printStackTrace();
-
-			}catch (Exception e){
+			}
+//			catch (InterruptedException interruptedException) {
+//				interruptedException.printStackTrace();
+//
+//			}
+			catch (Exception e){
 				e.printStackTrace();
 				log.error("##  Receiver.onReceive() Exception : ", e);
+
+				throw new Exception(e);
 			}
 
 		}

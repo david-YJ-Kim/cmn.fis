@@ -31,8 +31,8 @@ public class FisApStartedActivator implements ApplicationRunner {
 
         try{
 
-        	cnFisIfRuleManager.init();
-        	cnFisIfRuleManager.initializeRuleData();
+//        	cnFisIfRuleManager.init();
+//        	cnFisIfRuleManager.initializeRuleData();
             log.info("Complete initialize rule data.");
         }catch (Exception e){
             e.printStackTrace();

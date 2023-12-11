@@ -61,20 +61,25 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     private FisFileMoveExecute filedelete;
 
 
+    private boolean isShutdown = false;
+
 
     @Override
     public void init() {
 
     }
 
-    @Async
+//    @Async
     @Override
     public ExecuteResultVo execute(FisFileReportVo vo, String ackKey) throws Exception {
-//        String threadName = Thread.currentThread().getName();
-//
-//        Thread shutdownHook = new ShutdownHook(Thread.currentThread(), threadName + "Shutdown");
-//
-//        Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
+
+        String threadName = Thread.currentThread().getName();
+
+        Thread shutdownHook = new ShutdownHook(Thread.currentThread(), threadName + "Shutdown");
+
+        Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
 
         log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
 
@@ -165,6 +170,11 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         // TODO 메시지 Ack
         FisMessagePool.messageAck(ackKey);
         log.info("{} Complete processing. details: {}", key, resultVo.toString());
+
+        if(isShutdown){
+            log.info("IsShutdown? : {}", isShutdown);
+            System.exit(-1);
+        }
 
 
         // TODO 결과 status와 키 workId 리턴
@@ -293,6 +303,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
 
 //		isAlive = false;
+        this.isShutdown = true;
 
     }
 
