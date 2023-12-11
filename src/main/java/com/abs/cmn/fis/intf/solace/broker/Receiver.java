@@ -45,8 +45,8 @@ public class Receiver implements Runnable {
 
 	private boolean stopFlagOn = false;
 	
-	@Autowired
-	private CnFisIfRuleManager cnFisIfRuleManager;
+//	@Autowired
+//	private CnFisIfRuleManager cnFisIfRuleManager;
 	
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
 		this.session = session;
@@ -56,6 +56,14 @@ public class Receiver implements Runnable {
 
 	@Override
 	public void run() {
+
+		String threadName = Thread.currentThread().getName();
+
+		Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
+
+		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
+
 		try {
 			log.info("Receiver Thread Start # " + this.thread_name);
 
@@ -101,6 +109,14 @@ public class Receiver implements Runnable {
 		return true;
 	}
 
+	public void shutdown() {
+
+		System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
+
+//		isAlive = false;
+
+	}
+
 	public class MessageListener implements XMLMessageListener {
 		public MessageListener(Receiver receiver) {
 		}
@@ -133,15 +149,15 @@ public class Receiver implements Runnable {
 					
 					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
 					// 				  2. 대체	ELSE
-					cnFisIfRuleManager.init();
-					
-					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
-						cnFisIfRuleManager.reloadBaseRuleData();
-					}
-					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
-						cnFisIfRuleManager.applicationNewBaseRulse();
-					else 
-						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
+//					cnFisIfRuleManager.init();
+//
+//					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
+//						cnFisIfRuleManager.reloadBaseRuleData();
+//					}
+//					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
+//						cnFisIfRuleManager.applicationNewBaseRulse();
+//					else
+//						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
 					
 				} else {
 				
@@ -166,6 +182,9 @@ public class Receiver implements Runnable {
 						}catch (Exception e){
 							e.printStackTrace();
 						}
+
+						message.ackMessage();
+						log.info("Message acked.");
 
 						break;
 					case FisMessageList.FIS_FILE_REPORT:	// 파일 파싱 , 워크 생성 - R, 파일 저장, 
@@ -192,10 +211,12 @@ public class Receiver implements Runnable {
 
 				}
 
-			}catch(TaskRejectedException taskRejectedException){
+			}catch(TaskRejectedException taskRejectedException) {
 				taskRejectedException.printStackTrace();
 				log.error("Over capacity. It's overflow.");
 
+			}catch (InterruptedException interruptedException) {
+				interruptedException.printStackTrace();
 
 			}catch (Exception e){
 				e.printStackTrace();
@@ -219,6 +240,43 @@ public class Receiver implements Runnable {
 			throw new UnsupportedOperationException("Unimplemented method 'onException'");
 		}
 
+
+	}
+
+	//ShutdownHook 클래스
+
+	private class ShutdownHook extends Thread {
+
+		private Thread thread;
+
+
+
+		public ShutdownHook(Thread thread, String name) {
+
+			super(name);
+
+			this.thread = thread;
+
+		}
+
+
+		@Override
+
+		public void run() {
+
+			shutdown();
+
+			try {
+
+				thread.join();
+				log.info("Thread is joined now.");
+
+			} catch(Exception e) {
+
+				System.out.println("ShutdownHook.run() Exception # "+e);
+
+			}
+		}
 
 	}
 }
