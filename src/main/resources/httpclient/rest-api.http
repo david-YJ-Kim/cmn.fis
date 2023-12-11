@@ -61,5 +61,7 @@ GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileTy
 
 
 ### FIS_TEST_MESSAGE 발송
-GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=10000
+ GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=7000
 
+### Shutdown
+POST http://localhost:9010/actuator/shutdown

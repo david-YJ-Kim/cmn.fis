@@ -6,16 +6,29 @@ import com.abs.cmn.fis.intf.solace.broker.Receiver;
 import com.abs.cmn.fis.util.code.FisConstant;
 import com.solacesystems.jcsmp.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.*;
 
 @Slf4j
-public class InterfaceSolaceSub implements Runnable {
+//@Service
+public class InterfaceSolaceSub {
 
+
+//    @Autowired
+//    TaskExecutor executor;
 	private JCSMPSession session;
     private Receiver receiver;
+
+    private ExecutorService executorService;
+    private Future<String> future;
+
 
 //    private static final String SAMPLE_NAME = InterfaceSolaceSub.class.getSimpleName();
 //    private static String QUEUE_NAME = "SVM_DEV_BRS_LOT_00";		// used queue name ex ) PROP_RMP_00
@@ -25,6 +38,9 @@ public class InterfaceSolaceSub implements Runnable {
 //    private static volatile boolean isShutdown = false;             // are we done?
 
     public InterfaceSolaceSub() throws JCSMPException {
+
+        this.executorService = Executors.newCachedThreadPool();
+
 
         // init subscribe
 //        QUEUE_NAME = queueName;
@@ -38,7 +54,7 @@ public class InterfaceSolaceSub implements Runnable {
 //		consumerFlowProperties = null;
 	}
 
-    @Override
+//    @Override
     public void run() {
         try {
             start();
@@ -67,7 +83,18 @@ public class InterfaceSolaceSub implements Runnable {
 
 			this.receiver = new Receiver(session, threadName, receiveQueueName);
 
-			Thread thread = new Thread(receiver);
+//            Receiver receiver = new Receiver(session, threadName, receiveQueueName);
+//            this.receiver = receiver;
+//            Future<String> future = this.executorService.submit(receiver);
+//            this.future = this.executorService.submit(receiver);
+
+
+
+//            System.out.println("result : " + future.get());
+
+			Thread thread = new Thread(this.receiver);
+//            executor.execute(receiver);
+
 			thread.start();
 
         } catch (OperationNotSupportedException | JCSMPErrorResponseException e) {  // not allowed to do this
@@ -75,14 +102,43 @@ public class InterfaceSolaceSub implements Runnable {
 			log.error(e.toString());
             throw new RuntimeException("Solace receiver fail to start to interface");
         }
+//        catch (ExecutionException e) {
+//            throw new RuntimeException(e);
+//        }
+//        catch (ExecutionException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     // ##################################################
 
     public boolean stopQueueReceiver() throws JCSMPInterruptedException {
+//        this.session.closeSession();
         boolean stopResult = this.receiver.stopReceiver();
-        log.info(String.valueOf(stopResult));
-        return stopResult;
+//        this.shutdownAndAwaitTermination(this.executorService);
+//        log.info(String.valueOf(stopResult));
+//        return stopResult;
+        return true;
+    }
+
+
+    @PreDestroy
+    public void onDestroy(){
+
+//        log.info("Future is done: {}", this.future.isDone());
+//
+//
+//        while (this.future.isDone()){
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//            log.info("Future is done: {}", this.future.isDone());
+//            this.executorService.shutdown();
+//        }
+
+//        this.executorService.shutdown();
     }
 
 
@@ -122,4 +178,36 @@ public class InterfaceSolaceSub implements Runnable {
         return true;
     }
 
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    void shutdownAndAwaitTermination(ExecutorService pool) {
+        log.info("start to shutdown");
+        pool.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
+    }
+
+//    @Bean
+//    public TaskExecutor taskExecutor() {
+//        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+//        taskExecutor.setCorePoolSize(2);
+//        taskExecutor.setMaxPoolSize(2);
+//        taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
+//        taskExecutor.initialize();
+//        return taskExecutor;
+//    }
 }
