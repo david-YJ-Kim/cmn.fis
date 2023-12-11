@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.intf.solace.broker.Receiver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -59,14 +61,20 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     private FisFileMoveExecute filedelete;
 
 
+
     @Override
     public void init() {
 
     }
 
-//    @Async
+    @Async
     @Override
     public ExecuteResultVo execute(FisFileReportVo vo, String ackKey) throws Exception {
+//        String threadName = Thread.currentThread().getName();
+//
+//        Thread shutdownHook = new ShutdownHook(Thread.currentThread(), threadName + "Shutdown");
+//
+//        Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
 
         log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
 
@@ -80,7 +88,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
 
         
-        Thread.sleep(50000);
+        Thread.sleep(10000);
 
         log.info("Sleep done.");
 
@@ -274,6 +282,55 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             list.add(vo);
         }
         return list;
+    }
+
+
+
+
+
+    public void shutdown() {
+
+        System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
+
+//		isAlive = false;
+
+    }
+
+    //ShutdownHook 클래스
+
+    private class ShutdownHook extends Thread {
+
+        private Thread thread;
+
+
+
+        public ShutdownHook(Thread thread, String name) {
+
+            super(name);
+
+            this.thread = thread;
+
+        }
+
+
+        @Override
+
+        public void run() {
+
+            shutdown();
+
+            try {
+
+                thread.join();
+                System.out.println("Executor Thread is joined now.");
+
+            } catch(Exception e) {
+
+                System.out.println("ShutdownHook.run() Exception # "+e);
+
+            }
+        }
+
     }
 
 }

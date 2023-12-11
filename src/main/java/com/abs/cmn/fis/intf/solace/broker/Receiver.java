@@ -57,11 +57,11 @@ public class Receiver implements Runnable {
 	@Override
 	public void run() {
 
-		String threadName = Thread.currentThread().getName();
-
-		Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
-
-		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+//		String threadName = Thread.currentThread().getName();
+//
+//		Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
+//
+//		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
 
 
 		try {
@@ -198,7 +198,8 @@ public class Receiver implements Runnable {
 
 						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
 
-						break;
+//						break;
+						return;
 					case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
 						FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(FisWorkTableManageController.class); 
 						workctlr.startDeleteLogic();
