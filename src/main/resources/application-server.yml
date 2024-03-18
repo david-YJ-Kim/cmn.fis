@@ -1,0 +1,110 @@
+property:
+  type: dev
+
+server:
+  port: 9010
+  shutdown: graceful
+
+
+logging:
+  level:
+    org:
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate : debug
+    #    '[org.springframework]': debug
+    #    '[org.springframework.web]': debug
+
+
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@dev-mes-oracle.ctj5pd0b3rdj.us-east-1.rds.amazonaws.com:1522:ORCL
+    username: mesadm
+    password: absolics12#
+
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+          batch_size: 1000
+    show-sql: true
+    database-platform: org.hibernate.dialect.OracleDialect
+  transaction:
+    mode: jdbc
+
+
+#Solace 접속 정보
+
+
+#SFTP (NAS 접속 정보)
+nas:
+  sftp:
+    host: 192.168.0.193
+    port: 22
+    user-name: mestest
+    user-passwd: absadmin
+    remote-target-dir:  ./backup/
+
+##### Application Config ####
+ap:
+  info:
+    group: FIS
+    site: SVM
+    env: DEV
+    sequence: 1
+  worker:
+    pool-size:
+      core: 5
+      max: 50
+    capacity: 1000
+    name:
+      prefix: FIS-ASYNC-
+  file:
+    mode: local
+    nas:
+      sftp:
+        host: 192.168.0.193
+        port: 22
+        user-name: mestest
+        user-passwd: absadmin
+        remote-target-dir: ./backup/
+    local-path: D:\\parsingfile.csv
+  interface:
+    solace:
+      host: solacedev.absolicsinc.com:55555
+      vpn: MES
+      client:
+        username: default
+        password: admin
+      connect:
+        trial-count: 2
+      reconnect:
+        trial-count: 20
+        per-host: 5
+    destination:
+      send:
+        topic: SVM/DEV/EDC/CMN/00
+      receive:
+        queue: SVM_DEV_FIS_CMN_00
+        init: SVM/DEV/FIS/CMN/INIT
+  query:
+    batchSize: 1000
+    table-name:
+      insp: CN_FIS_INSP_DATA
+      meas: CN_FIS_MEAS_DATA
+    insert-template: INSERT INTO TABLE_NAME ( OBJ_ID,FILE_FM_TYP,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,?,SYSTIMESTAMP,INPUT )
+    del-template: DELETE FROM TABLE_NAME WHERE WORK_ID = ?
+    rule:
+      parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
+      mapping: SELECT OBJ_ID,REF_OBJ_ID,FILE_CLM_VAL,FILE_CLM_NM,MPNG_CLM_NM,CLM_DATA_TYP FROM CN_FIS_IF_PARSE_RULE_REL
+  shutdown:
+    force:
+      timeout:
+        ms: 10000
+    polling:
+      interval:
+        ms: 10

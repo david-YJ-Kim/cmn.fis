@@ -1,0 +1,65 @@
+GET http://localhost:9010/fis/management/test
+Accept: application/json
+
+
+
+
+### FIS_FILE_REPORT 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv
+
+
+
+
+
+### FIS_FILE_REPORT 10,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_10000_231204.csv
+
+
+### FIS_FILE_REPORT 30,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_30000_231204.csv
+
+
+### FIS_FILE_REPORT 50,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_50000_231204.csv
+
+
+### FIS_FILE_REPORT 100,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_100000_231204.csv
+
+
+### FIS_FILE_REPORT 150,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_150000_231204.csv
+
+
+### FIS_FILE_REPORT 200,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_200000_231204.csv
+
+
+### FIS_FILE_REPORT 300,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_300000_231204.csv
+
+
+### FIS_FILE_REPORT 400,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_400000_231204.csv
+
+
+### FIS_FILE_REPORT 500,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_500000_231204.csv
+
+### FIS_FILE_REPORT 700,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_700000_231204.csv
+
+### FIS_FILE_REPORT 1,000,000 Row 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_1000000_231204.csv
+
+
+### FIS_FILE_REPORT Loop 발송
+GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv&loop=50
+
+
+
+
+
+### FIS_TEST_MESSAGE 발송
+GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=10000
+
