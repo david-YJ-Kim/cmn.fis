@@ -13,16 +13,16 @@ logging:
         jdbc:
           core:
             JdbcTemplate : debug
-#    '[org.springframework]': debug
-#    '[org.springframework.web]': debug
+    #    '[org.springframework]': debug
+    #    '[org.springframework.web]': debug
 
 
 spring:
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@mes-oracle.crhbirj6sm35.ap-northeast-2.rds.amazonaws.com:1522:ORCL
+    url: jdbc:oracle:thin:@localhost:1521:ORCL
     username: mesadm
-    password: absolics12#
+    password: 1234
 
   jpa:
     properties:
@@ -75,7 +75,7 @@ ap:
     local-path: D:\\parsingfile.csv
   interface:
     solace:
-      host: 52.79.64.176:55555
+      host: localhost:55555
       vpn: MES
       client:
         username: default
@@ -89,8 +89,8 @@ ap:
       send:
         topic: SVM/DEV/EDC/CMN/00
       receive:
-        queue: SVM_DEV_FIS_CMN
-        init: SVM/DEV/FIS/CMN/RELOAD
+        queue: SVM_DEV_FIS_CMN_00
+        init: SVM/DEV/FIS/CMN/INIT
   query:
     batchSize: 1000
     table-name:
@@ -102,12 +102,12 @@ ap:
     deleteCnWork: DELETE FROM CN_FIS_WORK WHERE OBJ_ID = ?
     insertWorkHistory: INSERT INTO CH_FIS_WORK (OBJ_ID,REF_OBJ_ID,FILE_NM,FILE_PATH,FILE_TYPE,EQP_ID,REQ_SYS_NM,PROC_STATE,CREATE_USER_ID,CREATE_DATE,UPDATE_USER_ID,UPDATE_DATE) VALUES (?,?,?,?,?,?,?,?,?,SYSTIMESTAMP,?,SYSTIMESTAMP)
     rule:
-      parsing: SELECT OBJ_ID,EQP_NM,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
+      parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
       mapping: SELECT OBJ_ID,REF_OBJ_ID,FILE_CLM_VAL,FILE_CLM_NM,MPNG_CLM_NM,CLM_DATA_TYP FROM CN_FIS_IF_PARSE_RULE_REL
   shutdown:
     force:
       timeout:
-        ms: 1000
+        ms: 10000
     polling:
       interval:
         ms: 10

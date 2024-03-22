@@ -57,6 +57,10 @@ GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=IN
 GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv&loop=50
 
 
+### [H사] FIS_FILE_REPORT 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AP-TG-04-01&fileType=INSP&filePath=C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file&fileName=H_sampleFileSimple.csv
+
+
 
 
 

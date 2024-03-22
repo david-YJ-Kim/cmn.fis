@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -60,27 +61,36 @@ public class ParsingDataRepository {
                     ps.setString(4, workId);
                     ps.setInt(5, i + startHeaderOffset);
 
+                    log.info("Colum List : {} ", Arrays.toString(sqlColumList));
                     for(int idx = 0; idx < sqlColumList.length; idx++){
-                        int addIdx = idx + 6;
+                        try{
+                            int addIdx = idx + 6;
 //						log.info("Column:{}, Value: {}", sqlColumList[addIdx], map.getOrDefault(sqlColumList[addIdx], null));
-                        if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
+                            if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
-                            log.info(addIdx+" , NUMBER " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
-                            ps.setInt(addIdx, Integer.valueOf( map.getOrDefault(sqlColumList[idx], "0")) );
+                                log.info(addIdx+" , NUMBER " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+                                ps.setInt(addIdx, Integer.valueOf( map.getOrDefault(sqlColumList[idx], "0")) );
 
-                        } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
+                            } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 
-                            log.info("CHECKDATEFORMAT columnName: {}, getInMap : {}",sqlColumList[idx], map.get(sqlColumList[idx]));
+                                log.info("CHECKDATEFORMAT columnName: {}, getInMap : {}",sqlColumList[idx], map.get(sqlColumList[idx]));
 
 //							ps.setTimestamp(addIdx, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)));
-                            ps.setTimestamp(addIdx, Timestamp.valueOf(FisCommonUtil.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
+                                ps.setTimestamp(addIdx, Timestamp.valueOf(FisCommonUtil.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
 
-                            log.info(addIdx+" , TIME " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+                                log.info(addIdx+" , TIME " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 
-                        } else {
+                            } else {
 
-                            ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
-                            log.info(addIdx+" , STR " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+                                ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
+                                log.info(addIdx+" , STR " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+                            }
+                        }catch (Exception e){
+
+                            e.printStackTrace();
+                            log.error(e.getMessage());
+                            log.error("Error Colum Element : {}", sqlColumList[idx]);
+                            throw e;
                         }
                     }
 

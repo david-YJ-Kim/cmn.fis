@@ -445,6 +445,9 @@ public class FisCommonUtil {
 
         log.info(inputDate);
 
+        if(inputDate.contains("/")){
+            inputDate = inputDate.replaceAll("/", "-");
+        }
         try {
             // Parse the input date string
 //			SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");

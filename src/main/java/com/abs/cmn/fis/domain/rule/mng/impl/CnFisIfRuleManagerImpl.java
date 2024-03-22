@@ -115,8 +115,8 @@ public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
             ruleVoMap.put(mapKey, this.setParsingRuleVo(entity, cnFisIfParseRuleRelations));
         }
 
-        log.info("기준정보 로딩 완료. Rule Info: {}",
-                FisPropertyObject.getInstance().getNextRuleVoMap().toString());
+        log.info("기준정보 로딩 완료. Rule Info: {}", ruleVoMap.toString());
+//                FisPropertyObject.getInstance().getNextRuleVoMap().toString());
 
     }
 
@@ -131,7 +131,6 @@ public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
         parseRuleVo.setObjId(ruleEntity.getObjId());
         parseRuleVo.setEqpId(ruleEntity.getEqpId());
         parseRuleVo.setFileTyp(ruleEntity.getFileTyp());
-        parseRuleVo.setStartHdrVal(ruleEntity.getStartHdrVal());
         parseRuleVo.setFileTgtPosnVal(ruleEntity.getFileTgtPosnVal());
         parseRuleVo.setParsClmIdVal(ruleEntity.getParsClmIdVal());
         parseRuleVo.setParseRowVal(ruleEntity.getParsRowVal());
@@ -165,6 +164,7 @@ public class CnFisIfRuleManagerImpl implements CnFisIfRuleManager{
         parseRuleVo.setNumberDataTypList(FisCommonUtil.getDataTypeList(query, FisQueryValues.NUMBER.name(), relatedRule));
         parseRuleVo.setTimeStampDataTypList(FisCommonUtil.getDataTypeList(query, FisQueryValues.TIMESTAMP.name(), relatedRule));
 
+        log.info(parseRuleVo.toString());
         return parseRuleVo;
     }
 

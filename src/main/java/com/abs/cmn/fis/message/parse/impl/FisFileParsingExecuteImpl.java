@@ -76,10 +76,10 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String key = this.createWorkId(vo);
         resultVo.setWorkId(key);
 
-//        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-        String tmpPath = "D:\\\\documents\\\\dev-docs\\\\FIS-Sample-File\\\\";
-        File file = this.fileManager.getFile(tmpPath, vo.getBody().getFileName());
+//        String tmpPath = "D:\\\\documents\\\\dev-docs\\\\FIS-Sample-File\\\\";
+//        File file = this.fileManager.getFile(tmpPath, vo.getBody().getFileName());
 
 
 
@@ -98,8 +98,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String status = this.parsingDataRepository.batchEntityInsert(vo.getBody().getFileName(), key, headerStartOffset, parsingResult, fileRule);
         resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
 
-        // TODO Insert : I 상태로 work table update
-        this.workService.updateEntity(key, ProcessStateCode.I);
+//        // TODO Insert : I 상태로 work table update
+//        this.workService.updateEntity(key, ProcessStateCode.I);
 
         // TODO status 의 정확한 역할 정의
         // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )

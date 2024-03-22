@@ -180,7 +180,13 @@ public class Receiver implements Runnable {
                             FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
                             fisFileParsingExecute.init();
 
+                            try {
+
                             fisFileParsingExecute.execute(fisFileReportVo, ackKey);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                                throw e;
+                            }
 
                             break;
                         case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
@@ -197,11 +203,13 @@ public class Receiver implements Runnable {
 
             }catch(TaskRejectedException taskRejectedException){
                 taskRejectedException.printStackTrace();
+                message.ackMessage();
                 log.error("Over capacity. It's overflow.");
 
 
             }catch (Exception e){
                 e.printStackTrace();
+                message.ackMessage();
                 log.error("##  Receiver.onReceive() Exception : ", e);
             }
 
