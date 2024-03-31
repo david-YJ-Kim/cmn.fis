@@ -63,7 +63,7 @@ public class ParseRuleVo {
     private String[] parseClmIdValStrList;		// 파싱 컬럼 A,D,G,H,I,J,L
 
     // PARS_CLM_ID_VAL 의 문자 배열을 파싱 하기 위한 번호 값으로 변경
-    private int[] parseClmIdValIntList;			// 컬럼 번호 0,3,6,7,8,9,11
+    private int[] parseClmIdValIntList;			// 컬럼 번호 0,4,6,7,8,9,11
 
 
     /*

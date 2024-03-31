@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.message.FisMessagePool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -89,10 +90,11 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
         // TODO Window 경로 (\\)에 대한 대응 필요. 현재는 리눅스 (/)에 대해서 파싱  가능
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        File file = this.fileManager.getFile(trackingKey, vo.getBody().getFilePath(),
+                                                            vo.getBody().getFileName());
         log.debug("{} Success to access target file. Its' path: {}",
                 trackingKey, file.getAbsolutePath());
-        ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(),
+        ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(trackingKey, vo.getBody().getEqpId(),
                                                             vo.getBody().getFileType().name());
         log.debug("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
 
@@ -157,6 +159,9 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             Status `C`
          */
         this.workService.updateEntity(workId, ProcessStateCode.C);
+
+
+        FisMessagePool.messageAck(trackingKey);
 
         return resultVo;
     }

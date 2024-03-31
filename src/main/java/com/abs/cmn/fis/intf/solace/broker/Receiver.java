@@ -164,9 +164,8 @@ public class Receiver implements Runnable {
                         fisFileParsingExecute.init();
 
                         try {
-                            ExecuteResultVo resultVo = fisFileParsingExecute.execute(fisFileReportVo, trackingKey);
-                            log.info("{} Complete execute file parsing. Check the result: {}",
-                                    trackingKey, resultVo.toString());
+                            fisFileParsingExecute.execute(fisFileReportVo, trackingKey);
+                            // → Async 메소드, 메소드 외부에서 Ack 처리 및 결과 출력 시, Null
 
                         }catch (Exception e){
                             e.printStackTrace();
@@ -182,7 +181,14 @@ public class Receiver implements Runnable {
 
                         try{
 
+                            // TODO Make it Async
                             workctlr.startDeleteLogic();
+
+                            // → Ack logic need to merge in delete logic.
+                            FisMessagePool.messageAck(trackingKey);
+                            log.info("Message has been acked.");
+
+
                         }catch (Exception e){
                             e.printStackTrace();
                             throw e;
@@ -199,13 +205,14 @@ public class Receiver implements Runnable {
                         }catch (Exception e){
                             e.printStackTrace();
                         }
+                        FisMessagePool.messageAck(trackingKey);
+                        log.info("Message has been acked.");
 
-
-                        log.info("[{}] Complete wait test message.", trackingKey);
                         break;
 
                     default:
                         log.error("## Invalied cid : "+cid);
+
                         break;
                 }
 
@@ -219,9 +226,6 @@ public class Receiver implements Runnable {
                 e.printStackTrace();
                 log.error("##  Receiver.onReceive() Exception : ", e);
 
-            }finally {
-                FisMessagePool.messageAck(trackingKey);
-                log.info("Message has been acked.");
             }
 
         }

@@ -23,17 +23,26 @@ public class FileManager {
 
     public Boolean isLocalMode(){
         if(localMode == null){
-            localMode = FisSftpPropertyObject.getInstance().getFileMode().equals(FisConstant.local.name()) ? true : false;
+            localMode = FisSftpPropertyObject.getInstance().getFileMode().equals(FisConstant.local.name());
         }
         return localMode;
     }
 
-    public File getFile(String path, String fileName) throws Exception {
+
+    /**
+     * Access file object at local directory or remote
+     * @param path target file path
+     * @param fileName target file name
+     * @return file object
+     */
+    public File getFile(String trackingKey, String path, String fileName) throws Exception {
+
+        log.info("{} Try to achieve file object at local directory : {}", trackingKey, this.localMode);
 
         if(this.isLocalMode()){
-            return this.getFileFromLocal(path, fileName);
+            return this.getFileFromLocal(trackingKey, path, fileName);
         }else{
-            return this.getFileFromRemote(path,fileName);
+            return this.getFileFromRemote(trackingKey, path,fileName);
         }
 
     }
@@ -59,7 +68,7 @@ public class FileManager {
 
     private boolean copyLocalFile(String fromPath, String fileName, String toPath, String newFileName) {
         File fromFile = new File(fromPath, fileName);
-        File toFile = new File(toPath, newFileName == null || newFileName.equals("") ? fileName : newFileName);
+        File toFile = new File(toPath, newFileName == null || newFileName.isEmpty() ? fileName : newFileName);
 
         if (!fromFile.exists()) {
             log.error("Source file does not exist.");
@@ -80,17 +89,17 @@ public class FileManager {
             Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error occurred wile copy file: {}", e.getMessage(), e);
             return false;
         }
     }
 
     private boolean copyRemoteFile(String fromPath, String fileName, String toPath, String newFileName) {
         File fromFile = null;
-        File toFile = new File(toPath, newFileName == null || newFileName.equals("") ? fileName : newFileName);
+        File toFile = new File(toPath, newFileName == null || newFileName.isEmpty() ? fileName : newFileName);
 
         try {
-            fromFile = this.getFileFromRemote(fromPath, fileName);
+            fromFile = this.getFileFromRemote("trackingKey", fromPath, fileName);
 
             if (!fromFile.exists()) {
                 log.error("Source file does not exist at remote Server.");
@@ -159,7 +168,7 @@ public class FileManager {
 
         try {
 
-            fromFile = this.getFileFromRemote(fromPath, fileName);
+            fromFile = this.getFileFromRemote("trackingKey", fromPath, fileName);
 
             if(!fromFile.exists()){
                 log.error("Source file does not exist at remote Server.");
@@ -183,14 +192,25 @@ public class FileManager {
     }
 
 
-    private File getFileFromLocal(String path, String name) throws Exception {
+    /**
+     * Get file object at local directory
+     * @param trackingKey event tracking key
+     * @param path target file path
+     * @param name target file name
+     * @return file object
+     */
+    private File getFileFromLocal(String trackingKey, String path, String name) throws Exception {
+
         File file = new File(path, name);
         if(file.exists()){
-            log.info("File Exist: {}", file.getAbsolutePath() );
+            log.info("{} File Exist: {}", trackingKey, file.getAbsolutePath() );
             return file;
+
         }else {
-            log.error("File Not exist");
-            throw new Exception(String.format("File is not exist under path: %s ", (path + name)));
+            log.error("{} File Not exist.path: {} / name: {}", trackingKey, path, name);
+            throw new NullPointerException(String.format("%s File is not exist under path: %s & name: %s",
+                                            trackingKey, path, name));
+
         }
     }
 
@@ -205,7 +225,14 @@ public class FileManager {
 
     }
 
-    private File getFileFromRemote(String path, String name) throws Exception {
+    /**
+     * Get file object at remote directory (FTP || SFTP)
+     * @param trackingKey event tracking key
+     * @param path target file path
+     * @param name target file name
+     * @return file object
+     */
+    private File getFileFromRemote(String trackingKey,String path, String name) throws Exception {
 
         String localPath = FisSftpPropertyObject.getInstance().getLocalFilePath();
         File file = null;

@@ -57,26 +57,41 @@ public class FisCommonUtil {
 
     }
 
-    public static ParseRuleVo getParsingRule(String eqpId, String fileType){
-        // TODO 기준 정보 순회
+    /**
+     * Get Rule Vo in master data memory map
+     * @param trackingKey event tracking key.
+     * @param eqpId tool code
+     * @param fileType type of file (INSPECTION || MEASURE)
+     * @return Registered rule data in master data map.
+     */
+    public static ParseRuleVo getParsingRule(String trackingKey, String eqpId, String fileType){
+
+        ParseRuleVo parsingRule = null;
 
         String mapKey = FisCommonUtil.generateRuleStoreKey(eqpId, fileType);
-        ParseRuleVo parsingRule = null;
 
         Map<String, ParseRuleVo> voMap = FisPropertyObject.getInstance().getRuleVoMap();
         if(voMap.containsKey(mapKey)) {
             parsingRule = voMap.get(mapKey);
+            log.info("{} Rule has been  registered with eqpId: {}, fileType: {}.",
+                    trackingKey, eqpId, fileType);
+
         }else{
             log.warn("Vo is not in Map. Try to find with list");
 
             List<ParseRuleVo> rule = new ArrayList<>(voMap.values());
             for (ParseRuleVo vo : rule) {
-                if ( vo.getEqpId().equals(eqpId) && vo.getFileTyp().name().equals(fileType)) {
+                if (vo.getEqpId().equals(eqpId) && vo.getFileTyp().name().equals(fileType)) {
                     parsingRule = vo;
+                    log.info("{} Rule has been found by looping the map list." +
+                            "search conditon, eqpId: {}, fileType: {}",
+                            trackingKey, eqpId, fileType);
                     break;
+
                 } else {
-                    throw new NullPointerException(String.format("VO is not registered with condition. key: %s.  eqpId: %s. fileType: %s",
-                            mapKey, eqpId, fileType));
+                    throw new NullPointerException(
+                            String.format("%s RuleVo is not registered with condition. key: %s.  eqpId: %s. fileType: %s",
+                            trackingKey, mapKey, eqpId, fileType));
                 }
             }
         }

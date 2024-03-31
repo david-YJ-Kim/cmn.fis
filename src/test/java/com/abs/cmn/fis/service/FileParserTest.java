@@ -37,7 +37,7 @@ public class FileParserTest {
         String fileName = "H_sampleFileSimple.csv";
         String filePath = "C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file\\H_sampleFileSimple.csv\\";
         // Generate file for test.
-        File file = this.fileManager.getFile(filePath, fileName);
+        File file = this.fileManager.getFile(trackingKey, filePath, fileName);
 
     }
 }
