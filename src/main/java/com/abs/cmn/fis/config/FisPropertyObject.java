@@ -1,6 +1,6 @@
 package com.abs.cmn.fis.config;
 
-import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
+import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.util.FisCommonUtil;
@@ -102,7 +102,7 @@ public class FisPropertyObject {
 
     private InterfaceSolacePub interfaceSolacePub;
 
-    private CnFisIfRuleManager cnFisIfRuleManager;
+    private FisRuleManager fisRuleManager;
 
 
     private static FisPropertyObject instance;
@@ -169,8 +169,8 @@ public class FisPropertyObject {
         this.interfaceSolacePub = interfaceSolacePub;
     }
 
-    public void setCnFisIfRuleManager(CnFisIfRuleManager cnFisIfRuleManager) {
-        this.cnFisIfRuleManager = cnFisIfRuleManager;
+    public void setFisRuleManager(FisRuleManager fisRuleManager) {
+        this.fisRuleManager = fisRuleManager;
     }
 
 

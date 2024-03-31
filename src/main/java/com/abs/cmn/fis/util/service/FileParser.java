@@ -26,9 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 public class FileParser {
 
 
-    public List<Map<String, String>> parseCsvLine(ExecuteResultVo resultVo, File file, int headerStartOffset, String workId, ParseRuleVo parseRule) throws IOException{
+    /**
+     * Read file and save it in memory map.
+     * @param resultVo
+     * @param file
+     * @param headerStartOffset
+     * @param workId
+     * @param parseRule
+     * @return
+     * @throws IOException
+     */
+    public List<Map<String, String>> parseCsvLine(String trackingKey, ExecuteResultVo resultVo, File file, int headerStartOffset,
+                                                  String workId, ParseRuleVo parseRule) throws IOException{
 
-        log.info("!@#!@# : "+headerStartOffset+" , "+workId+" , "+parseRule.toString());
+        log.info("{} Start read file and parsing data." +
+                "Print parameters. headerOffset: {}, workId: {}",
+                trackingKey, headerStartOffset, workId);
 
         BufferedReader bufferedReader = null;
         List<Map<String, String>> listMapResult = null;
@@ -36,38 +49,40 @@ public class FileParser {
 
         try {
 
+            log.info("{} Start Read File by using buffered reader.", trackingKey);
             long fileReadStartTime = System.currentTimeMillis();
-            log.info("Start Read File by using buffered reader.");
 
             bufferedReader = new BufferedReader(new FileReader(file));
 
             int[] clmValList = parseRule.getParseClmIdValIntList();
             int[] rowValeList = parseRule.getParseRowValList();
 
-            listMapResult = new ArrayList<Map<String, String>>();
+            listMapResult = new ArrayList<>();
 
             resultVo.setFileReadElapsedTime(System.currentTimeMillis() - fileReadStartTime);
-            log.info("Read file done. result: {}", resultVo.toString());
+            log.info("{} Complete file read.", trackingKey);
 
-            long insertStartTime = System.currentTimeMillis();
+            long memoryLoadingStartTime = System.currentTimeMillis();
+
+            // TODO Header  row info 이해 불가...
             // Header Row info 필요
             int cnt = 0;
-            if (headerStartOffset < 0 )
+            if (headerStartOffset < 0 ){
                 cnt = -1;
+            }
 
             String csvLine = "";
-            while ( (csvLine = bufferedReader.readLine()) != null ) {
+            while ((csvLine = bufferedReader.readLine()) != null) {
 
-
-                Map<String, String> csvLineObject = new HashMap<String, String>();
+                Map<String, String> csvLineObject = new HashMap<>();
 
                 // 컬럼 짤라 오기, >> 컬럼을 숫자로 >>
                 // column 정보  > 추후 colum info가 있는 line을  읽어야 함.
 
-
-                if ( cnt == headerStartOffset ) {
+                if (cnt == headerStartOffset) {
                     if ( headerStartOffset < 0 ) {
                         columList = parseRule.getMpngClmStrList();
+
                     } else {
                         columList = new String[clmValList.length];
                         String[] parsed = csvLine.split(",");
@@ -103,7 +118,7 @@ public class FileParser {
             }
 
             resultVo.setRowCount(cnt);
-            resultVo.setParsingElapsedTime(System.currentTimeMillis() - insertStartTime);
+            resultVo.setParsingElapsedTime(System.currentTimeMillis() - memoryLoadingStartTime);
             log.info(">>>> listMapResult size : "+listMapResult.size());
 
         } catch (FileNotFoundException  e) {

@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +55,7 @@ public class ParsingDataRepository {
 
                     Map<String, String> map = listMap.get(i);
                     ps.setString(1, FisCommonUtil.generateObjKey());
-                    ps.setString(2, fileRule.getFileTgtPosnVal());
+                    ps.setString(2, fileRule.getFileMoveDirectoryValue());
                     ps.setString(3, fileName);
                     ps.setString(4, workId);
                     ps.setInt(5, i + startHeaderOffset);

@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.domain.rule.model;
 
+
 import com.abs.cmn.fis.util.code.FisFileType;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,12 +8,11 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
-@Entity(name = "CN_FIS_IF_PARSE_RULE")
-public class CnFisIfParseRule {
+@Entity(name = "CN_FIS_PARSE_RULE_REL")
+public class CnFisParseRuleRel {
 
     @javax.persistence.Id
     @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
@@ -27,60 +27,56 @@ public class CnFisIfParseRule {
     @Enumerated(EnumType.STRING)
     private FisFileType fileTyp;
 
-    @Column(name = "START_HDR_VAL")
-    private int startHdrVal;
+    @Column(name = "FILE_CLM_VAL")
+    private String fileClmVal;
 
-    @Column(name = "FILE_TGT_POSN_VAL")
-    private String fileTgtPosnVal;
+    @Column(name = "MPNG_CLM_NM")
+    private String mpngClmNm;
 
-    @Column(name = "PARS_CLM_ID_VAL")
-    private String parsClmIdVal;
+    @Column(name = "CLM_DATA_TYP")
+    private String clmDataTyp;
 
-    @Column(name = "PARS_ROW_VAL")
-    private String parsRowVal;
-
-    @Column(name = "CRT_DT", nullable = false)
-    private Timestamp crtDt;
+    @Column(name = "CRT_DT")
+    private String crtDt;
 
     @Column(name = "CRT_USER_ID")
     private String crtUserId;
 
     @Column(name = "MDFY_DT")
-    private Timestamp mdfyDt;
+    private String mdfyDt;
 
     @Column(name = "MDFY_USER_ID")
     private String mdfyUserId;
 
+
     @Builder
-    public CnFisIfParseRule(String objId, String eqpId,String fileTyp, int startHdrVal, String fileTgtPosnVal,
-                            String parsClmIdVal, String parsRowVal, Timestamp crtDt, String crtUserId,
-                            Timestamp mdfyDt, String mdfyUserId) {
+    public CnFisParseRuleRel(String objId, String eqpId, String fileTyp, String fileClmVal, String mpngClmNm,
+                             String clmDataTyp, String crtDt, String crtUserId, String mdfyDt, String mdfyUserId) {
         this.objId = objId;
         this.eqpId = eqpId;
         this.fileTyp = FisFileType.valueOf(fileTyp);
-        this.startHdrVal = startHdrVal;
-        this.fileTgtPosnVal = fileTgtPosnVal;
-        this.parsClmIdVal = parsClmIdVal;
-        this.parsRowVal = parsRowVal;
+        this.fileClmVal = fileClmVal;
+        this.mpngClmNm = mpngClmNm;
+        this.clmDataTyp = clmDataTyp;
         this.crtDt = crtDt;
         this.crtUserId = crtUserId;
         this.mdfyDt = mdfyDt;
         this.mdfyUserId = mdfyUserId;
     }
 
+
     @Override
     public String toString() {
-        return "CnFisIfParseRule{" +
+        return "CnFisParseRuleRel{" +
                 "objId='" + objId + '\'' +
                 ", eqpId='" + eqpId + '\'' +
-                ", fileTyp='" + fileTyp + '\'' +
-                ", startHdrVal=" + startHdrVal +
-                ", fileTgtPosnVal='" + fileTgtPosnVal + '\'' +
-                ", parsClmIdVal='" + parsClmIdVal + '\'' +
-                ", parsRowVal='" + parsRowVal + '\'' +
-                ", crtDt=" + crtDt +
+                ", fileTyp=" + fileTyp +
+                ", fileClmVal='" + fileClmVal + '\'' +
+                ", mpngClmNm='" + mpngClmNm + '\'' +
+                ", clmDataTyp='" + clmDataTyp + '\'' +
+                ", crtDt='" + crtDt + '\'' +
                 ", crtUserId='" + crtUserId + '\'' +
-                ", mdfyDt=" + mdfyDt +
+                ", mdfyDt='" + mdfyDt + '\'' +
                 ", mdfyUserId='" + mdfyUserId + '\'' +
                 '}';
     }

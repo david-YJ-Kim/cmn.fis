@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.domain.rule.model.CnFisIfParseRuleRel;
+import com.abs.cmn.fis.domain.rule.model.CnFisParseRuleRel;
 import com.abs.cmn.fis.util.code.FisConstant;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.code.FisQueryValues;
@@ -36,14 +36,14 @@ public class FisCommonUtil {
         return keyValueString;
     }
 
-    public static List<ParseRuleRelVo> convertParseRuleRelVo(List<CnFisIfParseRuleRel> entities){
+    public static List<ParseRuleRelVo> convertParseRuleRelVo(List<CnFisParseRuleRel> entities){
 
         ArrayList<ParseRuleRelVo> voList = new ArrayList<>();
-        for(CnFisIfParseRuleRel e : entities){
+        for(CnFisParseRuleRel e : entities){
 
             ParseRuleRelVo vo = ParseRuleRelVo.builder()
-                    .objId(String.valueOf(e.getRefObjId()))
-                    .refObjId(String.valueOf(e.getRefObjId()))
+                    .objId(String.valueOf(e.getObjId()))
+//                    .refObjId(String.valueOf(e.getRefObjId()))
                     .fileClmVal(e.getFileClmVal())
                     .fileClmNumIntVal(changeClmTitlVal(e.getFileClmVal()))
                     .mpngClmNm(e.getMpngClmNm())
@@ -233,67 +233,68 @@ public class FisCommonUtil {
     }
 
     public static boolean isNumber(String str) {
-        return str!=null && str.matches("[0-9.]+");// str.matches("[-+]?\\d#\\.?\\d+");
+        return str!=null && str.matches("[0-9.]+"); // str.matches("[-+]?\\d#\\.?\\d+");
     }
 
-    // 파일 유형당 쿼리 생성
-    public static String makeBatchInsertQuery(String fileType, String objId, List<ParseRuleRelVo> mappingList) {
+    /**
+     * Generate insert query statement based on its file type, eqpId and base query from property
+     * insert-template: INSERT INTO TABLE_NAME ( OBJ_ID,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,SYSTIMESTAMP,INPUT )
+     * @param fileType Type (INSPECTION || MEASURE)
+     * @param relationList Relation data from fis_rule_rel which same with eqpId & fileType
+     * @return insert query statement
+     */
+    public static String makeBatchInsertQuery(FisFileType fileType, List<ParseRuleRelVo> relationList) {
         String baseQuery = FisPropertyObject.getInstance().getInsertBatchTemplate();
+        log.info("Base query statement registered at application property. {}", baseQuery);
+
         String[] replaceStr1 = null;
         String[] replaceStr2 = null;
-        String dbColm = "";
-        String value = "";
-        String returnSql = "";
-        ParseRuleRelVo vo = null;
 
-        List<ParseRuleRelVo> myList = new ArrayList<ParseRuleRelVo>();
+        StringBuilder registeredColumnsBuilder = new StringBuilder();
+        StringBuilder queryValuesBuilder = new StringBuilder();
 
-        for( int i = 0 ; i < mappingList.size() ; i ++ ) {
-            vo = mappingList.get(i);
-            if ( objId.equals( vo.getRefObjId()) ) {
-                myList.add(vo);
-            } else {
-                continue;
+
+        String insertStatement = "";
+
+
+
+        for( int i = 0 ; i < relationList.size() ; i ++ ) {
+            ParseRuleRelVo vo = relationList.get(i);           // unit relation vo.
+            registeredColumnsBuilder.append(vo.getMpngClmNm());        // mapping column
+            queryValuesBuilder.append("?");
+
+            if (i != relationList.size() - 1) {
+                registeredColumnsBuilder.append(",");        // mapping column
+                queryValuesBuilder.append(",");
             }
-        }
-
-        // TODO 쿼리 만든다!루프 돌아서, dbColm, value 만들기!
-        for( int i = 0 ; i < myList.size() ; i ++ ) {
-            vo = myList.get(i);
-            if ( objId.equals( vo.getRefObjId()) ) {
-                dbColm += vo.getMpngClmNm();
-                value += "?";
-            } else {
-                log.info("");
-            }
-
-            if ( i == (myList.size() - 1) ) {
-                break;
-            } else {
-                dbColm += ",";
-                value += ",";
-            }
-            // TODO  file type from join parsing rule, param으로 fileType 가져오기!
         }
 
         replaceStr1 = baseQuery.split(FisQueryValues.TABLE_NAME.name());
-        // Table Name Choise
-        if (fileType.equals(FisFileType.INSP.name())) {
-            returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameInsp()+replaceStr1[1];
-        } else {
-            returnSql = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameMeas()+replaceStr1[1];
-        }
+        // → ["INSERT INTO", "( OBJ_ID,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,SYSTIMESTAMP,INPUT )"]
 
-        replaceStr2 = returnSql.split( FisQueryValues.COLUM.name() );
+        insertStatement = baseQuery.replace(FisQueryValues.TABLE_NAME.name(),
+                        (fileType.name().equals(FisFileType.INSPECTION.name())
+                                ? FisPropertyObject.getInstance().getTableNameInsp()
+                                : FisPropertyObject.getInstance().getTableNameMeas()));
 
-        String addClms = replaceStr2[0]+dbColm+replaceStr2[1];
+        // Table name chosen
+//        if (fileType.name().equals(FisFileType.INSPECTION.name())) {
+//            insertStatement = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameInsp()+replaceStr1[1];
+//        } else {
+//            insertStatement = replaceStr1[0]+FisPropertyObject.getInstance().getTableNameMeas()+replaceStr1[1];
+//        }
+
+        replaceStr2 = insertStatement.split( FisQueryValues.COLUM.name() );
+        // → ["INSERT INTO TABLE_NAME ( OBJ_ID,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,", ") VALUES ( ?,?,?,?,?,SYSTIMESTAMP,INPUT )"]
+
+        String addClms = replaceStr2[0] + registeredColumnsBuilder + replaceStr2[1];
 
         replaceStr1 = addClms.split(FisQueryValues.INPUT.name());
 
-        returnSql = replaceStr1[0]+value+replaceStr1[1];
+        insertStatement = replaceStr1[0] + queryValuesBuilder + replaceStr1[1];
 
-        log.info("ReturnSQL: {}",returnSql);
-        return returnSql;
+        log.info("ReturnSQL: {}",insertStatement);
+        return insertStatement;
     }
 
     // SQL 작성및 inserbatch 시 비교을 위한 Mapping Colum List 만들기
@@ -316,11 +317,9 @@ public class FisCommonUtil {
 
             vo = mappingList.get(i);
 
-            if  ( objId.equals( vo.getRefObjId()) ) {
 
-                mappingColums[j] = vo.getMpngClmNm();
-                j++;
-            }
+            mappingColums[j] = vo.getMpngClmNm();
+            j++;
         }
 
 
@@ -375,7 +374,7 @@ public class FisCommonUtil {
         String query = null;
         String[] splt = templat.split(FisQueryValues.TABLE_NAME.name());
 
-        if (type.equals(FisFileType.INSP.name()))
+        if (type.equals(FisFileType.INSPECTION.name()))
             query = splt[0] + FisPropertyObject.getInstance().getTableNameInsp()+splt[1];
         else
             query = splt[0] + FisPropertyObject.getInstance().getTableNameMeas()+splt[1];
@@ -478,24 +477,15 @@ public class FisCommonUtil {
     }
 
 
-    public static void main(String[] args) {
-
-//    	String str = "123abc456def";
-//
-//        // 정규식을 사용하여 숫자를 찾습니다.
-//        boolean containsNumber = str.matches(".*[a-zA-Z].*");
-//        System.out.println("test 1 : " +containsNumber); // true
-//
-//        // 숫자로 변환할 수 있는지 확인합니다.
-//        boolean canParseNumber = Integer.parseInt(str) != 0;
-//        System.out.println(canParseNumber); // true
-
-        for (int i = 0 ; i < 26; i++ )
-            System.out.println(generateObjKey());
-    }
-
+    /**
+     * Generate key with eqpId and fileType to store master data in memory map.
+     * ex) eqpId + | + fileType → AP-TG-09-01|INSPECTION
+     * @param eqpId: tool code ex) AP-TG-09-01
+     * @param fileTyp: File type defined in FisFileType Class (INSPECTION || MEASURE)
+     * @return master data key
+     */
     public static String generateRuleStoreKey(String eqpId, String fileTyp){
-        return eqpId.concat(FisConstant._.name()) + fileTyp;
+        return eqpId + "|" + fileTyp;
     }
 
 

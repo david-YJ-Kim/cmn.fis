@@ -93,7 +93,7 @@ public class InterfaceSolacePub {
 
             String sendCid = null;
 
-            if ( fileType.equals(FisFileType.INSP.name()) )
+            if ( fileType.equals(FisFileType.INSPECTION.name()) )
                 sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
             else
                 sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;

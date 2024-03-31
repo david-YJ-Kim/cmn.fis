@@ -17,6 +17,9 @@ public class FisFileReportVo extends FisMsgCommonVo {
     public static class FisFileReportBody extends FisMsgBody {
 
         String eqpId;
+        String lotId;
+        String prodMtrlId;
+        String mtrlFace;
         FisFileType fileType;
         String filePath;
         String fileName;

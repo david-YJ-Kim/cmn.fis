@@ -14,12 +14,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.domain.edm.model.CnFisEdcTmpVo;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
-import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
 import com.abs.cmn.fis.message.vo.common.FisMsgHead;
@@ -64,47 +62,65 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     }
 
+    /**
+     * File report message sequence.
+     * 1. Status `R` : Receive message and create work stats
+     * 2. Status `P` : Start read and parsing target file.
+     * 3. Status `I` : Complete parsing and start insert data.
+     * 4. Status `C` : Complete FIS work.
+     */
     @Async
     @Override
-    public ExecuteResultVo execute(FisFileReportVo vo, String ackKey) throws Exception {
+    public ExecuteResultVo execute(FisFileReportVo vo, String trackingKey) throws Exception {
 
-        log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
+        log.info("{} Start to parsing file. FisFileReportVo: {}",
+                trackingKey, vo.toString());
 
         ExecuteResultVo resultVo = new ExecuteResultVo();
         long executeStartTime = System.currentTimeMillis();
 
-        String key = this.createWorkId(vo);
-        resultVo.setWorkId(key);
+        /*
+         * Status `R`
+         */
+        String workId = this.createWorkId(vo);
+        resultVo.setWorkId(workId);
+        log.info("{} Start execute and insert work status. it's workId: {}",
+                trackingKey, workId);
 
-        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        // TODO Window 경로 (\\)에 대한 대응 필요. 현재는 리눅스 (/)에 대해서 파싱  가능
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-//        String tmpPath = "D:\\\\documents\\\\dev-docs\\\\FIS-Sample-File\\\\";
-//        File file = this.fileManager.getFile(tmpPath, vo.getBody().getFileName());
+        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        log.debug("{} Success to access target file. Its' path: {}",
+                trackingKey, file.getAbsolutePath());
+        ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(),
+                                                            vo.getBody().getFileType().name());
+        log.debug("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
 
 
-
-
-        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(), vo.getBody().getFileType().name());
-
+        /*
+          Status `P`
+         */
         // 헤더 시작 위치 초기화
-        int headerStartOffset = fileRule.getStartHdrVal();
+        int headerStartOffset = parsingRule.getHeaderStartValue();
+        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(trackingKey, resultVo, file,
+                                                                headerStartOffset, workId, parsingRule);
+        this.workService.updateEntity(workId, ProcessStateCode.P);
 
-        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
-                headerStartOffset, key, fileRule);
 
-        // TODO Parsing : P 상태로 work table update
-
+        /*
+            Status `I`
+         */
         long dbInsertStartTime = System.currentTimeMillis();
-        String status = this.parsingDataRepository.batchEntityInsert(vo.getBody().getFileName(), key, headerStartOffset, parsingResult, fileRule);
+        String status = this.parsingDataRepository.batchEntityInsert(
+                            vo.getBody().getFileName(), workId, headerStartOffset,
+                            parsingResult, parsingRule);
         resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
-
-//        // TODO Insert : I 상태로 work table update
-//        this.workService.updateEntity(key, ProcessStateCode.I);
+        this.workService.updateEntity(workId, ProcessStateCode.I);
 
         // TODO status 의 정확한 역할 정의
         // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )
-        if (status.equals(key)) {
-            this.handleAbnormalCondition(vo, key);
+        if (status.equals(workId)) {
+            this.handleAbnormalCondition(vo, workId);
         }
 
         resultVo.setStatus(status);
@@ -117,17 +133,17 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String sendCid = null;
         Object messageObject = null;
 
-        if(vo.getBody().getFileType().equals(FisFileType.INSP)){
+        if(vo.getBody().getFileType().equals(FisFileType.INSPECTION)){
             log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE);
             sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
 
-            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
+            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
 
-        }else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
+        }else if(vo.getBody().getFileType().equals(FisFileType.MEASURE)){
             log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
-            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
+            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
 
         }else{
             throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
@@ -137,35 +153,17 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         resultVo.setSendPayload(messageObject.toString());
         InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messageObject.toString(), FisPropertyObject.getInstance().getSendTopicName());
 
-        // TODO Insert : I 상태로 work table update
-        this.workService.updateEntity(key, ProcessStateCode.M);
+        /*
+            Status `C`
+         */
+        this.workService.updateEntity(workId, ProcessStateCode.C);
 
-        // TODO 파일 이동
-        // 이동한 폴더 패턴
-        String moveFilePattern = "/base_path/${eqpId}/${date}";
-//        String testMoveFolder = "C:\\Users\\DavidKim\\Desktop\\fis_test\\move_folder";
-        String testMoveFolder = "D:\\MVD\\";
-
-
-//        fileManager.moveFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder);
-        fileManager.copyFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder,  vo.getBody().getFileName() + System.currentTimeMillis());
-
-        resultVo.setMovedFilePath(testMoveFolder);
-        resultVo.setMovedFileName(vo.getBody().getFileName());
-
-
-        // TODO 메시지 Ack
-        FisMessagePool.messageAck(ackKey);
-        log.info("{} Complete processing. details: {}", key, resultVo.toString());
-
-
-        // TODO 결과 status와 키 workId 리턴
         return resultVo;
     }
 
     private Object setMessageObject(FisFileType fileType, String sendCid, String key) throws InvalidObjectException {
 
-        if(fileType.equals(FisFileType.INSP)){
+        if(fileType.equals(FisFileType.INSPECTION)){
 
             BrsInspDataSaveReqVo brsInspDataSaveReqVo = new BrsInspDataSaveReqVo();
             BrsInspDataSaveReqVo.BrsInspDataSaveReqBody body = new BrsInspDataSaveReqVo.BrsInspDataSaveReqBody();
@@ -176,7 +174,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
             return brsInspDataSaveReqVo;
 
-        }else if(fileType.equals(FisFileType.MEAS)){
+        }else if(fileType.equals(FisFileType.MEASURE)){
             log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
@@ -216,10 +214,15 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         );	// 삭제 요청
     }
 
+    /**
+     * Insert work stat.
+     * process stat default `R`
+     * @param vo
+     * @return
+     */
     private String createWorkId(FisFileReportVo vo){
 
         String reqSystem = vo.getHead().getSrc();
-        // TODO WORK INFO 생성
         CnFisWorkSaveRequestVo cnFisWorkSaveRequestVo = CnFisWorkSaveRequestVo.builder()
                 .fileName(vo.getBody().getFileName())
                 .filePath(vo.getBody().getFilePath())
@@ -235,45 +238,5 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     }
 
 
-    private ArrayList<CnFisEdcTmpVo> testList(){
-        ArrayList<CnFisEdcTmpVo> list = new ArrayList<>();
-        for (int i=0; i < 2; i++){
-
-            CnFisEdcTmpVo vo = CnFisEdcTmpVo.builder()
-                    .fileTp("FileType")
-                    .fileFmTp("FileFormatType")
-                    .siteId("SVM")
-                    .prodDefId("PROD_DEF_ID")
-                    .procDefId("PROC_DEF_ID")
-                    .procSgmtId("PROC_SGM_ID")
-                    .eqpId("EQP_ID")
-                    .lotId("LOT_ID")
-                    .prodMtrlId("PROD_MATRERIAL_ID")
-                    .subProdMtrlId("SUB_PROD_MATERIAL_ID")
-                    .mtrlFaceCd("TOP")
-                    .inspReptCnt("1")
-                    .xVal("X_VAL")
-                    .yVal("Y_VAL")
-                    .zVal("Z_VAL")
-                    .dcitemId("DC_ITEM_ID")
-                    .rsltVal("RESULT_VAL")
-                    .grdId("GROUPD_ID")
-                    .dfctId("DEFECT_ID")
-                    .dfctXVal("DEFECT_X_VAL")
-                    .dfctYVal("DEFECT_Y_VAL")
-                    .inspDt("INSPECT_DT")
-                    .imgFileNm("IMAGE_FILE_NAME")
-                    .reviewImgFileNm("REVIEW_IMG_FILE_NM")
-                    .inspFileNm("INSPECTION_FILE_NAME")
-                    .attr1("ATRRIBUTE_1")
-                    .attr2("ATRRIBUTE_2")
-                    .attrN("ATTRIBUTE_N")
-                    .crtDt(Timestamp.valueOf(LocalDateTime.now()))
-                    .fileNm("FILE_NAME")
-                    .build();
-            list.add(vo);
-        }
-        return list;
-    }
 
 }
