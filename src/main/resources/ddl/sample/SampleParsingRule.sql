@@ -152,9 +152,3 @@ values ('202412330111351133-d5f90065-8923-4cfd-b18d-94e7c3d89a_23', 'AP-TG-09-01
         SYSDATE, 'David', SYSDATE, 'David'
        );
 
-
-insert into CN_FIS_PARSE_RULE_REL (OBJ_ID, EQP_ID, FILE_TYP, FILE_CLM_VAL, FILE_CLM_NM,MPNG_CLM_NM, CLM_DATA_TYP,
-                                   CRT_DT, CRT_USER_ID, MDFY_DT, MDFY_USER_ID)
-values ('202412330111351133-d5f90065-8923-4cfd-b18d-94e7c3d89a_24', 'AP-TG-09-01', 'INSPECTION', 'W', 'ATTR_N','ATTR_N', 'VARCHAR2',
-        SYSDATE, 'David', SYSDATE, 'David'
-       );

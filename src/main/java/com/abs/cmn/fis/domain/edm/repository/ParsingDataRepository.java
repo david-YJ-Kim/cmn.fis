@@ -3,10 +3,13 @@ package com.abs.cmn.fis.domain.edm.repository;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 public class ParsingDataRepository {
 
     public String[] sqlColumList = null;
+
+    static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    static SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -48,6 +54,7 @@ public class ParsingDataRepository {
             jdbcTemplate.setFetchSize(FisPropertyObject.getInstance().getBatchSize());
 
             jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
+                @SneakyThrows
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
 
@@ -75,7 +82,13 @@ public class ParsingDataRepository {
                                 log.info("CHECKDATEFORMAT columnName: {}, getInMap : {}",sqlColumList[idx], map.get(sqlColumList[idx]));
 
 //							ps.setTimestamp(addIdx, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)));
-                                ps.setTimestamp(addIdx, Timestamp.valueOf(FisCommonUtil.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
+
+                                Date date = inputFormat.parse(map.get(sqlColumList[idx]));
+                                String formattedDate = outputFormat.format(date);
+                                ps.setTimestamp(addIdx, Timestamp.valueOf(formattedDate));
+
+
+//                                ps.setTimestamp(addIdx, Timestamp.valueOf(FisCommonUtil.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
 
                                 log.info(addIdx+" , TIME " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
 
