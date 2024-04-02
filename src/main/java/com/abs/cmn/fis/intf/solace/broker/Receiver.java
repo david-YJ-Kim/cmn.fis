@@ -53,8 +53,8 @@ public class Receiver implements Runnable {
             final Queue queue = JCSMPFactory.onlyInstance().createQueue(queue_name);
 
             // Way to mapping topic to queue
-            Topic topic = JCSMPFactory.onlyInstance().createTopic("Queue/Name/into/Topic/Name");
-            this.session.addSubscription(queue, topic, JCSMPSession.WAIT_FOR_CONFIRM);
+            // Topic topic = JCSMPFactory.onlyInstance().createTopic("Queue/Name/into/Topic/Name");
+            // this.session.addSubscription(queue, topic, JCSMPSession.WAIT_FOR_CONFIRM);
 
             /* ConsumerFlow 설정 */
             final ConsumerFlowProperties flowProps = new ConsumerFlowProperties();
@@ -121,8 +121,8 @@ public class Receiver implements Runnable {
             String key = userProperty.getString(FisConstant.messageId.name());
             String trackingKey = FisMessagePool.putMessageObject(key, message);
             log.info("In-coming new message. from {}. Get tracking info from message. " +
-                    "event name(cid): {}, message key: {}, trackingKey: {}." +
-                    "Starting manage in map: {}. It's size: {}",
+                            "event name(cid): {}, message key: {}, trackingKey: {}." +
+                            "Starting manage in map: {}. It's size: {}",
                     endpointName, cid, key, trackingKey,
                     FisMessagePool.getMessageManageMap().toString(), FisMessagePool.getMessageManageMap().size());
 
@@ -130,7 +130,7 @@ public class Receiver implements Runnable {
 
                 if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
                     DataInitializeExecute dataInitializeExecute = ApplicationContextProvider.getBean(
-                                                                    DataInitializeExecute.class);
+                            DataInitializeExecute.class);
                     dataInitializeExecute.execute(message, cid);
                     log.info("{} Complete data initialize.", trackingKey);
                     return;
@@ -145,7 +145,7 @@ public class Receiver implements Runnable {
 
 
                 log.info("{} Incoming event-name(cid):{}"
-                            , trackingKey, cid);
+                        , trackingKey, cid);
                 switch (cid){
 
                     /**
@@ -160,7 +160,7 @@ public class Receiver implements Runnable {
                         FisFileReportVo fisFileReportVo = mapper.readValue(payload, FisFileReportVo.class);
 
                         FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(
-                                                                        FisFileParsingExecute.class);
+                                FisFileParsingExecute.class);
                         fisFileParsingExecute.init();
 
                         try {
@@ -177,7 +177,7 @@ public class Receiver implements Runnable {
 
                     case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
                         FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(
-                                                                        FisWorkTableManageController.class);
+                                FisWorkTableManageController.class);
 
                         try{
 

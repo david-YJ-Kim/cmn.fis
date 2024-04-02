@@ -42,6 +42,9 @@ public class FisSftpPropertyObject {
     @Value("${ap.file.nas.sftp.remote-target-dir}")
     private String remoteTargetDir;
 
+    @Value("${ap.file.nas.path.base}")
+    private String apFileNasPathBase;
+
     @Value("${ap.file.local-path}")
     private String localFilePath;
 

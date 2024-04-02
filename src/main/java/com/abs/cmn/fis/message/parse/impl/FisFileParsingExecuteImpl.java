@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.config.FisSftpPropertyObject;
 import com.abs.cmn.fis.message.FisMessagePool;
+import com.abs.cmn.fis.util.ToolCodeList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -88,14 +90,15 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         log.info("{} Start execute and insert work status. it's workId: {}",
                 trackingKey, workId);
 
-        // TODO Window 경로 (\\)에 대한 대응 필요. 현재는 리눅스 (/)에 대해서 파싱  가능
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-        File file = this.fileManager.getFile(trackingKey, vo.getBody().getFilePath(),
-                                                            vo.getBody().getFileName());
+        String modifiedFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
+                vo.getBody().getEqpId(), vo.getBody().getFilePath());
+        File file = this.fileManager.getFile(trackingKey, modifiedFilePath,
+                vo.getBody().getFileName());
         log.debug("{} Success to access target file. Its' path: {}",
                 trackingKey, file.getAbsolutePath());
         ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(trackingKey, vo.getBody().getEqpId(),
-                                                            vo.getBody().getFileType().name());
+                vo.getBody().getFileType().name());
         log.debug("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
 
 
@@ -105,7 +108,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         // 헤더 시작 위치 초기화
         int headerStartOffset = parsingRule.getHeaderStartValue();
         List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(trackingKey, resultVo, file,
-                                                                headerStartOffset, workId, parsingRule);
+                headerStartOffset, workId, parsingRule);
         this.workService.updateEntity(workId, ProcessStateCode.P);
 
 
@@ -114,8 +117,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
          */
         long dbInsertStartTime = System.currentTimeMillis();
         String status = this.parsingDataRepository.batchEntityInsert(
-                            vo.getBody().getFileName(), workId, headerStartOffset,
-                            parsingResult, parsingRule);
+                vo.getBody().getFileName(), workId, headerStartOffset,
+                parsingResult, parsingRule);
         resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
         this.workService.updateEntity(workId, ProcessStateCode.I);
 
@@ -242,6 +245,33 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         return this.workService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
     }
 
+
+    /**
+     *
+     * @param trackingKey
+     * @param basePath
+     * @param eqpId
+     * @param windowFilePath Y:\\PROD_DEF_ID\\AP-TG-09\\PROC_DEF_ID
+     * @return
+     */
+    public String modifyFilePath(String trackingKey, String basePath, String eqpId, String windowFilePath){
+
+        String linuxDelimiter = "/";
+
+        String linuxPath = FisCommonUtil.convertWindowPathToLinux(windowFilePath);
+        switch (eqpId){
+            case ToolCodeList.AP_TG_09_01:
+            case ToolCodeList.AP_TG_10_01:
+            case ToolCodeList.AP_OL_13_01:
+            case ToolCodeList.AP_RD_11_01:
+                return basePath + FisCommonUtil.detachToolNumber(eqpId) + linuxDelimiter + linuxPath;
+
+            default:
+                return basePath + eqpId + linuxDelimiter + linuxPath;
+        }
+
+
+    }
 
 
 }

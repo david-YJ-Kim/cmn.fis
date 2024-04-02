@@ -36,6 +36,48 @@ public class FisCommonUtil {
         return keyValueString;
     }
 
+
+    public static void main(String[] args) {
+        System.out.println(
+                FisCommonUtil.convertWindowPathToLinux(
+                        "C:\\Users\\DavidKim\\Pictures\\Screenshots"
+                )
+        );
+    }
+
+    /**
+     * Get eqp id detached eqp number
+     * ex) AP-TG-10-01 → AP-TG-10
+     * @param eqpId
+     * @return
+     */
+    public static String detachToolNumber(String eqpId){
+        int lastIndex = eqpId.lastIndexOf("-");
+        return eqpId.substring(0, lastIndex);
+    }
+
+
+
+    /**
+     * Convert window file path into Linux
+     * De-attach disk path (like C:\\ , D:\\)
+     *
+     * @param windowFilePath
+     * @return
+     */
+    public static String convertWindowPathToLinux(String windowFilePath){
+
+        // Replaces backslashes with forward slashes/
+        String linuxPath = windowFilePath.replace("\\", "/");
+
+        // Detach file drive info
+        if(linuxPath.matches("^[A-Za-z]:.*")){
+            linuxPath = linuxPath.substring(2);
+        }
+        return linuxPath;
+
+    }
+
     public static List<ParseRuleRelVo> convertParseRuleRelVo(List<CnFisParseRuleRel> entities){
 
         ArrayList<ParseRuleRelVo> voList = new ArrayList<>();
@@ -84,14 +126,14 @@ public class FisCommonUtil {
                 if (vo.getEqpId().equals(eqpId) && vo.getFileTyp().name().equals(fileType)) {
                     parsingRule = vo;
                     log.info("{} Rule has been found by looping the map list." +
-                            "search conditon, eqpId: {}, fileType: {}",
+                                    "search conditon, eqpId: {}, fileType: {}",
                             trackingKey, eqpId, fileType);
                     break;
 
                 } else {
                     throw new NullPointerException(
                             String.format("%s RuleVo is not registered with condition. key: %s.  eqpId: %s. fileType: %s",
-                            trackingKey, mapKey, eqpId, fileType));
+                                    trackingKey, mapKey, eqpId, fileType));
                 }
             }
         }
@@ -288,9 +330,9 @@ public class FisCommonUtil {
         // → ["INSERT INTO", "( OBJ_ID,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,SYSTIMESTAMP,INPUT )"]
 
         insertStatement = baseQuery.replace(FisQueryValues.TABLE_NAME.name(),
-                        (fileType.name().equals(FisFileType.INSPECTION.name())
-                                ? FisPropertyObject.getInstance().getTableNameInsp()
-                                : FisPropertyObject.getInstance().getTableNameMeas()));
+                (fileType.name().equals(FisFileType.INSPECTION.name())
+                        ? FisPropertyObject.getInstance().getTableNameInsp()
+                        : FisPropertyObject.getInstance().getTableNameMeas()));
 
         // Table name chosen
 //        if (fileType.name().equals(FisFileType.INSPECTION.name())) {
