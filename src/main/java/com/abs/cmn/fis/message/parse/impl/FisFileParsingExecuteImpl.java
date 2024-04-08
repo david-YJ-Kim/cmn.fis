@@ -144,7 +144,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
             messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
 
-        }else if(vo.getBody().getFileType().equals(FisFileType.MEASURE)){
+        }else if(vo.getBody().getFileType().equals(FisFileType.MEASUREMENT)){
             log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
@@ -182,7 +182,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
             return brsInspDataSaveReqVo;
 
-        }else if(fileType.equals(FisFileType.MEASURE)){
+        }else if(fileType.equals(FisFileType.MEASUREMENT)){
             log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
