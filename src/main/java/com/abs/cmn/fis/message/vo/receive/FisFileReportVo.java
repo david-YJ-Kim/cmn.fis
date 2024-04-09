@@ -20,7 +20,9 @@ public class FisFileReportVo extends FisMsgCommonVo {
         String lotId;
         String prodMtrlId;
         String mtrlFace;
-        FisFileType fileType;
+//        FisFileType fileType;
+
+        String fileType;
         String filePath;
         String fileName;
 

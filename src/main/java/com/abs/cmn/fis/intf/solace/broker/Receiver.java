@@ -168,6 +168,8 @@ public class Receiver implements Runnable {
                             // → Async 메소드, 메소드 외부에서 Ack 처리 및 결과 출력 시, Null
 
                         }catch (Exception e){
+                            log.error("{} Exception : {}", trackingKey, e);
+                            FisMessagePool.messageAck(trackingKey);
                             e.printStackTrace();
                             throw e;
                         }

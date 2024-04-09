@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.intf.rest;
 
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.util.FisSampleMessageFormat;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,12 +27,14 @@ public class TestSendMngController {
     public String sendFisFileReport(String eqpId, String fileType, String filePath, String fileName) throws JCSMPException {
 
 
+        log.info("Send Message Print Parameter." +
+                        "eqpId: {}, fileType: {}, filePath: {}, fileName: {}",
+                eqpId, fileType, filePath, fileName);
         String tid = "FIS_TID_" + System.currentTimeMillis();
 
         String payload = String.format(FisSampleMessageFormat.FIS_FILE_REPORT_FORMAT, FisMessageList.FIS_FILE_REPORT, tid, eqpId, fileType, filePath, fileName);
+        log.info(payload);
 
-
-        log.debug(payload);
         InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_FILE_REPORT, payload, FisPropertyObject.getInstance().getReceiveQueueName());
         return null;
     }

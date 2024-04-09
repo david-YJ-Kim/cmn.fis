@@ -12,6 +12,8 @@ import java.util.Map;
 import com.abs.cmn.fis.config.FisSftpPropertyObject;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.util.ToolCodeList;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -93,12 +95,24 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
         String modifiedFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
                 vo.getBody().getEqpId(), vo.getBody().getFilePath());
-        File file = this.fileManager.getFile(trackingKey, modifiedFilePath,
-                vo.getBody().getFileName());
+
+        File file = null;
+        try {
+            file = this.fileManager.getFile(trackingKey, modifiedFilePath,
+                    vo.getBody().getFileName());
+        } catch (Exception e) {
+
+            FisMessagePool.messageAck(trackingKey);
+            return resultVo;
+//            throw e;
+//            throw new RuntimeException(e);
+        }
+
+
         log.debug("{} Success to access target file. Its' path: {}",
                 trackingKey, file.getAbsolutePath());
         ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(trackingKey, vo.getBody().getEqpId(),
-                vo.getBody().getFileType().name());
+                vo.getBody().getFileType());
         log.debug("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
 
 
@@ -134,29 +148,34 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         log.info(resultVo.toString());
 
 
+
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         // TODO EDC 메시지 송신:
         String sendCid = null;
         Object messageObject = null;
+        String messagePayload = "";
 
-        if(vo.getBody().getFileType().equals(FisFileType.INSPECTION)){
-            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE);
+        if(vo.getBody().getFileType().equals(FisFileType.INSPECTION.name()) || vo.getBody().getFileType().startsWith("I")){
             sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
 
-            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
+//            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
+            messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
 
-        }else if(vo.getBody().getFileType().equals(FisFileType.MEASUREMENT)){
-            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
+        }else if(vo.getBody().getFileType().equals(FisFileType.MEASUREMENT.name()) || vo.getBody().getFileType().startsWith("M")){
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
-            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
+//            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
+            messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
 
         }else{
             throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-                    , vo.getBody().getFileType().name(), FisFileType.values().toString()));
+                    , vo.getBody().getFileType(), FisFileType.values().toString()));
         }
         resultVo.setSendCid(sendCid);
-        resultVo.setSendPayload(messageObject.toString());
-        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messageObject.toString(), FisPropertyObject.getInstance().getSendTopicName());
+        resultVo.setSendPayload(messagePayload);
+//        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messagePayload, FisPropertyObject.getInstance().getSendTopicName());
+        log.info("Message Send. sendCid: {}, payload: {}", sendCid,messagePayload );
 
         /*
             Status `C`
@@ -212,10 +231,10 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     // 장애 대응 메소드
     private void handleAbnormalCondition(FisFileReportVo vo, String key) throws SQLException {
 
-        String sql = FisCommonUtil.getDelteQuery(vo.getBody().getFileType().name());
+        String sql = FisCommonUtil.getDelteQuery(vo.getBody().getFileType());
         // 우선 삭제 진행
         this.parsingDataRepository.deleteBatch(
-                vo.getBody().getFileType().name(),
+                vo.getBody().getFileType(),
                 key,
                 FisPropertyObject.getInstance().getBatchSize(),
                 sql
@@ -230,11 +249,14 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
      */
     private String createWorkId(FisFileReportVo vo){
 
+
+        String typeString = vo.getBody().getFileType().startsWith("I") ? FisFileType.INSPECTION.name() : FisFileType.MEASUREMENT.name();
+
         String reqSystem = vo.getHead().getSrc();
         CnFisWorkSaveRequestVo cnFisWorkSaveRequestVo = CnFisWorkSaveRequestVo.builder()
                 .fileName(vo.getBody().getFileName())
                 .filePath(vo.getBody().getFilePath())
-                .fileType(vo.getBody().getFileType().name())
+                .fileType(typeString)
                 .eqpId(vo.getBody().getEqpId())
                 .requestSystemName(reqSystem)
                 .processState(FisConstant.R.name())
