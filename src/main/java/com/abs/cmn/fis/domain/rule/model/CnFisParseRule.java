@@ -11,15 +11,15 @@ import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
-@Entity(name = "CN_FIS_IF_PARSE_RULE")
-public class CnFisIfParseRule {
+@Entity(name = "CN_FIS_PARSE_RULE")
+public class CnFisParseRule {
 
     @javax.persistence.Id
     @GenericGenerator(name = "CN_FIS_WORK_SEQ_GENERATOR", strategy = "com.abs.cmn.fis.util.ObjIdGenerator")
     @GeneratedValue(generator = "CN_FIS_WORK_SEQ_GENERATOR")
     @Column(name = "OBJ_ID", nullable = false)
     private String objId;
-    
+
     @Column(name = "EQP_ID")
     private String eqpId;
 
@@ -52,9 +52,9 @@ public class CnFisIfParseRule {
     private String mdfyUserId;
 
     @Builder
-    public CnFisIfParseRule(String objId, String eqpId,String fileTyp, int startHdrVal, String fileTgtPosnVal,
-                                  String parsClmIdVal, String parsRowVal, Timestamp crtDt, String crtUserId,
-                                  Timestamp mdfyDt, String mdfyUserId) {
+    public CnFisParseRule(String objId, String eqpId, String fileTyp, int startHdrVal, String fileTgtPosnVal,
+                          String parsClmIdVal, String parsRowVal, Timestamp crtDt, String crtUserId,
+                          Timestamp mdfyDt, String mdfyUserId) {
         this.objId = objId;
         this.eqpId = eqpId;
         this.fileTyp = FisFileType.valueOf(fileTyp);

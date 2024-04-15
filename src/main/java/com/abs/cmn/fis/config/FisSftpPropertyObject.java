@@ -20,118 +20,121 @@ import lombok.Getter;
 @Getter
 @Component
 public class FisSftpPropertyObject {
-	private static final Logger log = LoggerFactory.getLogger(FisSftpPropertyObject.class);
+    private static final Logger log = LoggerFactory.getLogger(FisSftpPropertyObject.class);
 
-	Environment env;
+    Environment env;
 
-	@Value("${ap.file.mode}")
-	private String fileMode;
+    @Value("${ap.file.mode}")
+    private String fileMode;
 
-	@Value("${ap.file.nas.sftp.host}")
-	private String host;
-	
-	@Value("${ap.file.nas.sftp.port}")
-	private String port;
-	
-	@Value("${ap.file.nas.sftp.user-name}")
-	private String userName;
-	
-	@Value("${ap.file.nas.sftp.user-passwd}")
-	private String userPasswd;
+    @Value("${ap.file.nas.sftp.host}")
+    private String host;
 
-	@Value("${ap.file.nas.sftp.remote-target-dir}")
-	private String remoteTargetDir;
-	
-	@Value("${ap.file.local-path}")
-	private String localFilePath;
-	
-	private Session session;
-	
-	private Channel channel;
-	
-	private Properties properties;
-	
-	private JSch jsch;
+    @Value("${ap.file.nas.sftp.port}")
+    private String port;
 
-	private static FisSftpPropertyObject instance;
+    @Value("${ap.file.nas.sftp.user-name}")
+    private String userName;
 
-	public ChannelSftp getSftpChannel(){
+    @Value("${ap.file.nas.sftp.user-passwd}")
+    private String userPasswd;
 
-		if(fileMode.equals(FisConstant.remote.name())){
+    @Value("${ap.file.nas.sftp.remote-target-dir}")
+    private String remoteTargetDir;
 
-			this.properties = new Properties();
-			this.properties.put("StrictHostKeyChecking", "no");
+    @Value("${ap.file.nas.path.base}")
+    private String apFileNasPathBase;
 
-			this.jsch = new JSch();
-			try {
-				this.session = jsch.getSession(this.userName, this.host, Integer.valueOf(this.port));
-				session.setPassword(this.userPasswd);
-				session.setConfig(this.properties);
-				session.connect();
+    @Value("${ap.file.local-path}")
+    private String localFilePath;
 
-				this.channel = (ChannelSftp) session.openChannel(FisConstant.sftp.name());
-				this.channel.connect();
+    private Session session;
 
-				
-			} catch (JSchException e) {
-				// TODO Auto-generated catch block
-				log.error("## Error JSchException : ",e);
-			}			
-		}
-		
-		return  (ChannelSftp)channel;
+    private Channel channel;
 
-	}
-	
-	public static FisSftpPropertyObject createInstance(Environment env) {
+    private Properties properties;
 
-		if (instance == null) {
-			synchronized (FisSftpPropertyObject.class) {
-				// Double-check to ensure only one instance is created
-				if (instance == null) {
-					instance = new FisSftpPropertyObject(env);
-				}
-			}
-		}
+    private JSch jsch;
 
-		log.info(instance.toString());
+    private static FisSftpPropertyObject instance;
 
-		return instance;
+    public ChannelSftp getSftpChannel(){
 
-	}
-	
-	public static FisSftpPropertyObject getInstance() {
-		return instance;
-	}
+        if(fileMode.equals(FisConstant.remote.name())){
 
-	public FisSftpPropertyObject(Environment env){
-		this.env = env;
-		instance = this;
-	}
-	
-	
-	// 전체 shutdown 할 때
-	private void shutdown() {
-		this.channel.disconnect();
-		log.info("## Disconnect to Channel.");
-		this.session.disconnect();
-		log.info("## Disconnect to Session.");
-	}
+            this.properties = new Properties();
+            this.properties.put("StrictHostKeyChecking", "no");
+
+            this.jsch = new JSch();
+            try {
+                this.session = jsch.getSession(this.userName, this.host, Integer.valueOf(this.port));
+                session.setPassword(this.userPasswd);
+                session.setConfig(this.properties);
+                session.connect();
+
+                this.channel = (ChannelSftp) session.openChannel(FisConstant.sftp.name());
+                this.channel.connect();
 
 
-	@Override
-	public String toString() {
-		return "FisSftpPropertyObject{" +
-				"env=" + env +
-				", host='" + host + '\'' +
-				", port=" + port +
-				", userName='" + userName + '\'' +
-				", userPasswd='" + userPasswd + '\'' +
-				", remoteTargetDir='" + remoteTargetDir + '\'' +
-				", session=" + session +
-				", channel=" + channel +
-				", properties=" + properties +
-				", jsch=" + jsch +
-				'}';
-	}
+            } catch (JSchException e) {
+                // TODO Auto-generated catch block
+                log.error("## Error JSchException : ",e);
+            }
+        }
+
+        return  (ChannelSftp)channel;
+
+    }
+
+    public static FisSftpPropertyObject createInstance(Environment env) {
+
+        if (instance == null) {
+            synchronized (FisSftpPropertyObject.class) {
+                // Double-check to ensure only one instance is created
+                if (instance == null) {
+                    instance = new FisSftpPropertyObject(env);
+                }
+            }
+        }
+
+        log.info(instance.toString());
+
+        return instance;
+
+    }
+
+    public static FisSftpPropertyObject getInstance() {
+        return instance;
+    }
+
+    public FisSftpPropertyObject(Environment env){
+        this.env = env;
+        instance = this;
+    }
+
+
+    // 전체 shutdown 할 때
+    private void shutdown() {
+        this.channel.disconnect();
+        log.info("## Disconnect to Channel.");
+        this.session.disconnect();
+        log.info("## Disconnect to Session.");
+    }
+
+
+    @Override
+    public String toString() {
+        return "FisSftpPropertyObject{" +
+                "env=" + env +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                ", userName='" + userName + '\'' +
+                ", userPasswd='" + userPasswd + '\'' +
+                ", remoteTargetDir='" + remoteTargetDir + '\'' +
+                ", session=" + session +
+                ", channel=" + channel +
+                ", properties=" + properties +
+                ", jsch=" + jsch +
+                '}';
+    }
 }

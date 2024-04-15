@@ -1,0 +1,1 @@
+./mes-oia.sh ../target/oia-1.0.0.jar product1

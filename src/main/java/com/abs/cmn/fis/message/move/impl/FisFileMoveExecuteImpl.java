@@ -15,25 +15,25 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FisFileMoveExecuteImpl implements FisFileMoveExecute {
 
-	@Autowired
+    @Autowired
     private CnFisWorkService workService;
-	
+
     @Autowired
     private FileManager fileManager;
-    
+
     @Autowired
     private ParsingDataRepository parsingDataRepository;
 
     @Override
     public void init() {
-    	log.info("## FisFileMoveExecuteImpl : init compleate.");
+        log.info("## FisFileMoveExecuteImpl : init compleate.");
     }
 
     @Override
-	public void execute(String fileType, String fileName, String filePath, String workId, String type) throws Exception {
-    	
-    	// 1.워크 테이블 상태 변경  
-    	
+    public void execute(String fileType, String fileName, String filePath, String workId, String type) throws Exception {
+
+        // 1.워크 테이블 상태 변경
+
 //    	try {
 //    		// TODO -  toFile Path 읽어오는 Util Method 찾기
 //    		String tofilePath = filePath + FisPropertyObject.getInstance().getParsingRule().get(1).getFileTgtPosnVal().replace(".\\", "")+"\\\\";
@@ -75,6 +75,6 @@ public class FisFileMoveExecuteImpl implements FisFileMoveExecute {
 //    	}
 //
     }
-    
+
 }
 

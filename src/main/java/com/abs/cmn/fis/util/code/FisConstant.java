@@ -1,22 +1,21 @@
 package com.abs.cmn.fis.util.code;
 
 public enum FisConstant {
-    _,
 
     BRS,
     FIS,
     cid,
     messageId,
-   R,
-   local,
-   remote,
+    R,
+    local,
+    remote,
 
-   receiver,
+    receiver,
 
-   RELOAD_RULE,
-   PATCH_RULE,
-   
-   A, 				// 파싱 컬럼 정보 기준 숫자
+    RELOAD_RULE,
+    PATCH_RULE,
+
+    A, 				// 파싱 컬럼 정보 기준 숫자
     FAIL,
     SUCCESS,
 

@@ -47,7 +47,7 @@ GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=IN
 GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_500000_231204.csv
 
 ### FIS_FILE_REPORT 700,000 Row 발송
-GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_700000_231204.csv
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSPECTION&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_700000_231204.csv
 
 ### FIS_FILE_REPORT 1,000,000 Row 발송
 GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Desktop\\fis_test\\request_folder&fileName=inspection_result_file_row_count_1000000_231204.csv
@@ -57,21 +57,13 @@ GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=IN
 GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv&loop=50
 
 
+### [H사] FIS_FILE_REPORT 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AP-TG-09-01&fileType=INSPECTION&filePath=C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file&fileName=H_sampleFileSimple.csv
 
 
 
 
 
 ### FIS_TEST_MESSAGE 발송
- GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=7000
+GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=10000
 
-<<<<<<< HEAD
-### Shutdown
-POST http://localhost:9010/actuator/shutdown
-=======
-### FIS_FILE_REPORT 발송
-GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv
-
-### Shutdown
-POST http://localhost:9010/actuator/shutdown
->>>>>>> fa-threadJoin

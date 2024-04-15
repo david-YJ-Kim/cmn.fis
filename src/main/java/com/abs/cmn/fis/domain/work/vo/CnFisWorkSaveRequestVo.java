@@ -14,8 +14,8 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 public class CnFisWorkSaveRequestVo {
-	
-	private String workId;
+
+    private String workId;
     private String fileName;
     private String filePath;
     private String fileType;
@@ -29,8 +29,8 @@ public class CnFisWorkSaveRequestVo {
 
     @Builder
     public CnFisWorkSaveRequestVo(String workId, String fileName, String filePath, String fileType, String eqpId, String requestSystemName, String processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
-    	this.workId = workId;
-    	this.fileName = fileName;
+        this.workId = workId;
+        this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
         this.eqpId = eqpId;

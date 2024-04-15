@@ -26,126 +26,191 @@ import lombok.extern.slf4j.Slf4j;
 public class FileParser {
 
 
-    public List<Map<String, String>> parseCsvLine(ExecuteResultVo resultVo, File file, int headerStartOffset, String workId, ParseRuleVo parseRule) throws IOException{
+    /**
+     * Read file and save it in memory map.
+     * @param trackingKey event tracking key
+     * @param resultVo Result object, recognize each step.
+     * @param file Target file object, need to parse.
+     * @param headerStartOffset Content start row number in target file.
+     * @param workId Key id that represent work status in db table (※ CN_FIS_WORK_INF).
+     * @param parseRule Master data stored by eqpId & fileType (※ related table, CN_FIS_RULE)
+     * @return Memory map data, filled with file content.
+     */
+    public List<Map<String, String>> parseCsvLine(String trackingKey, ExecuteResultVo resultVo, File file, int headerStartOffset,
+                                                  String workId, ParseRuleVo parseRule) throws IOException{
 
-    	log.info("!@#!@# : "+headerStartOffset+" , "+workId+" , "+parseRule.toString());
-    	
+        long fileReadStartTime = System.currentTimeMillis();
+        // → Start time to calculating elapsed time.
+
+        log.info("{} Start read file and parsing data." +
+                "Print parameters. headerOffset: {}, workId: {}",
+                trackingKey, headerStartOffset, workId);
+
         BufferedReader bufferedReader = null;
-        List<Map<String, String>> listMapResult = null;
-        String[] columList = null;
+        // → Reader object, filled with file content by using file IO.
+
+
 
         try {
 
-            long fileReadStartTime = System.currentTimeMillis();
-            log.info("Start Read File by using buffered reader.");
-
             bufferedReader = new BufferedReader(new FileReader(file));
 
-            int[] clmValList = parseRule.getParseClmIdValIntList();
-            int[] rowValeList = parseRule.getParseRowValList();
-            
-            listMapResult = new ArrayList<Map<String, String>>();
-
             resultVo.setFileReadElapsedTime(System.currentTimeMillis() - fileReadStartTime);
-            log.info("Read file done. result: {}", resultVo.toString());
-
-            long insertStartTime = System.currentTimeMillis();
-            // Header Row info 필요
-            int cnt = 0;
-            if (headerStartOffset < 0 )
-            	cnt = -1;
-            	
-            String csvLine = "";
-            while ( (csvLine = bufferedReader.readLine()) != null ) {
+            log.info("{} Complete load file content at bufferedReader object.", trackingKey);
 
 
-                Map<String, String> csvLineObject = new HashMap<String, String>();
+            long memoryLoadingStartTime = System.currentTimeMillis();
+            // → Start time to calculating String into map memory.
+            List<Map<String, String>> csvDataObjectList = this.generateCsvDataObjectList(
+                                        trackingKey, bufferedReader, headerStartOffset, workId,
+                                        parseRule,  parseRule.getParseClmIdValIntList(), parseRule.getParseRowValList()
+                                        );
 
-                // 컬럼 짤라 오기, >> 컬럼을 숫자로 >> 
-                // column 정보  > 추후 colum info가 있는 line을  읽어야 함.
-                
-                
-                if ( cnt == headerStartOffset ) {
-                	if ( headerStartOffset < 0 ) {
-                    	columList = parseRule.getMpngClmStrList();
-                    } else {
-                    	columList = new String[clmValList.length];
-                    	String[] parsed = csvLine.split(",");
-                    	int j = 0;
-                    	for ( int i = 0 ; i < parsed.length ; i++ ) {
-                    		if ( FisCommonUtil.checkDataInList(clmValList, i)) {
-                    			columList[j] = parsed[i];
-                    			j++;
-                    		} else continue;
-                    	}
-                        
-                    }
-                	cnt++;
-                    log.info("[Colum] Count : {}, headerStartCount:{},  headerLine : {}", cnt, headerStartOffset, csvLine);
-                    
-                } else if(cnt > headerStartOffset && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
-                	log.info("[*] cnt : {}, headerStartCount:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
-                	
-                	listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
-                    cnt++;
-                    
-                } else if(cnt > headerStartOffset && FisCommonUtil.checkDataInList(rowValeList, cnt) ){ // 로우 필터  >> *는 로우에서만
-                	
-                	log.info("[list in] cnt : {}, headerStartCount:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
-                    listMapResult.add(this.saveLineInMap(workId, columList, csvLine, csvLineObject, clmValList));
-                    cnt++;
 
-                }else{
-                    log.debug("[Row-Else] Count : {}, header:{},  csvLine : {}", cnt, headerStartOffset, csvLine);
-                    cnt++;
-                }
-                log.debug("Add csvLine :{}, And data:{}", cnt, csvLineObject.toString());
-            }
+            resultVo.setRowCount(csvDataObjectList.size());
+            resultVo.setParsingElapsedTime(System.currentTimeMillis() - memoryLoadingStartTime);
+            log.info(">>>> csvDataObjectList size : "+csvDataObjectList.size());
 
-            resultVo.setRowCount(cnt);
-            resultVo.setParsingElapsedTime(System.currentTimeMillis() - insertStartTime);
-            log.info(">>>> listMapResult size : "+listMapResult.size());
+            return csvDataObjectList;
 
         } catch (FileNotFoundException  e) {
-
-            e.printStackTrace();
-            log.error("## File Not Found Exception : read - ", e);
-            return null;
+            log.error("{} File Not Found Exception : {}}",trackingKey, e.getMessage(),  e);
+            throw new NullPointerException(String.format("%s File not found. error message %s", trackingKey, e.getMessage()));
 
         } finally {
 
             if (bufferedReader != null ) {
                 bufferedReader.close();
-                log.info("BufferedReader is closed.");
+                log.info("{} BufferedReader is now closed.", trackingKey);
             }
-            
+
         }
-        return listMapResult;
 
     }
 
-    private Map<String, String> saveLineInMap(String workId, String[] colList, String csvLine,
-    							Map<String, String> obj, int[] clmValList){
+
+    /**
+     * Generate data object parsed csv file.
+     * It's key-value format (key: colum, value: actual file value)
+     *
+     * @param trackingKey event tracking key
+     * @param bufferedReader Reader object, filled with file content by using file IO.
+     * @param headerStartOffset Content start row number in target file.
+     * @param workId Key id that represent work status in db table (※ CN_FIS_WORK_INF).
+     * @param parseRule Master data stored by eqpId & fileType (※ related table, CN_FIS_RULE)
+     * @param columnValueList Int list represent colum in csv file (colum A → 0 / colum D → 4)
+     * @param rowValueList Int list represent target row index at csv file.
+     * @return csvDataObjectList, key-value data stored in memory.
+     */
+    private List<Map<String, String>> generateCsvDataObjectList(String trackingKey, BufferedReader bufferedReader,
+                                                                int headerStartOffset, String workId, ParseRuleVo parseRule,
+                                                                int[] columnValueList, int[] rowValueList)
+                                                                throws IOException {
+
+
+        // TODO Header  row info 이해 불가...
+        // Header Row info 필요
+        int cnt = 0;
+        if (headerStartOffset < 0 ){
+            cnt = -1;
+        }
+        String[] columList = null;
+        List<Map<String, String>> csvDataObjectList = new ArrayList<>();
+        // → Memory map filled with file string by row.
+
+
+        String csvLine = "";
+        while ((csvLine = bufferedReader.readLine()) != null) {
+
+            Map<String, String> csvLineObject = new HashMap<>();
+
+            // 컬럼 짤라 오기, >> 컬럼을 숫자로 >>
+            // column 정보  > 추후 colum info가 있는 line을  읽어야 함.
+
+            if (cnt == headerStartOffset) {
+                if ( headerStartOffset < 0 ) {
+                    columList = parseRule.getMpngClmStrList();
+
+                } else {
+                    columList = new String[columnValueList.length];
+                    String[] parsed = csvLine.split(",");
+                    int j = 0;
+                    for ( int i = 0 ; i < parsed.length ; i++ ) {
+                        if ( FisCommonUtil.checkDataInList(columnValueList, i)) {
+                            columList[j] = parsed[i];
+                            j++;
+                        } else continue;
+                    }
+
+                }
+                cnt++;
+                log.info("{} [Colum] Count : {}, headerStartCount:{},  headerLine : {}",
+                        trackingKey, cnt, headerStartOffset, csvLine);
+
+            } else if(cnt > headerStartOffset && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
+                log.info("{} [*] cnt : {}, headerStartCount:{},  csvLine : {}",
+                        trackingKey, cnt, headerStartOffset, csvLine);
+
+                csvDataObjectList.add(this.generateCsvRowObject(workId, columList, csvLine,
+                        csvLineObject, columnValueList)
+                );
+                cnt++;
+
+            } else if(cnt > headerStartOffset && FisCommonUtil.checkDataInList(rowValueList, cnt) ){ // 로우 필터  >> *는 로우에서만
+
+                log.info("{} [list in] cnt : {}, headerStartCount:{},  csvLine : {}",
+                        trackingKey, cnt, headerStartOffset, csvLine);
+                csvDataObjectList.add(this.generateCsvRowObject(workId, columList, csvLine, csvLineObject, columnValueList));
+                cnt++;
+
+            }else{
+                log.debug("{} [Row-Else] Count : {}, header:{},  csvLine : {}",
+                        trackingKey, cnt, headerStartOffset, csvLine);
+                cnt++;
+            }
+            log.debug("{} Add csvLine :{}, And data:{}",
+                    trackingKey, cnt, csvLineObject.toString());
+        }
+
+
+        return csvDataObjectList;
+
+
+
+    }
+
+
+    /**
+     *
+     * @param workId
+     * @param colList
+     * @param csvLine
+     * @param obj
+     * @param clmValList
+     * @return
+     */
+    private Map<String, String> generateCsvRowObject(String workId, String[] colList, String csvLine,
+                                                     Map<String, String> obj, int[] clmValList){
         String[] rows = csvLine.split(",");
-        
+
         obj.put("OBJ_ID", FisCommonUtil.generateObjKey());
         obj.put("WORK_ID", workId);
         obj.put("SITE_ID", "SVM");
         obj.put("CRT_DT", String.valueOf(Timestamp.valueOf(LocalDateTime.now())));
-        
+
         int c = 0;
         for (int i = 0 ; i < rows.length ; i++ ){
-        	if ( FisCommonUtil.checkDataInList(clmValList, i) ) {
-        		obj.put(colList[c], rows[i]);
-        		log.info("- "+i+" , "+colList[c]+" , "+rows[i]+" , i :"+i);
-        		c++;
-        	} else
-        		continue;
+            if ( FisCommonUtil.checkDataInList(clmValList, i) ) {
+                obj.put(colList[c], rows[i]);
+                log.info("- "+i+" , "+colList[c]+" , "+rows[i]+" , i :"+i);
+                c++;
+            } else
+                continue;
         }
-        // 기준 정보를 읽어오는 방식으로 바뀐다. 
+        // 기준 정보를 읽어오는 방식으로 바뀐다.
         return obj;
     }
 
 
-   
+
 }

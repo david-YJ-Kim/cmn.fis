@@ -16,7 +16,7 @@ import lombok.Setter;
 @Getter
 public class ChFisWorkSaveRequestVo {
 
-	private String objId;
+    private String objId;
     private String refObjId;
     private String fileName;
     private String filePath;
@@ -31,9 +31,9 @@ public class ChFisWorkSaveRequestVo {
 
     @Builder
     public ChFisWorkSaveRequestVo(String objId, String refObjId, String fileName, String filePath, String fileType, String eqpId, String requestSystemName, String processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
-    	this.objId = objId;
+        this.objId = objId;
         this.refObjId = refObjId;
-    	this.fileName = fileName;
+        this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
         this.eqpId = eqpId;

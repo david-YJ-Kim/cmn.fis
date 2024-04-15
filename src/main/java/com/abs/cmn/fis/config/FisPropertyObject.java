@@ -1,6 +1,6 @@
 package com.abs.cmn.fis.config;
 
-import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
+import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.util.FisCommonUtil;
@@ -29,25 +29,25 @@ public class FisPropertyObject {
     private String envType;
     @Value("${ap.info.sequence}")
     private String processSeq;
-    
+
     private String clientName;
-    
+
     @Value("${ap.interface.destination.receive.queue}")
     private String receiveQueueName;
     @Value("${ap.interface.destination.receive.init}")
     private String receiveInitTopic;
     @Value("${ap.interface.destination.send.topic}")
     private String sendTopicName;
-    
+
     @Value("${ap.query.batchSize}")
     private Integer batchSize;
     @Value("${ap.query.table-name.insp}")
     private String tableNameInsp;
     @Value("${ap.query.table-name.meas}")
     private String tableNameMeas;
-    
+
     @Value("${ap.query.insert-template}")
-    private String insertBatchTemplate;    
+    private String insertBatchTemplate;
     @Value("${ap.query.del-template}")
     private String deleteBatchTemplate;
     @Value("${ap.query.getDelList}")
@@ -56,13 +56,13 @@ public class FisPropertyObject {
     private String deleteCnWork;
     @Value("${ap.query.insertWorkHistory}")
     private String insertWorkHistory;
-    
+
     @Value("${ap.query.rule.parsing}")
     private String selectParsingRuleDataSql;
 
     @Value("${ap.query.rule.mapping}")
     private String selectMappingRuleDataSql;
-    
+
     @Value("${ap.shutdown.force.timeout.ms}")
     private int apShutdownForceTimeoutMs;
 
@@ -82,14 +82,14 @@ public class FisPropertyObject {
     private String threadPrefixName; // 생성되는 Thread 접두사 명
 
 
-    // 프로세스에서 사용하는 룰 객체 
+    // 프로세스에서 사용하는 룰 객체
 //    private List<ParseRuleVo> parsingRule;
 //    private List<ParseRuleRelVo> mappingRule;
-    
+
     // 패치 예정인 룰정보
     private List<ParseRuleVo> prepParsingRule;
     private List<ParseRuleRelVo> prepMappingRule;
-    
+
     // 직전 사용 하던 룰 정보 - 롤백을 대비한 보관
     private List<ParseRuleVo> pastParsingRule;
     private List<ParseRuleRelVo> pastMappingRule;
@@ -101,9 +101,9 @@ public class FisPropertyObject {
     private InterfaceSolaceSub interfaceSolaceSub;
 
     private InterfaceSolacePub interfaceSolacePub;
-    
-    private CnFisIfRuleManager cnFisIfRuleManager;
-    
+
+    private FisRuleManager fisRuleManager;
+
 
     private static FisPropertyObject instance;
 
@@ -144,7 +144,7 @@ public class FisPropertyObject {
 //    public void setMappingRule(List<ParseRuleRelVo> mappingRule) {
 //        this.mappingRule = mappingRule;
 //    }
-    
+
     public void setPrepParsingRule(List<ParseRuleVo> parsingRule) {
         this.prepParsingRule = parsingRule;
     }
@@ -152,7 +152,7 @@ public class FisPropertyObject {
     public void setPrepMappingRule(List<ParseRuleRelVo> mappingRule) {
         this.prepMappingRule = mappingRule;
     }
-    
+
     public void setPastParsingRule(List<ParseRuleVo> parsingRule) {
         this.pastParsingRule = parsingRule;
     }
@@ -168,36 +168,36 @@ public class FisPropertyObject {
     public void setInterfaceSolacePub(InterfaceSolacePub interfaceSolacePub) {
         this.interfaceSolacePub = interfaceSolacePub;
     }
-    
-    public void setCnFisIfRuleManager(CnFisIfRuleManager cnFisIfRuleManager) {
-        this.cnFisIfRuleManager = cnFisIfRuleManager;
+
+    public void setFisRuleManager(FisRuleManager fisRuleManager) {
+        this.fisRuleManager = fisRuleManager;
     }
 
-    
-    
+
+
     public Map<String, ParseRuleVo> getRuleVoMap() {
         if(ruleVoMap == null){
             ruleVoMap = new ConcurrentHashMap<>();
         }
         return ruleVoMap;
     }
-    
+
     public Map<String, ParseRuleVo> getNextRuleVoMap() {
         if(nextRuleVoMap == null){
-        	nextRuleVoMap = new ConcurrentHashMap<>();
+            nextRuleVoMap = new ConcurrentHashMap<>();
         }
         return nextRuleVoMap;
     }
 
-	public void setRuleVoMap(Map<String, ParseRuleVo> ruleVoMap) {
-		this.ruleVoMap = ruleVoMap;
-	}
+    public void setRuleVoMap(Map<String, ParseRuleVo> ruleVoMap) {
+        this.ruleVoMap = ruleVoMap;
+    }
 
-	public void setNextRuleVoMap(Map<String, ParseRuleVo> nextRuleVoMap) {
-		this.nextRuleVoMap = nextRuleVoMap;
-	}
+    public void setNextRuleVoMap(Map<String, ParseRuleVo> nextRuleVoMap) {
+        this.nextRuleVoMap = nextRuleVoMap;
+    }
 
-	public void setPrevRuleVoMap(Map<String, ParseRuleVo> prevRuleVoMap) {
-		this.prevRuleVoMap = prevRuleVoMap;
-	}
+    public void setPrevRuleVoMap(Map<String, ParseRuleVo> prevRuleVoMap) {
+        this.prevRuleVoMap = prevRuleVoMap;
+    }
 }

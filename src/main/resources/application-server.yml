@@ -13,9 +13,9 @@ logging:
         jdbc:
           core:
             JdbcTemplate : debug
-#    '[org.springframework]': debug
-#    '[org.springframework.web]': debug
-   
+    #    '[org.springframework]': debug
+    #    '[org.springframework.web]': debug
+
 
 spring:
   datasource:
@@ -37,12 +37,12 @@ spring:
     mode: jdbc
 
 
-#Solace 접속 정보            
+#Solace 접속 정보
 
 
 #SFTP (NAS 접속 정보)
 nas:
-  sftp: 
+  sftp:
     host: 192.168.0.193
     port: 22
     user-name: mestest
@@ -76,7 +76,7 @@ ap:
   interface:
     solace:
       host: solacedev.absolicsinc.com:55555
-      vpn: MES 
+      vpn: MES
       client:
         username: default
         password: admin

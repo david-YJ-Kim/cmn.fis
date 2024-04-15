@@ -35,35 +35,35 @@ public class CnFisWorkService {
     public Optional<CnFisWork> getEntityByObjId(String objId){
         return Optional.of(this.cnFisWorkRepository.findById(objId).get());
     }
-    
+
     // update work_id status
     public void updateEntity(String objId, ProcessStateCode value) {
-    	Optional<CnFisWork> vo = this.cnFisWorkRepository.findById(objId);
-    	
-    	if ( vo.isPresent() ) {
-    		CnFisWork row = vo.get();
-    		row.setProcessState(value);
-    		this.cnFisWorkRepository.save(row);
-    	} else {
-    		log.error("[updateEntity] Occured Error : "+objId+" value : "+value.name());
-    	}
+        Optional<CnFisWork> vo = this.cnFisWorkRepository.findById(objId);
+
+        if ( vo.isPresent() ) {
+            CnFisWork row = vo.get();
+            row.setProcessState(value);
+            this.cnFisWorkRepository.save(row);
+        } else {
+            log.error("[updateEntity] Occured Error : "+objId+" value : "+value.name());
+        }
     }
 
     // delete work_id
     public void deleteEntityByObjId(String objId){
         this.cnFisWorkRepository.deleteById(objId);
     }
-    
+
 //    public List<CnFisWork> getDeleteEntities() {
-//    	
-//    	log.info("1. CnFisWorkService , getDeleteEntities() "); 
+//
+//    	log.info("1. CnFisWorkService , getDeleteEntities() ");
 //    	String[] values = {ProcessStateCode.C.name(), ProcessStateCode.D.name()};
 //    	Iterable<String> statuses = Arrays.asList(values);
 ////    	String sql = "SELECT * FROM CN_FIS_WORK cfw WHERE PROC_STATE ='C'OR PROC_STATE ='D'";
 //    	List<CnFisWork> delList = this.cnFisWorkRepository.findAllById(statuses);
-//    	
+//
 //    	log.info("3. CnFisWorkService , getDeleteEntities() ");
-//    	
+//
 //    	return delList;
 //    }
 }

@@ -36,7 +36,7 @@ public class InterfaceSolacePub {
     public void init() throws JCSMPException {
 
         SolaceSessionConfiguration sessionConfiguration = SolaceSessionConfiguration.getSessionConfiguration();
-		session = sessionConfiguration.getSession("PUB");
+        session = sessionConfiguration.getSession("PUB");
         this.session.connect();
 
         this.messageProducer = this.session.getMessageProducer(new JCSMPStreamingPublishEventHandler() {
@@ -93,10 +93,10 @@ public class InterfaceSolacePub {
 
             String sendCid = null;
 
-            if ( fileType.equals(FisFileType.INSP.name()) )
-            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
+            if ( fileType.equals(FisFileType.INSPECTION.name()) )
+                sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
             else
-            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
+                sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
             userPropMap.putString(FisConstant.cid.name(), sendCid);
             txtMsg.setText(payload);
@@ -149,18 +149,18 @@ public class InterfaceSolacePub {
             TextMessage txtMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
 
             SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
-            
+
 //            String sendCid = null;
 //
 //            if ( fileType.equals(FisFileType.INSP.name()) )
 //            	sendCid = FisMessageList.BRS_INSP_DATA_SAVE_REQ;
 //            else
 //            	sendCid = FisMessageList.BRS_MEAS_DATA_SAVE_REQ;
-            
+
             userPropMap.putString("cid", cid);
             txtMsg.setText(payload);
             txtMsg.setProperties(userPropMap);
-            
+
             txtMsg.setDeliveryMode(DeliveryMode.PERSISTENT);
             prod.send(txtMsg, createTopic(topicName));
 
@@ -176,7 +176,7 @@ public class InterfaceSolacePub {
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         try {
-			XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
+            XMLMessageProducer prod = session.getMessageProducer(pubEventHandler);
 
             //Custom Property
             SDTMap userPropMap = JCSMPFactory.onlyInstance().createMap();
@@ -190,25 +190,25 @@ public class InterfaceSolacePub {
 
             prod.send(txtMsg, topic);
 
-		} catch(Exception e)
-		{
+        } catch(Exception e)
+        {
 //			log.error("Sender.sendMessage() Exception # ",e);
-			if (session != null && !session.isClosed()) try { session.closeSession(); } catch (Exception e1) {}
-		}
-	}
+            if (session != null && !session.isClosed()) try { session.closeSession(); } catch (Exception e1) {}
+        }
+    }
 
 
     public class PubEventHandler implements JCSMPStreamingPublishCorrelatingEventHandler {
-    	@Override
-    	public void handleErrorEx(Object messageID, JCSMPException cause, long timestamp) {
-    		log.error("Producer received error for msg. cause: {}", cause);
-    	}
+        @Override
+        public void handleErrorEx(Object messageID, JCSMPException cause, long timestamp) {
+            log.error("Producer received error for msg. cause: {}", cause);
+        }
 
-    	@Override
-    	public void responseReceivedEx(Object messageID) {
-    		log.info("Producer received response for msg.");
+        @Override
+        public void responseReceivedEx(Object messageID) {
+            log.info("Producer received response for msg.");
 
-    	}
+        }
     }
 
     private Topic createTopic(String topicName) {

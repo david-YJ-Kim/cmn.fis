@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
-import com.abs.cmn.fis.domain.rule.mng.CnFisIfRuleManager;
+import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.message.FisMessagePool;
@@ -20,24 +20,19 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FisApStartedActivator implements ApplicationRunner {
 
-
-
-//    @Autowired
-//    private InterfaceSolaceSub interfaceSolaceSub;
-
     @Autowired
     private Environment env;
 
     @Autowired
-    private CnFisIfRuleManager cnFisIfRuleManager;
+    private FisRuleManager fisRuleManager;
 
     @Override
     public void run(ApplicationArguments args){
 
         try{
 
-//        	cnFisIfRuleManager.init();
-//        	cnFisIfRuleManager.initializeRuleData();
+            fisRuleManager.init();
+            fisRuleManager.initializeRuleData();
             log.info("Complete initialize rule data.");
         }catch (Exception e){
             e.printStackTrace();
@@ -70,9 +65,7 @@ public class FisApStartedActivator implements ApplicationRunner {
             interfaceSolaceSub.run();
             FisPropertyObject.getInstance().setInterfaceSolaceSub(interfaceSolaceSub);
 
-//            this.interfaceSolaceSub.run();
-
-        } catch (Exception e) {
+        } catch (JCSMPException e) {
             throw new RuntimeException(e);
         }
 
