@@ -1,6 +1,13 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
+<<<<<<< HEAD
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import java.util.ArrayList;
+import java.util.concurrent.*;
+
+import org.json.JSONObject;
+>>>>>>> failover
 import org.springframework.core.task.TaskRejectedException;
 
 import com.abs.cmn.fis.config.FisPropertyObject;
@@ -43,6 +50,8 @@ public class Receiver implements Runnable {
 	private String thread_name;
 	private String queue_name;
 
+	private boolean isAlive = true;
+
 	private boolean stopFlagOn = false;
 	
 	@Autowired
@@ -56,6 +65,17 @@ public class Receiver implements Runnable {
 
 	@Override
 	public void run() {
+
+//	@Override
+//	public String call() throws Exception {
+
+
+		String threadName = Thread.currentThread().getName();
+
+		Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
+
+		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
 		try {
 			log.info("Receiver Thread Start # " + this.thread_name);
 
@@ -80,6 +100,16 @@ public class Receiver implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+//		return null;
+	}
+
+	public void shutdown() {
+
+		System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
+
+		isAlive = false;
+
 	}
 
 	private void switchStopFlag(){
@@ -93,16 +123,33 @@ public class Receiver implements Runnable {
 
 
 	public boolean stopReceiver() throws JCSMPInterruptedException {
+<<<<<<< HEAD
  
 //		this.consumer.stopSync();
 		this.switchStopFlag();
+=======
+
+//		this.consumer.close();
+>>>>>>> failover
 		this.consumer.stop();
+//		this.consumer.stopSync();
+//		this.session.closeSession();
+//		this.switchStopFlag();
+//		this.consumer.stop();
 		log.info("Consumer Stop!!");
 		return true;
 	}
 
-	public class MessageListener implements XMLMessageListener {
+
+
+public class MessageListener implements XMLMessageListener {
 		public MessageListener(Receiver receiver) {
+
+			String threadName = Thread.currentThread().getName();
+
+			Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
+
+			Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
 		}
 
 
@@ -124,7 +171,10 @@ public class Receiver implements Runnable {
 			String cid = userProperty.getString(FisConstant.cid.name());
 			String key = userProperty.getString(FisConstant.messageId.name());
 			String ackKey = FisMessagePool.putMessageObject(key, message);
-			log.info("ackKey: {} is started managed in map : {}", ackKey, FisMessagePool.getMessageManageMap().size());
+			log.info("ackKey: {} 31 started managed in map : {}", ackKey, FisMessagePool.getMessageManageMap().size());
+
+			message.ackMessage();
+			log.info("Message is Auto acked");
 
 			try{
 
@@ -167,6 +217,12 @@ public class Receiver implements Runnable {
 							e.printStackTrace();
 						}
 
+//						message.ackMessage();
+//						log.info("Message is acked");
+
+
+						log.info("Event Completed.");
+
 						break;
 					case FisMessageList.FIS_FILE_REPORT:	// 파일 파싱 , 워크 생성 - R, 파일 저장, 
 
@@ -202,6 +258,7 @@ public class Receiver implements Runnable {
 				log.error("##  Receiver.onReceive() Exception : ", e);
 			}
 
+
 		}
 
 		@Override
@@ -221,4 +278,45 @@ public class Receiver implements Runnable {
 
 
 	}
+
+	//ShutdownHook 클래스
+
+	private class ShutdownHook extends Thread {
+
+		private Thread thread;
+
+
+
+		public ShutdownHook(Thread thread, String name) {
+
+			super(name);
+
+			this.thread = thread;
+
+		}
+
+
+
+		@Override
+
+		public void run() {
+
+			shutdown();
+
+
+
+			try {
+
+				thread.join();
+
+			} catch(Exception e) {
+
+				System.out.println("ShutdownHook.run() Exception # "+e);
+
+			}
+
+		}
+
+	}
+
 }

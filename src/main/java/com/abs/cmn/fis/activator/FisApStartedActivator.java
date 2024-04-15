@@ -20,6 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FisApStartedActivator implements ApplicationRunner {
 
+
+
+//    @Autowired
+//    private InterfaceSolaceSub interfaceSolaceSub;
+
     @Autowired
     private Environment env;
 
@@ -65,7 +70,9 @@ public class FisApStartedActivator implements ApplicationRunner {
             interfaceSolaceSub.run();
             FisPropertyObject.getInstance().setInterfaceSolaceSub(interfaceSolaceSub);
 
-        } catch (JCSMPException e) {
+//            this.interfaceSolaceSub.run();
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
