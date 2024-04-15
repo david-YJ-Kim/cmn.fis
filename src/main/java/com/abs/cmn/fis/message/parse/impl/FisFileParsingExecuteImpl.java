@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.abs.cmn.fis.intf.solace.broker.Receiver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -59,14 +61,25 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     private FisFileMoveExecute filedelete;
 
 
+    private boolean isShutdown = false;
+
+
     @Override
     public void init() {
 
     }
 
-    @Async
+//    @Async
     @Override
     public ExecuteResultVo execute(FisFileReportVo vo, String ackKey) throws Exception {
+
+
+        String threadName = Thread.currentThread().getName();
+
+        Thread shutdownHook = new ShutdownHook(Thread.currentThread(), threadName + "Shutdown");
+
+        Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
 
         log.info("Start to parsing file. FisFileReportVo: {}", vo.toString());
 
@@ -76,87 +89,92 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String key = this.createWorkId(vo);
         resultVo.setWorkId(key);
         
-//        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
+        File file = this.fileManager.getFile(vo.getBody().getFilePath(), vo.getBody().getFileName());
         /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-        String tmpPath = "D:\\\\documents\\\\dev-docs\\\\FIS-Sample-File\\\\";
-        File file = this.fileManager.getFile(tmpPath, vo.getBody().getFileName());
+
         
-        
-        
+        Thread.sleep(10000);
 
-        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(), vo.getBody().getFileType().name());
-        
-        // 헤더 시작 위치 초기화
-        int headerStartOffset = fileRule.getStartHdrVal();
+        log.info("Sleep done.");
 
-        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
-                                                            headerStartOffset, key, fileRule);
-
-        // TODO Parsing : P 상태로 work table update
-
-        long dbInsertStartTime = System.currentTimeMillis();
-        String status = this.parsingDataRepository.batchEntityInsert(vo.getBody().getFileName(), key, headerStartOffset, parsingResult, fileRule);
-        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
-        
-        // TODO Insert : I 상태로 work table update
-        this.workService.updateEntity(key, ProcessStateCode.I);
-        
-        // TODO status 의 정확한 역할 정의
-        // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )
-    	if (status.equals(key)) {
-            this.handleAbnormalCondition(vo, key);
-    	}
-
-        resultVo.setStatus(status);
-        resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
-
-        log.info(resultVo.toString());
-
-
-        // TODO EDC 메시지 송신:
-        String sendCid = null;
-        Object messageObject = null;
-
-        if(vo.getBody().getFileType().equals(FisFileType.INSP)){
-            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE);
-            sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
-
-            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
-
-        }else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
-            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
-            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
-
-            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
-            
-        }else{
-            throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-                    , vo.getBody().getFileType().name(), FisFileType.values().toString()));
-        }
-        resultVo.setSendCid(sendCid);
-        resultVo.setSendPayload(messageObject.toString());
-        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messageObject.toString(), FisPropertyObject.getInstance().getSendTopicName());
-
-        // TODO Insert : I 상태로 work table update
-        this.workService.updateEntity(key, ProcessStateCode.M);
-        
-         // TODO 파일 이동
-        // 이동한 폴더 패턴
-        String moveFilePattern = "/base_path/${eqpId}/${date}";
-//        String testMoveFolder = "C:\\Users\\DavidKim\\Desktop\\fis_test\\move_folder";
-        String testMoveFolder = "D:\\MVD\\";
-
-
-//        fileManager.moveFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder);
-        fileManager.copyFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder,  vo.getBody().getFileName() + System.currentTimeMillis());
-
-        resultVo.setMovedFilePath(testMoveFolder);
-        resultVo.setMovedFileName(vo.getBody().getFileName());
+//        ParseRuleVo fileRule = FisCommonUtil.getParsingRule(vo.getBody().getEqpId(), vo.getBody().getFileType().name());
+//
+//        // 헤더 시작 위치 초기화
+//        int headerStartOffset = fileRule.getStartHdrVal();
+//
+//        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(resultVo, file,
+//                                                            headerStartOffset, key, fileRule);
+//
+//        // TODO Parsing : P 상태로 work table update
+//
+//        long dbInsertStartTime = System.currentTimeMillis();
+//        String status = this.parsingDataRepository.batchEntityInsert(vo.getBody().getFileName(), key, headerStartOffset, parsingResult, fileRule);
+//        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
+//
+//        // TODO Insert : I 상태로 work table update
+//        this.workService.updateEntity(key, ProcessStateCode.I);
+//
+//        // TODO status 의 정확한 역할 정의
+//        // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )
+//    	if (status.equals(key)) {
+//            this.handleAbnormalCondition(vo, key);
+//    	}
+//
+//        resultVo.setStatus(status);
+//        resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
+//
+//        log.info(resultVo.toString());
+//
+//
+//        // TODO EDC 메시지 송신:
+//        String sendCid = null;
+//        Object messageObject = null;
+//
+//        if(vo.getBody().getFileType().equals(FisFileType.INSP)){
+//            log.info("INSP file. sendCid: {}", FisMessageList.BRS_INSP_DATA_SAVE);
+//            sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
+//
+//            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
+//
+//        }else if(vo.getBody().getFileType().equals(FisFileType.MEAS)){
+//            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
+//            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
+//
+//            messageObject = this.setMessageObject(FisFileType.INSP, sendCid, key);
+//
+//        }else{
+//            throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
+//                    , vo.getBody().getFileType().name(), FisFileType.values().toString()));
+//        }
+//        resultVo.setSendCid(sendCid);
+//        resultVo.setSendPayload(messageObject.toString());
+//        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messageObject.toString(), FisPropertyObject.getInstance().getSendTopicName());
+//
+//        // TODO Insert : I 상태로 work table update
+//        this.workService.updateEntity(key, ProcessStateCode.M);
+//
+//         // TODO 파일 이동
+//        // 이동한 폴더 패턴
+//        String moveFilePattern = "/base_path/${eqpId}/${date}";
+////        String testMoveFolder = "C:\\Users\\DavidKim\\Desktop\\fis_test\\move_folder";
+//        String testMoveFolder = "D:\\MVD\\";
+//
+//
+////        fileManager.moveFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder);
+//        fileManager.copyFile(vo.getBody().getFilePath(), vo.getBody().getFileName(), testMoveFolder,  vo.getBody().getFileName() + System.currentTimeMillis());
+//
+//        resultVo.setMovedFilePath(testMoveFolder);
+//        resultVo.setMovedFileName(vo.getBody().getFileName());
 
 
         // TODO 메시지 Ack
         FisMessagePool.messageAck(ackKey);
         log.info("{} Complete processing. details: {}", key, resultVo.toString());
+
+        if(isShutdown){
+            log.info("IsShutdown? : {}", isShutdown);
+            System.exit(-1);
+        }
 
 
         // TODO 결과 status와 키 workId 리턴
@@ -274,6 +292,56 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             list.add(vo);
         }
         return list;
+    }
+
+
+
+
+
+    public void shutdown() {
+
+        System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
+
+//		isAlive = false;
+        this.isShutdown = true;
+
+    }
+
+    //ShutdownHook 클래스
+
+    private class ShutdownHook extends Thread {
+
+        private Thread thread;
+
+
+
+        public ShutdownHook(Thread thread, String name) {
+
+            super(name);
+
+            this.thread = thread;
+
+        }
+
+
+        @Override
+
+        public void run() {
+
+            shutdown();
+
+            try {
+
+                thread.join();
+                System.out.println("Executor Thread is joined now.");
+
+            } catch(Exception e) {
+
+                System.out.println("ShutdownHook.run() Exception # "+e);
+
+            }
+        }
+
     }
 
 }

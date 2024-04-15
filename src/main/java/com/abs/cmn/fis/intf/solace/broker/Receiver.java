@@ -53,9 +53,11 @@ public class Receiver implements Runnable {
 	private boolean isAlive = true;
 
 	private boolean stopFlagOn = false;
+
+	private boolean isShutdown = false;
 	
-	@Autowired
-	private CnFisIfRuleManager cnFisIfRuleManager;
+//	@Autowired
+//	private CnFisIfRuleManager cnFisIfRuleManager;
 	
 	public Receiver(JCSMPSession session, String thread_name, String queue_name) {
 		this.session = session;
@@ -66,6 +68,7 @@ public class Receiver implements Runnable {
 	@Override
 	public void run() {
 
+<<<<<<< HEAD
 //	@Override
 //	public String call() throws Exception {
 
@@ -76,6 +79,15 @@ public class Receiver implements Runnable {
 
 		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
 
+=======
+//		String threadName = Thread.currentThread().getName();
+//
+//		Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
+//
+//		Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+
+
+>>>>>>> fa-threadJoin
 		try {
 			log.info("Receiver Thread Start # " + this.thread_name);
 
@@ -101,6 +113,7 @@ public class Receiver implements Runnable {
 			e.printStackTrace();
 		}
 
+<<<<<<< HEAD
 //		return null;
 	}
 
@@ -110,6 +123,8 @@ public class Receiver implements Runnable {
 
 		isAlive = false;
 
+=======
+>>>>>>> fa-threadJoin
 	}
 
 	private void switchStopFlag(){
@@ -126,6 +141,7 @@ public class Receiver implements Runnable {
 <<<<<<< HEAD
  
 //		this.consumer.stopSync();
+<<<<<<< HEAD
 		this.switchStopFlag();
 =======
 
@@ -136,10 +152,18 @@ public class Receiver implements Runnable {
 //		this.session.closeSession();
 //		this.switchStopFlag();
 //		this.consumer.stop();
+=======
+//		this.switchStopFlag();
+		this.consumer.stop();
+		this.session.closeSession();
+>>>>>>> fa-threadJoin
 		log.info("Consumer Stop!!");
+		Thread.currentThread().interrupt();
+
 		return true;
 	}
 
+<<<<<<< HEAD
 
 
 public class MessageListener implements XMLMessageListener {
@@ -150,6 +174,24 @@ public class MessageListener implements XMLMessageListener {
 			Thread shutdownHook = new ShutdownHook(Thread.currentThread(), "Shutdown");
 
 			Runtime.getRuntime().addShutdownHook(shutdownHook); //ShutdownHook Thread에 현재 Thread 등록
+=======
+	public void shutdown() {
+
+		System.out.println("### "+Thread.currentThread().getName()+" Called Shutdown");
+
+		this.isShutdown = true;
+
+//		isAlive = false;
+
+	}
+
+	public class MessageListener implements XMLMessageListener {
+
+		Receiver receiver;
+		public MessageListener(Receiver receiver) {
+
+			this.receiver = receiver;
+>>>>>>> fa-threadJoin
 		}
 
 
@@ -183,15 +225,15 @@ public class MessageListener implements XMLMessageListener {
 					
 					// TODO 파싱 기준 데이터  1. 리로딩 IF (CID 값으로 구분)
 					// 				  2. 대체	ELSE
-					cnFisIfRuleManager.init();
-					
-					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
-						cnFisIfRuleManager.reloadBaseRuleData();
-					}
-					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
-						cnFisIfRuleManager.applicationNewBaseRulse();
-					else 
-						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
+//					cnFisIfRuleManager.init();
+//
+//					if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.RELOAD_RULE.name()) ) {
+//						cnFisIfRuleManager.reloadBaseRuleData();
+//					}
+//					else if ( userProperty.getString(FisConstant.cid.name()).equals(FisConstant.PATCH_RULE.name()) )
+//						cnFisIfRuleManager.applicationNewBaseRulse();
+//					else
+//						log.error("## Receiver , onReceive() - Invalied Message ! check Messages : "+message.dump() );
 					
 				} else {
 				
@@ -217,11 +259,16 @@ public class MessageListener implements XMLMessageListener {
 							e.printStackTrace();
 						}
 
+<<<<<<< HEAD
 //						message.ackMessage();
 //						log.info("Message is acked");
 
 
 						log.info("Event Completed.");
+=======
+						message.ackMessage();
+						log.info("Message acked.");
+>>>>>>> fa-threadJoin
 
 						break;
 					case FisMessageList.FIS_FILE_REPORT:	// 파일 파싱 , 워크 생성 - R, 파일 저장, 
@@ -233,9 +280,10 @@ public class MessageListener implements XMLMessageListener {
 						FisFileParsingExecute fisFileParsingExecute = ApplicationContextProvider.getBean(FisFileParsingExecute.class);
 						fisFileParsingExecute.init();
 
-						fisFileParsingExecute.execute(fisFileReportVo, ackKey);
+						log.info("Executor Done. Vo: {}", fisFileParsingExecute.execute(fisFileReportVo, ackKey));
 
 						break;
+
 					case FisMessageList.FIS_DLT_REQ:	// D 인 데이터 값 찾아서 History 로 적재 & 해당 ObjID 데이터 삭제
 						FisWorkTableManageController workctlr = ApplicationContextProvider.getBean(FisWorkTableManageController.class); 
 						workctlr.startDeleteLogic();
@@ -246,16 +294,28 @@ public class MessageListener implements XMLMessageListener {
 						break;
 					}
 
+					if(isShutdown){
+
+						this.receiver.stopReceiver();
+						return;
+					}
+
 				}
 
-			}catch(TaskRejectedException taskRejectedException){
+			}catch(TaskRejectedException taskRejectedException) {
 				taskRejectedException.printStackTrace();
 				log.error("Over capacity. It's overflow.");
 
-
-			}catch (Exception e){
+			}
+//			catch (InterruptedException interruptedException) {
+//				interruptedException.printStackTrace();
+//
+//			}
+			catch (Exception e){
 				e.printStackTrace();
 				log.error("##  Receiver.onReceive() Exception : ", e);
+
+				throw new Exception(e);
 			}
 
 
@@ -296,27 +356,43 @@ public class MessageListener implements XMLMessageListener {
 		}
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> fa-threadJoin
 		@Override
 
 		public void run() {
 
 			shutdown();
 
+<<<<<<< HEAD
 
 
 			try {
 
 				thread.join();
+=======
+			try {
+
+				thread.join();
+				log.info("Thread is joined now.");
+>>>>>>> fa-threadJoin
 
 			} catch(Exception e) {
 
 				System.out.println("ShutdownHook.run() Exception # "+e);
 
 			}
+<<<<<<< HEAD
 
 		}
 
 	}
 
+=======
+		}
+
+	}
+>>>>>>> fa-threadJoin
 }

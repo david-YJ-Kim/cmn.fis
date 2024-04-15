@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package com.abs.cmn.fis.activator;
 
 <<<<<<< HEAD
@@ -67,6 +68,27 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 //            log.info(e.getMessage());
 //        }
 
+=======
+//package com.abs.cmn.fis.activator;
+//
+//import org.springframework.context.ApplicationListener;
+//import org.springframework.context.event.ContextClosedEvent;
+//import org.springframework.stereotype.Component;
+//
+//import com.abs.cmn.fis.config.FisPropertyObject;
+//import com.abs.cmn.fis.message.FisMessagePool;
+//import com.solacesystems.jcsmp.JCSMPInterruptedException;
+//
+//import lombok.extern.slf4j.Slf4j;
+//
+//@Slf4j
+//@Component
+//public class FisApStoppedActivator implements ApplicationListener<ContextClosedEvent> {
+//    @Override
+//    public void onApplicationEvent(ContextClosedEvent event) {
+//        log.warn("JVM will be stop in sec");
+//
+>>>>>>> fa-threadJoin
 //        boolean stopReceiving;
 //        try {
 //            stopReceiving = FisPropertyObject.getInstance().getInterfaceSolaceSub().stopQueueReceiver();
@@ -76,6 +98,7 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 ////            throw new RuntimeException(e);
 //        }
 //        log.info("Is Flow Receiver closed ? :{}", stopReceiving);
+<<<<<<< HEAD
 
 //        ExecutorService executorService = FisPropertyObject.getInstance().getInterfaceSolaceSub().getExecutorService();
 
@@ -93,6 +116,12 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
         log.info("End termination");
 
 
+=======
+//
+//
+//
+//
+>>>>>>> fa-threadJoin
 //        int cnt = 0;
 //        int maxCount = FisPropertyObject.getInstance().getApShutdownForceTimeoutMs() / FisPropertyObject.getInstance().getApShutdownPollingIntervalMs();
 //        while (true){
@@ -141,6 +170,7 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 //                throw new RuntimeException(e);
 //            }
 //        }
+<<<<<<< HEAD
 
 
 
@@ -189,3 +219,11 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 //        Thread.currentThread().interrupt();
 //    }
 }
+=======
+//
+//
+//
+//
+//    }
+//}
+>>>>>>> fa-threadJoin

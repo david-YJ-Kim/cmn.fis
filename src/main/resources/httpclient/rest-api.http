@@ -60,8 +60,18 @@ GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileTy
 
 
 
+
+
 ### FIS_TEST_MESSAGE 발송
  GET http://localhost:9010/fis/send/FIS_TEST_MESSAGE?sleepTime=7000
 
+<<<<<<< HEAD
 ### Shutdown
 POST http://localhost:9010/actuator/shutdown
+=======
+### FIS_FILE_REPORT 발송
+GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileType=INSP&filePath=C:\\Users\\DavidKim\\Downloads&fileName=검사결과_파일표준_20231116_300000.csv
+
+### Shutdown
+POST http://localhost:9010/actuator/shutdown
+>>>>>>> fa-threadJoin
