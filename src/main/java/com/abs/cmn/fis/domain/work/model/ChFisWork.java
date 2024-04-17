@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
-@Entity(name = "CN_FIS_WORK")
+@Entity(name = "CH_FIS_WORK")
 public class ChFisWork {
 
     @Id
@@ -55,7 +55,8 @@ public class ChFisWork {
 
 
     @Builder
-    public ChFisWork(String refObjId, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
+    public ChFisWork(String objId, String refObjId, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
+        this.objId = objId;
         this.refObjId = refObjId;
         this.fileName = fileName;
         this.filePath = filePath;

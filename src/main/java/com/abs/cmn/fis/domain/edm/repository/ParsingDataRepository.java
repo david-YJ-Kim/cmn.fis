@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.work.vo.ChFisWorkSaveRequestVo;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.code.FisConstant;
@@ -27,21 +27,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ParsingDataRepository {
 
-    public String[] sqlColumList = null;
-
-    static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-    static SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
 
-    public String batchEntityInsert(String fileName, String workId, int startHeaderOffset, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
+    public String batchEntityInsert(String trackingKey, String fileName, String workId, int startHeaderOffset, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
+
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         try {
-            log.info("Data size: {} ", listMap.size());
+            log.info("{} Data size: {} ", trackingKey, listMap.size());
 
-            sqlColumList = fileRule.getMpngClmStrList();
+            String[] sqlColumList = fileRule.getMpngClmStrList();
 
             String query = fileRule.getQueryInsertBatch();
 
@@ -49,16 +47,16 @@ public class ParsingDataRepository {
             int[] timeStmpDataList = FisCommonUtil.convertToIntArray(fileRule.getTimeStampDataTypList());
 
             if (numberDataList != null && timeStmpDataList != null )
-                log.info("Insert For File type : {}", fileRule.getFileTyp().name() +" , "+numberDataList.length + ","+timeStmpDataList.length);
+                log.info("{} Insert For File type : {}", trackingKey,  fileRule.getFileTyp().name() +" , "+numberDataList.length + ","+timeStmpDataList.length);
 
-            jdbcTemplate.setFetchSize(FisPropertyObject.getInstance().getBatchSize());
+            jdbcTemplate.setFetchSize(FisSharedInstance.getInstance().getBatchSize());
 
             jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
                 @SneakyThrows
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
 
-                    log.info("CheckDataType SQL: {}", query);
+                    log.debug("{} CheckDataType SQL: {}",trackingKey, query);
 
                     Map<String, String> map = listMap.get(i);
                     ps.setString(1, FisCommonUtil.generateObjKey());
@@ -67,41 +65,30 @@ public class ParsingDataRepository {
                     ps.setString(4, workId);
                     ps.setInt(5, i + startHeaderOffset);
 
-                    log.info("Colum List : {} ", Arrays.toString(sqlColumList));
+                    log.debug("{} Colum List : {} ", trackingKey, Arrays.toString(sqlColumList));
                     for(int idx = 0; idx < sqlColumList.length; idx++){
                         try{
                             int addIdx = idx + 6;
-//						log.info("Column:{}, Value: {}", sqlColumList[addIdx], map.getOrDefault(sqlColumList[addIdx], null));
                             if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
-                                log.info(addIdx+" , NUMBER " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 ps.setInt(addIdx, Integer.valueOf( map.getOrDefault(sqlColumList[idx], "0")) );
 
                             } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 
-                                log.info("CHECKDATEFORMAT columnName: {}, getInMap : {}",sqlColumList[idx], map.get(sqlColumList[idx]));
-
-//							ps.setTimestamp(addIdx, Timestamp.valueOf(map.getOrDefault(sqlColumList[idx], null)));
-
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 Date date = inputFormat.parse(map.get(sqlColumList[idx]));
                                 String formattedDate = outputFormat.format(date);
                                 ps.setTimestamp(addIdx, Timestamp.valueOf(formattedDate));
 
-
-//                                ps.setTimestamp(addIdx, Timestamp.valueOf(FisCommonUtil.convertDateFormat(map.getOrDefault(sqlColumList[idx], null))));
-
-                                log.info(addIdx+" , TIME " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
-
                             } else {
 
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
-                                log.info(addIdx+" , STR " +sqlColumList[idx]+", "+map.getOrDefault(sqlColumList[idx], null));
                             }
                         }catch (Exception e){
 
-                            e.printStackTrace();
-                            log.error(e.getMessage());
-                            log.error("Error Colum Element : {}", sqlColumList[idx]);
+                            log.error("{} Error row number: {} , Colum Element : {}. Value: {}, Error :{} ", trackingKey,  idx, sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null), e);
                             throw e;
                         }
                     }
@@ -113,25 +100,24 @@ public class ParsingDataRepository {
                     return listMap.size();
                 }
             });
-            log.info("Batch Complete. maxRows: {}", jdbcTemplate.getMaxRows());
+            log.info("{} Batch Complete. maxRows: {}", trackingKey, jdbcTemplate.getMaxRows());
             return "Complete";
 
         } catch (Exception vo) {
             vo.printStackTrace();
-            log.error("## ", vo);
+            log.error("{} Error: {}",trackingKey, vo);
+            throw vo;
         }
 
-        return workId;
     }
 
 
 
-    public String deleteBatch(String fileType, String key, int batchSize, String sql) throws SQLException {
+    public String deleteBatch(String trackingKey, String fileType, String key, int batchSize, String sql) throws SQLException {
 
-        log.info("in deleteBatch() FILE_TYPE : "+fileType);
-        log.info("in deleteBatch() OBJ_ID : "+key);
-        log.info("in deleteBatch() batchSize : "+batchSize);
-        log.info("# deleteBatch sql : "+sql);
+        log.info("{} Delete process start. " +
+                        "fileType: {}, objectId: {}, batchSize: {}, deleteSql: {}",
+                trackingKey, fileType, key, batchSize, sql);
 
         int[] deletedRowNum = null;
 
@@ -151,7 +137,7 @@ public class ParsingDataRepository {
 
         deletedRowNum = jdbcTemplate.batchUpdate(sql, batchSetter);
 
-        log.debug("# ParsingDataRepository-deleteBatch() / deletedRowNum : "+Arrays.toString(deletedRowNum));
+        log.debug("{} # ParsingDataRepository-deleteBatch() / deletedRowNum :{}", trackingKey, Arrays.toString(deletedRowNum));
 
         if ( deletedRowNum.length < 0)
             return FisConstant.DELETE_FAIL.name();
@@ -166,7 +152,7 @@ public class ParsingDataRepository {
 
     public boolean deleteCnWork(String objId) {
 
-        String sql = FisPropertyObject.getInstance().getDeleteCnWork();
+        String sql = FisSharedInstance.getInstance().getDeleteCnWork();
         log.info("[-] sql Delete objId : "+sql+" , "+objId);
         int rst = jdbcTemplate.update(sql, objId);
         log.info("[-] sql Delete cnt : "+rst);
@@ -176,9 +162,9 @@ public class ParsingDataRepository {
     }
 
     public void insertChWork(ChFisWorkSaveRequestVo row) {
-        String query = FisPropertyObject.getInstance().getInsertWorkHistory();
+        String query = FisSharedInstance.getInstance().getInsertWorkHistory();
         jdbcTemplate.update(query
-                , row.getObjId()
+//                , row.getObjId()
                 , row.getRefObjId()
                 , row.getFileName()
                 , row.getFilePath()

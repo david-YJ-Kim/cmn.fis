@@ -6,18 +6,20 @@ import com.abs.cmn.fis.intf.solace.InterfaceSolaceSub;
 import com.abs.cmn.fis.util.FisCommonUtil;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
 import com.abs.cmn.fis.util.vo.ParseRuleVo;
+import com.abs.cmn.seq.SequenceManager;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Component
-public class FisPropertyObject {
+public class FisSharedInstance {
 
 
     Environment env;
@@ -81,6 +83,12 @@ public class FisPropertyObject {
     @Value("${ap.worker.name.prefix}")
     private String threadPrefixName; // 생성되는 Thread 접두사 명
 
+    @Value("${ap.seq.rule.path}")
+    private String seqRulePath; // 시퀀스 룰 파일 경로
+
+    @Value("${ap.seq.rule.name}")
+    private String seqRuleName; // 시퀀스 룰 파일 이름
+
 
     // 프로세스에서 사용하는 룰 객체
 //    private List<ParseRuleVo> parsingRule;
@@ -104,16 +112,18 @@ public class FisPropertyObject {
 
     private FisRuleManager fisRuleManager;
 
+    private SequenceManager sequenceManager;
 
-    private static FisPropertyObject instance;
+
+    private static FisSharedInstance instance;
 
     // Public method to get the Singleton instance
-    public static FisPropertyObject createInstance(Environment env) {
+    public static FisSharedInstance createInstance(Environment env) {
         if (instance == null) {
-            synchronized (FisPropertyObject.class) {
+            synchronized (FisSharedInstance.class) {
                 // Double-check to ensure only one instance is created
                 if (instance == null) {
-                    instance = new FisPropertyObject(env);
+                    instance = new FisSharedInstance(env);
                 }
             }
         }
@@ -126,13 +136,23 @@ public class FisPropertyObject {
             instance.ruleVoMap = new ConcurrentHashMap<>();
         }
 
+        if(instance.sequenceManager == null){
+            try {
+                instance.sequenceManager = new SequenceManager(instance.groupName, instance.siteName, instance.envType,
+                        instance.seqRulePath, instance.seqRuleName);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
         return instance;
     }
 
-    public static FisPropertyObject getInstance(){
+    public static FisSharedInstance getInstance(){
         return instance;
     }
-    public FisPropertyObject(Environment env) {
+    public FisSharedInstance(Environment env) {
         this.env = env;
         instance = this;
     }
@@ -169,9 +189,6 @@ public class FisPropertyObject {
         this.interfaceSolacePub = interfaceSolacePub;
     }
 
-    public void setFisRuleManager(FisRuleManager fisRuleManager) {
-        this.fisRuleManager = fisRuleManager;
-    }
 
 
 
@@ -200,4 +217,5 @@ public class FisPropertyObject {
     public void setPrevRuleVoMap(Map<String, ParseRuleVo> prevRuleVoMap) {
         this.prevRuleVoMap = prevRuleVoMap;
     }
+
 }

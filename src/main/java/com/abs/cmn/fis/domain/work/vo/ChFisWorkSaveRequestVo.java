@@ -3,6 +3,7 @@ package com.abs.cmn.fis.domain.work.vo;
 import java.sql.Timestamp;
 
 import com.abs.cmn.fis.domain.work.model.ChFisWork;
+import com.abs.cmn.fis.domain.work.model.CnFisWork;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.code.ProcessStateCode;
 
@@ -16,7 +17,6 @@ import lombok.Setter;
 @Getter
 public class ChFisWorkSaveRequestVo {
 
-    private String objId;
     private String refObjId;
     private String fileName;
     private String filePath;
@@ -31,7 +31,6 @@ public class ChFisWorkSaveRequestVo {
 
     @Builder
     public ChFisWorkSaveRequestVo(String objId, String refObjId, String fileName, String filePath, String fileType, String eqpId, String requestSystemName, String processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
-        this.objId = objId;
         this.refObjId = refObjId;
         this.fileName = fileName;
         this.filePath = filePath;
@@ -43,6 +42,20 @@ public class ChFisWorkSaveRequestVo {
         this.createDate = createDate;
         this.updateUserId = updateUserId;
         this.updateDate = updateDate;
+    }
+
+    public ChFisWorkSaveRequestVo(CnFisWork cnFisWork) {
+        this.refObjId = cnFisWork.getObjId();
+        this.fileName = cnFisWork.getFileName();
+        this.filePath = cnFisWork.getFilePath();
+        this.fileType = String.valueOf(cnFisWork.getFileType());
+        this.eqpId = cnFisWork.getEqpId();
+        this.requestSystemName = cnFisWork.getRequestSystemName();
+        this.processState = String.valueOf(cnFisWork.getProcessState());
+        this.createUserId = cnFisWork.getCreateUserId();
+        this.createDate = cnFisWork.getCreateDate();
+        this.updateUserId = cnFisWork.getUpdateUserId();
+        this.updateDate = cnFisWork.getUpdateDate();
     }
 
     public ChFisWork toEntity(){
@@ -64,7 +77,6 @@ public class ChFisWorkSaveRequestVo {
     @Override
     public String toString() {
         return "ChFisWorkSaveRequestVo{" +
-                "objId='" + objId + '\'' +
                 ", refObjId='" + refObjId + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +

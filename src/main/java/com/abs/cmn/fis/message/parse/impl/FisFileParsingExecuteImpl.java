@@ -5,11 +5,14 @@ import java.io.InvalidObjectException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.abs.cmn.fis.config.FisSftpPropertyObject;
+import com.abs.cmn.fis.domain.work.model.CnFisWork;
+import com.abs.cmn.fis.domain.work.service.ChFisWorkService;
+import com.abs.cmn.fis.domain.work.vo.ChFisWorkSaveRequestVo;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.util.ToolCodeList;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -18,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
@@ -56,8 +59,10 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     private ParsingDataRepository parsingDataRepository;
 
     @Autowired
-    private CnFisWorkService workService;
+    private CnFisWorkService cnFisWorkService;
 
+    @Autowired
+    private ChFisWorkService chFisWorkService;
     @Autowired
     private FisFileMoveExecute filedelete;
 
@@ -67,13 +72,6 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     }
 
-    /**
-     * File report message sequence.
-     * 1. Status `R` : Receive message and create work stats
-     * 2. Status `P` : Start read and parsing target file.
-     * 3. Status `I` : Complete parsing and start insert data.
-     * 4. Status `C` : Complete FIS work.
-     */
     @Async
     @Override
     public ExecuteResultVo execute(FisFileReportVo vo, String trackingKey) throws Exception {
@@ -84,88 +82,117 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         ExecuteResultVo resultVo = new ExecuteResultVo();
         long executeStartTime = System.currentTimeMillis();
 
-        /*
+        /**
          * Status `R`
          */
-        String workId = this.createWorkId(vo);
+        String workId = this.createWorkId(trackingKey, vo);
         resultVo.setWorkId(workId);
         log.info("{} Start execute and insert work status. it's workId: {}",
                 trackingKey, workId);
 
-        /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-        String modifiedFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
-                vo.getBody().getEqpId(), vo.getBody().getFilePath());
+        String targetFilePath;
+        if(!vo.getBody().getFilePath().startsWith("/")){
+            /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
+            targetFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
+                    vo.getBody().getEqpId(), vo.getBody().getFilePath());
+            log.info("{} File path in message is not linux path. convert window path into linux.", trackingKey);
+        }else{
+            targetFilePath = vo.getBody().getFilePath();
+        }
+        log.info("{} Complete to set up target file path. Path: {}", trackingKey, targetFilePath);
+
+
 
         File file = null;
         try {
-            file = this.fileManager.getFile(trackingKey, modifiedFilePath,
+            file = this.fileManager.getFile(trackingKey, targetFilePath,
                     vo.getBody().getFileName());
         } catch (Exception e) {
-
+            this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.RE);
+            log.error("{} Error occur :{} , stop reading and print ResultVo: {}", trackingKey, e, resultVo.toString());
             FisMessagePool.messageAck(trackingKey);
             return resultVo;
-//            throw e;
-//            throw new RuntimeException(e);
         }
+        log.info("{} Complete to get File object with target file path : {}", trackingKey, targetFilePath);
+        resultVo.setTargetFilePath(targetFilePath);
 
 
-        log.debug("{} Success to access target file. Its' path: {}",
+        log.info("{} Success to access target file. Its' path: {}",
                 trackingKey, file.getAbsolutePath());
         ParseRuleVo parsingRule = FisCommonUtil.getParsingRule(trackingKey, vo.getBody().getEqpId(),
                 vo.getBody().getFileType());
-        log.debug("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
+        log.info("{} Success to get rule data. {}",trackingKey, parsingRule.toString());
 
 
-        /*
-          Status `P`
+
+        /**
+         Status `P`
          */
         // 헤더 시작 위치 초기화
         int headerStartOffset = parsingRule.getHeaderStartValue();
-        List<Map<String,String>> parsingResult = this.fileParser.parseCsvLine(trackingKey, resultVo, file,
-                headerStartOffset, workId, parsingRule);
-        this.workService.updateEntity(workId, ProcessStateCode.P);
+        List<Map<String,String>> parsingResult;
+        try{
+            parsingResult = this.fileParser.parseCsvLine(trackingKey, resultVo, file,
+                    headerStartOffset, workId, parsingRule);
+        }catch (Exception e){
+
+            this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.PE);
+            log.error("{} Error occur :{} , stop parsing and print ResultVo: {}", trackingKey, e, resultVo.toString());
+            FisMessagePool.messageAck(trackingKey);
+            return resultVo;
+
+        }
+        this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.P);
 
 
-        /*
-            Status `I`
+        /**
+         Status `I`
          */
         long dbInsertStartTime = System.currentTimeMillis();
-        String status = this.parsingDataRepository.batchEntityInsert(
-                vo.getBody().getFileName(), workId, headerStartOffset,
-                parsingResult, parsingRule);
-        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
-        this.workService.updateEntity(workId, ProcessStateCode.I);
+        String status;
+        try{
 
-        // TODO status 의 정확한 역할 정의
-        // 장애 케이스 식별  (Status가 key와 동일하지 하다면, 장애 )
-        if (status.equals(workId)) {
-            this.handleAbnormalCondition(vo, workId);
+            status = this.parsingDataRepository.batchEntityInsert(
+                    trackingKey, vo.getBody().getFileName(), workId, headerStartOffset,
+                    parsingResult, parsingRule);
+
+        }catch (Exception e){
+
+            this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.IE);
+            this.handleAbnormalCondition(trackingKey, vo, workId);
+            log.error("{} Error occur :{} , stop parsing and print ResultVo: {}", trackingKey, e, resultVo.toString());
+            FisMessagePool.messageAck(trackingKey);
+            return resultVo;
         }
 
+
+
+        resultVo.setInsertElapsedTime(System.currentTimeMillis() - dbInsertStartTime);
+        this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.I);
         resultVo.setStatus(status);
         resultVo.setTotalElapsedTime(System.currentTimeMillis() - executeStartTime);
 
-        log.info(resultVo.toString());
 
 
 
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+        /**
+         Status `S`
+         */
         // TODO EDC 메시지 송신:
-        String sendCid = null;
-        Object messageObject = null;
-        String messagePayload = "";
+        String sendCid;
+        String messagePayload;
+        String topicName;
 
         if(vo.getBody().getFileType().equals(FisFileType.INSPECTION.name()) || vo.getBody().getFileType().startsWith("I")){
             sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
 
-//            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
             messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
 
         }else if(vo.getBody().getFileType().equals(FisFileType.MEASUREMENT.name()) || vo.getBody().getFileType().startsWith("M")){
             sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
-//            messageObject = this.setMessageObject(FisFileType.INSPECTION, sendCid, workId);
             messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
 
         }else{
@@ -174,15 +201,15 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         }
         resultVo.setSendCid(sendCid);
         resultVo.setSendPayload(messagePayload);
-//        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messagePayload, FisPropertyObject.getInstance().getSendTopicName());
-        log.info("Message Send. sendCid: {}, payload: {}", sendCid,messagePayload );
-
-        /*
-            Status `C`
-         */
-        this.workService.updateEntity(workId, ProcessStateCode.C);
+        topicName = FisSharedInstance.getInstance().getSequenceManager().getTargetName("EDC", sendCid, messagePayload);
+        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messagePayload, topicName);
+        log.info("{} Message Send. targetTopic: {}, sendCid: {}, payload: {}", trackingKey, topicName, sendCid,messagePayload );
 
 
+        this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.S);
+
+
+        log.info("{} Print ResultVo: {}", trackingKey, resultVo.toString());
         FisMessagePool.messageAck(trackingKey);
 
         return resultVo;
@@ -229,14 +256,15 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         return head;
     }
     // 장애 대응 메소드
-    private void handleAbnormalCondition(FisFileReportVo vo, String key) throws SQLException {
+    private void handleAbnormalCondition(String trackingKey, FisFileReportVo vo, String key) throws SQLException {
 
         String sql = FisCommonUtil.getDelteQuery(vo.getBody().getFileType());
         // 우선 삭제 진행
         this.parsingDataRepository.deleteBatch(
+                trackingKey,
                 vo.getBody().getFileType(),
                 key,
-                FisPropertyObject.getInstance().getBatchSize(),
+                FisSharedInstance.getInstance().getBatchSize(),
                 sql
         );	// 삭제 요청
     }
@@ -247,13 +275,14 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
      * @param vo
      * @return
      */
-    private String createWorkId(FisFileReportVo vo){
+    private String createWorkId(String trackingKey, FisFileReportVo vo){
 
 
         String typeString = vo.getBody().getFileType().startsWith("I") ? FisFileType.INSPECTION.name() : FisFileType.MEASUREMENT.name();
 
         String reqSystem = vo.getHead().getSrc();
         CnFisWorkSaveRequestVo cnFisWorkSaveRequestVo = CnFisWorkSaveRequestVo.builder()
+                .trackingKey(trackingKey)
                 .fileName(vo.getBody().getFileName())
                 .filePath(vo.getBody().getFilePath())
                 .fileType(typeString)
@@ -264,7 +293,33 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                 .updateUserId(reqSystem).updateDate(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
 
-        return this.workService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
+        return this.cnFisWorkService.saveEntity(cnFisWorkSaveRequestVo).getObjId();
+    }
+
+    private void generateWorkHistoryAndUpdateState(String objId, ProcessStateCode stateCode){
+
+        Optional<CnFisWork> cnFisWork = this.cnFisWorkService.getEntityByObjId(objId);
+
+        if(cnFisWork.isPresent()){
+
+            ChFisWorkSaveRequestVo chFisWorkSaveRequestVo = ChFisWorkSaveRequestVo.builder()
+                    .refObjId(cnFisWork.get().getObjId())
+                    .fileName(cnFisWork.get().getFileName())
+                    .filePath(cnFisWork.get().getFilePath())
+                    .fileType(cnFisWork.get().getFileType().name())
+                    .eqpId(cnFisWork.get().getEqpId())
+                    .requestSystemName(cnFisWork.get().getRequestSystemName())
+                    .processState(cnFisWork.get().getProcessState().name())
+                    .createUserId(cnFisWork.get().getCreateUserId())
+                    .createDate(cnFisWork.get().getCreateDate())
+                    .updateUserId(cnFisWork.get().getUpdateUserId())
+                    .updateDate(cnFisWork.get().getUpdateDate())
+                    .build();
+            this.chFisWorkService.saveEntity(chFisWorkSaveRequestVo);
+
+        }
+
+        this.cnFisWorkService.updateEntity(objId, stateCode);
     }
 
 
@@ -286,7 +341,7 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
             case ToolCodeList.AP_TG_10_01:
             case ToolCodeList.AP_OL_13_01:
             case ToolCodeList.AP_RD_11_01:
-                return basePath + FisCommonUtil.detachToolNumber(eqpId) + linuxDelimiter + linuxPath;
+                return basePath + FisCommonUtil.detachToolNumber(eqpId) + linuxPath;
 
             default:
                 return basePath + eqpId + linuxDelimiter + linuxPath;

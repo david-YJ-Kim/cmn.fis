@@ -63,6 +63,10 @@ ap:
     capacity: 1000
     name:
       prefix: FIS-ASYNC-
+  seq:
+    rule:
+      path: C:\\Users\\DavidKim\\Downloads
+      name: SequenceRule.json
   file:
     mode: local
     nas:

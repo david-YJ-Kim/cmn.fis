@@ -7,7 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
 import com.abs.cmn.fis.domain.rule.model.CnFisParseRule;
 import com.abs.cmn.fis.domain.rule.model.CnFisParseRuleRel;
@@ -50,7 +50,7 @@ public class FisRuleManagerImpl implements FisRuleManager {
     @Override
     public boolean reloadBaseRuleData() {
         try {
-            Map<String, ParseRuleVo> ruleVoMap = FisPropertyObject.getInstance().getNextRuleVoMap();
+            Map<String, ParseRuleVo> ruleVoMap = FisSharedInstance.getInstance().getNextRuleVoMap();
             log.info("Map is null ? : {}", ruleVoMap == null);
 
             // 기준정보 (CN_FIS_PARSE_RULE)
@@ -64,11 +64,11 @@ public class FisRuleManagerImpl implements FisRuleManager {
             }
 
             log.info("기준정보 로딩 완료. Rule Info: {}",
-                    FisPropertyObject.getInstance().getRuleVoMap().toString());
+                    FisSharedInstance.getInstance().getRuleVoMap().toString());
 
 
-            FisPropertyObject.getInstance().setPrevRuleVoMap(
-                    FisPropertyObject.getInstance().getRuleVoMap()
+            FisSharedInstance.getInstance().setPrevRuleVoMap(
+                    FisSharedInstance.getInstance().getRuleVoMap()
             );
 
             return true;
@@ -89,8 +89,8 @@ public class FisRuleManagerImpl implements FisRuleManager {
     public boolean applicationNewBaseRulse() {
         try {
 
-            FisPropertyObject.getInstance().setRuleVoMap(
-                    FisPropertyObject.getInstance().getNextRuleVoMap()
+            FisSharedInstance.getInstance().setRuleVoMap(
+                    FisSharedInstance.getInstance().getNextRuleVoMap()
             );
 
             return true;
@@ -107,7 +107,7 @@ public class FisRuleManagerImpl implements FisRuleManager {
     @Override
     public void initializeRuleData(){
 
-        Map<String, ParseRuleVo> ruleVoMap = FisPropertyObject.getInstance().getRuleVoMap();
+        Map<String, ParseRuleVo> ruleVoMap = FisSharedInstance.getInstance().getRuleVoMap();
         log.info("Map is null ? : {}", ruleVoMap == null);
 
         // 기준정보 (CN_FIS_PARSE_RULE)
@@ -147,7 +147,7 @@ public class FisRuleManagerImpl implements FisRuleManager {
             Get relation data.
          */
         List<CnFisParseRuleRel> relationEntities =  this.cnFisParseRuleRelService.findCnFisParseRuleRelsByEqpIdAndFileTyp(
-                                                        ruleEntity.getEqpId(), ruleEntity.getFileTyp());
+                ruleEntity.getEqpId(), ruleEntity.getFileTyp());
         log.info("Query to get relation data. {}", relationEntities.toString());
 
 

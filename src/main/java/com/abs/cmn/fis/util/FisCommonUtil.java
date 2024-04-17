@@ -11,9 +11,8 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.rule.model.CnFisParseRuleRel;
-import com.abs.cmn.fis.util.code.FisConstant;
 import com.abs.cmn.fis.util.code.FisFileType;
 import com.abs.cmn.fis.util.code.FisQueryValues;
 import com.abs.cmn.fis.util.vo.ParseRuleRelVo;
@@ -38,9 +37,11 @@ public class FisCommonUtil {
 
 
     public static void main(String[] args) {
+        String samplePath = "Y:\\TEST-PROD\\AP-TG-09-01\\TEST-PROC\\LOT-0410-03";
+
         System.out.println(
                 FisCommonUtil.convertWindowPathToLinux(
-                        "C:\\Users\\DavidKim\\Pictures\\Screenshots"
+                        samplePath
                 )
         );
     }
@@ -65,7 +66,7 @@ public class FisCommonUtil {
      * @param windowFilePath
      * @return
      */
-    public static String convertWindowPathToLinux(String windowFilePath){
+    public static String  convertWindowPathToLinux(String windowFilePath){
 
         // Replaces backslashes with forward slashes/
         String linuxPath = windowFilePath.replace("\\", "/");
@@ -74,7 +75,7 @@ public class FisCommonUtil {
         if(linuxPath.matches("^[A-Za-z]:.*")){
             linuxPath = linuxPath.substring(2);
         }
-        return linuxPath;
+        return linuxPath.trim();
 
     }
 
@@ -112,7 +113,7 @@ public class FisCommonUtil {
 
         String mapKey = FisCommonUtil.generateRuleStoreKey(eqpId, fileType);
 
-        Map<String, ParseRuleVo> voMap = FisPropertyObject.getInstance().getRuleVoMap();
+        Map<String, ParseRuleVo> voMap = FisSharedInstance.getInstance().getRuleVoMap();
         if(voMap.containsKey(mapKey)) {
             parsingRule = voMap.get(mapKey);
             log.info("{} Rule has been  registered with eqpId: {}, fileType: {}.",
@@ -301,7 +302,7 @@ public class FisCommonUtil {
      * @return insert query statement
      */
     public static String makeBatchInsertQuery(FisFileType fileType, List<ParseRuleRelVo> relationList) {
-        String baseQuery = FisPropertyObject.getInstance().getInsertBatchTemplate();
+        String baseQuery = FisSharedInstance.getInstance().getInsertBatchTemplate();
         log.info("Base query statement registered at application property. {}", baseQuery);
 
         String[] replaceStr1 = null;
@@ -331,8 +332,8 @@ public class FisCommonUtil {
 
         insertStatement = baseQuery.replace(FisQueryValues.TABLE_NAME.name(),
                 (fileType.name().equals(FisFileType.INSPECTION.name())
-                        ? FisPropertyObject.getInstance().getTableNameInsp()
-                        : FisPropertyObject.getInstance().getTableNameMeas()));
+                        ? FisSharedInstance.getInstance().getTableNameInsp()
+                        : FisSharedInstance.getInstance().getTableNameMeas()));
 
         // Table name chosen
 //        if (fileType.name().equals(FisFileType.INSPECTION.name())) {
@@ -427,14 +428,14 @@ public class FisCommonUtil {
     }
 
     public static String getDelteQuery(String type ) {
-        String templat = FisPropertyObject.getInstance().getDeleteBatchTemplate();
+        String templat = FisSharedInstance.getInstance().getDeleteBatchTemplate();
         String query = null;
         String[] splt = templat.split(FisQueryValues.TABLE_NAME.name());
 
         if (type.equals(FisFileType.INSPECTION.name()))
-            query = splt[0] + FisPropertyObject.getInstance().getTableNameInsp()+splt[1];
+            query = splt[0] + FisSharedInstance.getInstance().getTableNameInsp()+splt[1];
         else
-            query = splt[0] + FisPropertyObject.getInstance().getTableNameMeas()+splt[1];
+            query = splt[0] + FisSharedInstance.getInstance().getTableNameMeas()+splt[1];
 
         return query;
     }
@@ -462,7 +463,7 @@ public class FisCommonUtil {
     // file 유형의 objId 를 가져와서, 해당 vo 내에 있는 mappingColumList를 가져와야함.
     public static String[] getColums(String objId) {
         String[] colums = null;
-        for (ParseRuleVo value : (FisPropertyObject.getInstance().getRuleVoMap().values())) {
+        for (ParseRuleVo value : (FisSharedInstance.getInstance().getRuleVoMap().values())) {
 
             if (value.getObjId().equals(objId)) {
 //    			colums = vo.();	// rule 에서

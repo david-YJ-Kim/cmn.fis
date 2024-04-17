@@ -23,6 +23,9 @@ public class ExecuteResultVo {
 
     String sendPayload;
 
+    String requestFilePath;
+    String targetFilePath;
+
     String movedFilePath;
     String movedFileName;
 

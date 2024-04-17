@@ -1,7 +1,9 @@
 package com.abs.cmn.fis.domain.work.service;
 
+import java.sql.Timestamp;
 import java.util.Optional;
 
+import com.abs.cmn.fis.domain.work.vo.ChFisWorkSaveRequestVo;
 import org.springframework.stereotype.Service;
 
 import com.abs.cmn.fis.domain.work.model.CnFisWork;
@@ -41,13 +43,18 @@ public class CnFisWorkService {
         Optional<CnFisWork> vo = this.cnFisWorkRepository.findById(objId);
 
         if ( vo.isPresent() ) {
+
             CnFisWork row = vo.get();
             row.setProcessState(value);
+            row.setUpdateUserId("FIS");
+            row.setUpdateDate(new Timestamp(System.currentTimeMillis()));
             this.cnFisWorkRepository.save(row);
+
         } else {
-            log.error("[updateEntity] Occured Error : "+objId+" value : "+value.name());
+            log.error("[updateEntity] Occurred Error : "+objId+" value : "+value.name());
         }
     }
+
 
     // delete work_id
     public void deleteEntityByObjId(String objId){

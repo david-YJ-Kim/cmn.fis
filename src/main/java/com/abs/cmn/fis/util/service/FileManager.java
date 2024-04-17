@@ -207,9 +207,9 @@ public class FileManager {
             return file;
 
         }else {
-            log.error("{} File Not exist.path: {} / name: {}", trackingKey, path, name);
+            log.error("{} File Not exist.path: {}  name: {}", trackingKey, path, name);
             throw new NullPointerException(String.format("%s File is not exist under path: %s & name: %s",
-                                            trackingKey, path, name));
+                    trackingKey, path, name));
 
         }
     }

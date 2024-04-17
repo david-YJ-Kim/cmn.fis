@@ -43,7 +43,7 @@ public class FileParser {
         // → Start time to calculating elapsed time.
 
         log.info("{} Start read file and parsing data." +
-                "Print parameters. headerOffset: {}, workId: {}",
+                        "Print parameters. headerOffset: {}, workId: {}",
                 trackingKey, headerStartOffset, workId);
 
         BufferedReader bufferedReader = null;
@@ -62,9 +62,9 @@ public class FileParser {
             long memoryLoadingStartTime = System.currentTimeMillis();
             // → Start time to calculating String into map memory.
             List<Map<String, String>> csvDataObjectList = this.generateCsvDataObjectList(
-                                        trackingKey, bufferedReader, headerStartOffset, workId,
-                                        parseRule,  parseRule.getParseClmIdValIntList(), parseRule.getParseRowValList()
-                                        );
+                    trackingKey, bufferedReader, headerStartOffset, workId,
+                    parseRule,  parseRule.getParseClmIdValIntList(), parseRule.getParseRowValList()
+            );
 
 
             resultVo.setRowCount(csvDataObjectList.size());
@@ -105,7 +105,7 @@ public class FileParser {
     private List<Map<String, String>> generateCsvDataObjectList(String trackingKey, BufferedReader bufferedReader,
                                                                 int headerStartOffset, String workId, ParseRuleVo parseRule,
                                                                 int[] columnValueList, int[] rowValueList)
-                                                                throws IOException {
+            throws IOException {
 
 
         // TODO Header  row info 이해 불가...
@@ -144,11 +144,11 @@ public class FileParser {
 
                 }
                 cnt++;
-                log.info("{} [Colum] Count : {}, headerStartCount:{},  headerLine : {}",
+                log.debug("{} [Colum] Count : {}, headerStartCount:{},  headerLine : {}",
                         trackingKey, cnt, headerStartOffset, csvLine);
 
             } else if(cnt > headerStartOffset && parseRule.getParseRowVal().equals("*") ){ // 로우 필터  >> *는 로우에서만
-                log.info("{} [*] cnt : {}, headerStartCount:{},  csvLine : {}",
+                log.debug("{} [*] cnt : {}, headerStartCount:{},  csvLine : {}",
                         trackingKey, cnt, headerStartOffset, csvLine);
 
                 csvDataObjectList.add(this.generateCsvRowObject(workId, columList, csvLine,
@@ -158,7 +158,7 @@ public class FileParser {
 
             } else if(cnt > headerStartOffset && FisCommonUtil.checkDataInList(rowValueList, cnt) ){ // 로우 필터  >> *는 로우에서만
 
-                log.info("{} [list in] cnt : {}, headerStartCount:{},  csvLine : {}",
+                log.debug("{} [list in] cnt : {}, headerStartCount:{},  csvLine : {}",
                         trackingKey, cnt, headerStartOffset, csvLine);
                 csvDataObjectList.add(this.generateCsvRowObject(workId, columList, csvLine, csvLineObject, columnValueList));
                 cnt++;
@@ -202,7 +202,7 @@ public class FileParser {
         for (int i = 0 ; i < rows.length ; i++ ){
             if ( FisCommonUtil.checkDataInList(clmValList, i) ) {
                 obj.put(colList[c], rows[i]);
-                log.info("- "+i+" , "+colList[c]+" , "+rows[i]+" , i :"+i);
+                log.debug("- "+i+" , "+colList[c]+" , "+rows[i]+" , i :"+i);
                 c++;
             } else
                 continue;

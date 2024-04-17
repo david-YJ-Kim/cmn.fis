@@ -6,7 +6,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
@@ -54,7 +54,7 @@ public class FisApStartedActivator implements ApplicationRunner {
         try {
             InterfaceSolacePub interfaceSolacePub = InterfaceSolacePub.getInstance();
             interfaceSolacePub.init();
-            FisPropertyObject.getInstance().setInterfaceSolacePub(interfaceSolacePub);
+            FisSharedInstance.getInstance().setInterfaceSolacePub(interfaceSolacePub);
 
         } catch (JCSMPException e) {
             throw new RuntimeException(e);
@@ -63,7 +63,7 @@ public class FisApStartedActivator implements ApplicationRunner {
         try {
             InterfaceSolaceSub interfaceSolaceSub = new InterfaceSolaceSub();
             interfaceSolaceSub.run();
-            FisPropertyObject.getInstance().setInterfaceSolaceSub(interfaceSolaceSub);
+            FisSharedInstance.getInstance().setInterfaceSolaceSub(interfaceSolaceSub);
 
         } catch (JCSMPException e) {
             throw new RuntimeException(e);

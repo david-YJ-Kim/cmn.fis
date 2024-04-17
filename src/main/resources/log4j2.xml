@@ -36,7 +36,7 @@
             <AppenderRef ref="LogException" level="error"/>
         </Logger>
 
-        <Root level="info">
+        <Root level="INFO">
             <AppenderRef ref="LogApp"/>
             <AppenderRef ref="LogToConsole"/>
             <AppenderRef ref="LogException" level="error"/>
