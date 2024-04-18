@@ -72,7 +72,7 @@ public class ParsingDataRepository {
                             if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
                                 log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
-                                ps.setInt(addIdx, Integer.valueOf( map.getOrDefault(sqlColumList[idx], "0")) );
+                                ps.setDouble(addIdx, Double.parseDouble( map.getOrDefault(sqlColumList[idx], "0")) );
 
                             } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 

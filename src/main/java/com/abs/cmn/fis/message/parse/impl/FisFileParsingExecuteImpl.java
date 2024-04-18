@@ -176,7 +176,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         }catch (Exception e){
 
             this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.IE);
-            this.handleAbnormalCondition(trackingKey, vo, workId);
+            // TODO 장애 시, 삭제는 배치로 진행
+            // this.handleAbnormalCondition(trackingKey, vo, workId);
             log.error("{} Error occur :{} , stop parsing and print ResultVo: {}", trackingKey, e, resultVo.toString());
             FisMessagePool.messageAck(trackingKey);
             return resultVo;
