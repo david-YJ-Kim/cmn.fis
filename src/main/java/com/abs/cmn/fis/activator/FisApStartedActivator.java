@@ -1,5 +1,6 @@
 package com.abs.cmn.fis.activator;
 
+import com.abs.cmn.seq.SequenceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,6 +16,8 @@ import com.abs.cmn.fis.message.FisMessagePool;
 import com.solacesystems.jcsmp.JCSMPException;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 @Slf4j
 @Component
@@ -38,6 +41,13 @@ public class FisApStartedActivator implements ApplicationRunner {
             e.printStackTrace();
         }
 
+
+        try {
+            this.initializeSequenceManager();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         this.initializeSolaceResources();
         log.info("Complete initialize solace resources.");
 
@@ -45,6 +55,18 @@ public class FisApStartedActivator implements ApplicationRunner {
         log.info("Initialize Message Pool. is null?: {}", FisMessagePool.getMessageManageMap() == null);
 
 
+    }
+
+    private void initializeSequenceManager() throws IOException {
+        SequenceManager sequenceManager = new SequenceManager(
+                FisSharedInstance.getInstance().getGroupName(),
+                FisSharedInstance.getInstance().getSiteName(),
+                FisSharedInstance.getInstance().getEnvType(),
+                FisSharedInstance.getInstance().getSeqRulePath(),
+                FisSharedInstance.getInstance().getSeqRuleName()
+        );
+
+        FisSharedInstance.getInstance().setSequenceManager(sequenceManager);
     }
 
     private void initializeSolaceResources(){

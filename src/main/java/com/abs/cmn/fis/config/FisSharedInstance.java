@@ -13,6 +13,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,10 +90,10 @@ public class FisSharedInstance {
     @Value("${ap.seq.rule.name}")
     private String seqRuleName; // 시퀀스 룰 파일 이름
 
+    private String dateFormatPattern = "yyyy-MM-dd HH:mm:ss.SSS";
 
-    // 프로세스에서 사용하는 룰 객체
-//    private List<ParseRuleVo> parsingRule;
-//    private List<ParseRuleRelVo> mappingRule;
+    private SimpleDateFormat dateFormatter;
+
 
     // 패치 예정인 룰정보
     private List<ParseRuleVo> prepParsingRule;
@@ -146,6 +147,11 @@ public class FisSharedInstance {
 
         }
 
+        if(instance.dateFormatter == null){
+            instance.dateFormatter = new SimpleDateFormat(instance.getDateFormatPattern());
+
+        }
+
         return instance;
     }
 
@@ -157,28 +163,10 @@ public class FisSharedInstance {
         instance = this;
     }
 
-//    public void setParsingRule(List<ParseRuleVo> parsingRule) {
-//        this.parsingRule = parsingRule;
-//    }
-//
-//    public void setMappingRule(List<ParseRuleRelVo> mappingRule) {
-//        this.mappingRule = mappingRule;
-//    }
 
-    public void setPrepParsingRule(List<ParseRuleVo> parsingRule) {
-        this.prepParsingRule = parsingRule;
-    }
 
-    public void setPrepMappingRule(List<ParseRuleRelVo> mappingRule) {
-        this.prepMappingRule = mappingRule;
-    }
-
-    public void setPastParsingRule(List<ParseRuleVo> parsingRule) {
-        this.pastParsingRule = parsingRule;
-    }
-
-    public void setPastMappingRule(List<ParseRuleRelVo> mappingRule) {
-        this.pastMappingRule = mappingRule;
+    public void setDateFormatter(SimpleDateFormat dateFormatter) {
+        this.dateFormatter = dateFormatter;
     }
 
     public void setInterfaceSolaceSub(InterfaceSolaceSub interfaceSolaceSub) {
@@ -189,8 +177,9 @@ public class FisSharedInstance {
         this.interfaceSolacePub = interfaceSolacePub;
     }
 
-
-
+    public void setSequenceManager(SequenceManager sequenceManager) {
+        this.sequenceManager = sequenceManager;
+    }
 
     public Map<String, ParseRuleVo> getRuleVoMap() {
         if(ruleVoMap == null){

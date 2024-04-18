@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.InvalidObjectException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +17,10 @@ import com.abs.cmn.fis.domain.work.service.ChFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.ChFisWorkSaveRequestVo;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.util.ToolCodeList;
+import com.abs.cmn.fis.util.service.MessageSendService;
+import com.abs.cmn.fis.util.service.PayloadGenerateService;
+import com.abs.cmn.fis.util.vo.MessageSendRequestVo;
+import com.abs.cmn.fis.util.vo.MessageSendResultVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +32,6 @@ import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.service.CnFisWorkService;
 import com.abs.cmn.fis.domain.work.vo.CnFisWorkSaveRequestVo;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
-import com.abs.cmn.fis.message.move.FisFileMoveExecute;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
 import com.abs.cmn.fis.message.vo.common.FisMsgHead;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
@@ -63,12 +68,22 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
     @Autowired
     private ChFisWorkService chFisWorkService;
+
+
     @Autowired
-    private FisFileMoveExecute filedelete;
+    private MessageSendService messageSendService;
+
+    @Autowired
+    private PayloadGenerateService payloadGenerateService;
 
 
     @Override
     public void init() {
+
+        if(FisSharedInstance.getInstance().getDateFormatter() == null){
+            FisSharedInstance.getInstance().setDateFormatter(
+                    new SimpleDateFormat(FisSharedInstance.getInstance().getDateFormatPattern()));
+        }
 
     }
 
@@ -80,6 +95,8 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
                 trackingKey, vo.toString());
 
         ExecuteResultVo resultVo = new ExecuteResultVo();
+        resultVo.setExecuteStartTime(FisSharedInstance.getInstance().getDateFormatter().format(new Date()));
+        // TODO Until 화
         long executeStartTime = System.currentTimeMillis();
 
         /**
@@ -175,7 +192,6 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
 
 
 
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         /**
          Status `S`
@@ -185,76 +201,94 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         String messagePayload;
         String topicName;
 
-        if(vo.getBody().getFileType().equals(FisFileType.INSPECTION.name()) || vo.getBody().getFileType().startsWith("I")){
-            sendCid = FisMessageList.BRS_INSP_DATA_SAVE;
+        MessageSendResultVo messageSendResultVo;
 
-            messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
+        if(vo.getBody().getFileType().equals(FisFileType.INSPECTION.name()) || vo.getBody().getFileType().startsWith("I")){
+
+            MessageSendRequestVo messageSendRequestVo= MessageSendRequestVo.builder()
+                    .eventName(FisMessageList.BRS_INSP_DATA_SAVE)
+                    .targetSystem(FisConstant.EDC.name())
+                    .payload(this.payloadGenerateService.generateBrsInspDataSave(workId, vo.getBody().getLotId()))
+                    .build();
+            messageSendResultVo= this.messageSendService.sendTopicMessage(trackingKey, messageSendRequestVo, new MessageSendResultVo());
+
 
         }else if(vo.getBody().getFileType().equals(FisFileType.MEASUREMENT.name()) || vo.getBody().getFileType().startsWith("M")){
-            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
 
-            messagePayload = mapper.writeValueAsString(this.setMessageObject(FisFileType.INSPECTION, sendCid, workId));
+            MessageSendRequestVo messageSendRequestVo= MessageSendRequestVo.builder()
+                    .eventName(FisMessageList.BRS_MEAS_DATA_SAVE)
+                    .targetSystem(FisConstant.EDC.name())
+                    .payload(this.payloadGenerateService.generateBrsInspDataSave(workId, vo.getBody().getLotId()))
+                    .build();
+            messageSendResultVo= this.messageSendService.sendTopicMessage(trackingKey, messageSendRequestVo, new MessageSendResultVo());
+
 
         }else{
             throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
                     , vo.getBody().getFileType(), FisFileType.values().toString()));
         }
-        resultVo.setSendCid(sendCid);
-        resultVo.setSendPayload(messagePayload);
-        topicName = FisSharedInstance.getInstance().getSequenceManager().getTargetName("EDC", sendCid, messagePayload);
-        InterfaceSolacePub.getInstance().sendTopicMessage(sendCid, messagePayload, topicName);
-        log.info("{} Message Send. targetTopic: {}, sendCid: {}, payload: {}", trackingKey, topicName, sendCid,messagePayload );
+
+        resultVo.setSendResultVo(messageSendResultVo);
+        log.info("{} Message Send. targetTopic: {}, sendCid: {}, payload: {}",
+                trackingKey,
+                messageSendResultVo.getTargetTopic(), messageSendResultVo.getMessageSendRequestVo().getEventName(),
+                messageSendResultVo.getMessageSendRequestVo().getPayload());
 
 
         this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.S);
 
 
-        log.info("{} Print ResultVo: {}", trackingKey, resultVo.toString());
+        log.info("{} Print ResultVo: {}", trackingKey, resultVo);
         FisMessagePool.messageAck(trackingKey);
 
         return resultVo;
     }
 
-    private Object setMessageObject(FisFileType fileType, String sendCid, String key) throws InvalidObjectException {
-
-        if(fileType.equals(FisFileType.INSPECTION)){
-
-            BrsInspDataSaveReqVo brsInspDataSaveReqVo = new BrsInspDataSaveReqVo();
-            BrsInspDataSaveReqVo.BrsInspDataSaveReqBody body = new BrsInspDataSaveReqVo.BrsInspDataSaveReqBody();
-            body.setWorkId(key);
-
-            brsInspDataSaveReqVo.setHead(this.generateMsgHead(sendCid, FisConstant.BRS.name()));
-            brsInspDataSaveReqVo.setBody(body);
-
-            return brsInspDataSaveReqVo;
-
-        }else if(fileType.equals(FisFileType.MEASUREMENT)){
-            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
-            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
-
-            BrsMeasDataSaveReqVo brsMeasDataSaveReqVo = new BrsMeasDataSaveReqVo();
-            BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody body = new BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody();
-            body.setWorkId(key);
-
-            brsMeasDataSaveReqVo.setHead(this.generateMsgHead(sendCid, FisConstant.BRS.name()));
-            brsMeasDataSaveReqVo.setBody(body);
-
-            return  brsMeasDataSaveReqVo;
-
-        }else{
-            throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
-                    , fileType.name(), FisFileType.values().toString()));
-        }
-    }
 
 
-    private FisMsgHead generateMsgHead(String cid, String tgt){
-        FisMsgHead head = new FisMsgHead();
-        head.setCid(cid);
-        head.setSrc(FisConstant.FIS.name());
-        head.setTgt(tgt);
-        return head;
-    }
+
+//    private Object setMessageObject(FisFileType fileType, String sendCid, String key) throws InvalidObjectException {
+//
+//        if(fileType.equals(FisFileType.INSPECTION)){
+//
+//            BrsInspDataSaveReqVo brsInspDataSaveReqVo = new BrsInspDataSaveReqVo();
+//            BrsInspDataSaveReqVo.BrsInspDataSaveReqBody body = new BrsInspDataSaveReqVo.BrsInspDataSaveReqBody();
+//            body.setWorkId(key);
+//
+//            brsInspDataSaveReqVo.setHead(this.generateMsgHead(sendCid, FisConstant.BRS.name()));
+//            brsInspDataSaveReqVo.setBody(body);
+//
+//            return brsInspDataSaveReqVo;
+//
+//        }else if(fileType.equals(FisFileType.MEASUREMENT)){
+//            log.info("Measre file. sendCid: {}", FisMessageList.BRS_MEAS_DATA_SAVE);
+//            sendCid = FisMessageList.BRS_MEAS_DATA_SAVE;
+//
+//            BrsMeasDataSaveReqVo brsMeasDataSaveReqVo = new BrsMeasDataSaveReqVo();
+//            BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody body = new BrsMeasDataSaveReqVo.BrsMeasDataSaveReqBody();
+//            body.setWorkId(key);
+//
+//            brsMeasDataSaveReqVo.setHead(this.generateMsgHead(sendCid, FisConstant.BRS.name()));
+//            brsMeasDataSaveReqVo.setBody(body);
+//
+//            return  brsMeasDataSaveReqVo;
+//
+//        }else{
+//            throw new InvalidObjectException(String.format("FileType is not undefined. FileType : {}. FileTypeEnums: {}"
+//                    , fileType.name(), FisFileType.values().toString()));
+//        }
+//    }
+
+
+//    private FisMsgHead generateMsgHead(String cid, String tgt){
+//        FisMsgHead head = new FisMsgHead();
+//        head.setCid(cid);
+//        head.setSrc(FisConstant.FIS.name());
+//        head.setTgt(tgt);
+//        return head;
+//    }
+
+
     // 장애 대응 메소드
     private void handleAbnormalCondition(String trackingKey, FisFileReportVo vo, String key) throws SQLException {
 

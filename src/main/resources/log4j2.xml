@@ -30,6 +30,11 @@
     </Appenders>
 
     <Loggers>
+        <Logger name="com.abs.cmn.seq" additivity="false">
+            <AppenderRef ref="LogApp" level="debug" />
+            <AppenderRef ref="LogToConsole" level="info" />
+            <AppenderRef ref="LogException" level="error"/>
+        </Logger>
         <Logger name="com.abs.cmn" additivity="false">
             <AppenderRef ref="LogApp" level="debug" />
             <AppenderRef ref="LogToConsole" level="info" />

@@ -34,7 +34,7 @@ public class ParsingDataRepository {
     public String batchEntityInsert(String trackingKey, String fileName, String workId, int startHeaderOffset, List<Map<String, String>> listMap, ParseRuleVo fileRule) {
 
         SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat outputFormat = new SimpleDateFormat(FisSharedInstance.getInstance().getDateFormatPattern());
 
         try {
             log.info("{} Data size: {} ", trackingKey, listMap.size());
