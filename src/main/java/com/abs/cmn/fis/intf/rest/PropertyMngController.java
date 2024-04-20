@@ -2,6 +2,9 @@ package com.abs.cmn.fis.intf.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,11 +34,12 @@ public class PropertyMngController {
     }
 
 
-    @RequestMapping(value = "/send/FIS_FILE_REPORT", method = RequestMethod.GET)
-    public String testMethod(@RequestBody FisFileReportVo fisFileReportVo) throws JCSMPException {
-
+    @RequestMapping(value = "/send/FIS_FILE_REPORT", method = RequestMethod.POST)
+    public String testMethod(@RequestBody FisFileReportVo fisFileReportVo) throws JCSMPException, JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper().configure(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
         log.info(fisFileReportVo.toString());
-        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, fisFileReportVo.toString(), FisSharedInstance.getInstance().getReceiveQueueName());
+        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, mapper.writeValueAsString(fisFileReportVo), FisSharedInstance.getInstance().getReceiveTopicName());
         return null;
     }
 }

@@ -144,6 +144,7 @@ public class Receiver implements Runnable {
                 switch (cid){
 
                     /**
+                     * Async 처리로 Message Ack는 execute 내부에서 처리
                      * File report message sequence.
                      * 1. Status `R` : Receive message and create work stats
                      * 2. Status `P` : Start read and parsing target file.
@@ -218,12 +219,13 @@ public class Receiver implements Runnable {
 
             }catch(TaskRejectedException taskRejectedException){
                 taskRejectedException.printStackTrace();
-                log.error("Over capacity. It's overflow.");
+                log.error("Over capacity. It's overflow. Error: {}", taskRejectedException);
+                FisMessagePool.messageAck(trackingKey);
 
 
             }catch (Exception e){
-                e.printStackTrace();
-                log.error("##  Receiver.onReceive() Exception : ", e);
+                log.error("##  Receiver.onReceive() Exception : {}", e);
+                FisMessagePool.messageAck(trackingKey);
 
             }
 

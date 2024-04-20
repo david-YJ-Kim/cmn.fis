@@ -37,6 +37,8 @@ public class FisSharedInstance {
 
     @Value("${ap.interface.destination.receive.queue}")
     private String receiveQueueName;
+    @Value("${ap.interface.destination.receive.topic}")
+    private String receiveTopicName;
     @Value("${ap.interface.destination.receive.init}")
     private String receiveInitTopic;
     @Value("${ap.interface.destination.send.topic}")

@@ -97,6 +97,7 @@ ap:
         topic: SVM/PROD/EDC/CMN/00
       receive:
         queue: SVM_PROD_FIS_CMN_00
+        topic: SVM/PROD/FIS/CMN/00
         init: SVM/PROD/FIS/CMN/INIT
   query:
     batchSize: 1000
