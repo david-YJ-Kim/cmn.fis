@@ -81,9 +81,9 @@ Content-Type: application/json
     "lotId": "CAA0177",
     "prodMtrlId": "PANEL_23022301_001",
     "mtrlFace": "Top",
-    "filePath": "Y://inspection//PROD-DEF-ID-test//P-PD-11//PROC-SGMT-OD-test//lot-1//lot-1_P-PD-11_PROC-DEF-ID-test_Glass_1_TTT_20240415051958",
-    "fileName": "lot-1_P-PD-11_PROC-DEF-ID-test_Glass_1_TTT_20240415051958.csv",
-    "fileType": "INSPECTION",
+    "filePath": "C://Users//DavidKim//Desktop//fis_test//request_folder",
+    "fileName": "MEAS_SAMPLE_A.csv",
+    "fileType": "MEASUREMENT",
     "userId": "WFS"
   }
 }
