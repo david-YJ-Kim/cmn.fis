@@ -1,14 +1,11 @@
 package com.abs.cmn.fis.intf.solace.broker;
 
 import com.abs.cmn.fis.message.initialize.DataInitializeExecute;
-import com.abs.cmn.fis.util.vo.ExecuteResultVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.solacesystems.jcsmp.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskRejectedException;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
-import com.abs.cmn.fis.domain.rule.mng.FisRuleManager;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.work.controller.FisWorkTableManageController;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.abs.cmn.fis.message.parse.FisFileParsingExecute;
@@ -34,8 +31,6 @@ public class Receiver implements Runnable {
 
     private boolean stopFlagOn = false;
 
-    @Autowired
-    private FisRuleManager fisRuleManager;
 
     public Receiver(JCSMPSession session, String thread_name, String queue_name) {
         this.session = session;
@@ -128,7 +123,7 @@ public class Receiver implements Runnable {
 
             try{
 
-                if (message.getDestination().equals(FisPropertyObject.getInstance().getReceiveInitTopic())) {
+                if (message.getDestination().equals(FisSharedInstance.getInstance().getReceiveInitTopic())) {
                     DataInitializeExecute dataInitializeExecute = ApplicationContextProvider.getBean(
                             DataInitializeExecute.class);
                     dataInitializeExecute.execute(message, cid);
@@ -149,11 +144,14 @@ public class Receiver implements Runnable {
                 switch (cid){
 
                     /**
+                     * Async 처리로 Message Ack는 execute 내부에서 처리
                      * File report message sequence.
                      * 1. Status `R` : Receive message and create work stats
                      * 2. Status `P` : Start read and parsing target file.
                      * 3. Status `I` : Complete parsing and start insert data.
                      * 4. Status `C` : Complete FIS work.
+                     * 5. Status `E` : Error while FIS work.
+                     * 6. Status `S` : Complete to send message.
                      */
                     case FisMessageList.FIS_FILE_REPORT:	// 파일 파싱 , 워크 생성 - R, 파일 저장,
 
@@ -221,12 +219,13 @@ public class Receiver implements Runnable {
 
             }catch(TaskRejectedException taskRejectedException){
                 taskRejectedException.printStackTrace();
-                log.error("Over capacity. It's overflow.");
+                log.error("Over capacity. It's overflow. Error: {}", taskRejectedException);
+                FisMessagePool.messageAck(trackingKey);
 
 
             }catch (Exception e){
-                e.printStackTrace();
-                log.error("##  Receiver.onReceive() Exception : ", e);
+                log.error("##  Receiver.onReceive() Exception : {}", e);
+                FisMessagePool.messageAck(trackingKey);
 
             }
 

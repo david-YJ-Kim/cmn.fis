@@ -1,6 +1,6 @@
 package com.abs.cmn.fis.intf.solace;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.config.SolaceSessionConfiguration;
 import com.abs.cmn.fis.intf.solace.broker.Receiver;
 import com.abs.cmn.fis.util.code.FisConstant;
@@ -8,7 +8,6 @@ import com.solacesystems.jcsmp.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
 
 @Slf4j
@@ -60,10 +59,10 @@ public class InterfaceSolaceSub implements Runnable {
             //session 연결 - Application별로 최소 연결 권장(쓰레드를 사용할 경우 공유 사용 권장)
             session.connect();
 
-            FisPropertyObject fisPropertyObject = FisPropertyObject.getInstance();
+            FisSharedInstance fisSharedInstance = FisSharedInstance.getInstance();
 
-            String threadName = fisPropertyObject.getClientName() + "-" + FisConstant.receiver.name();
-            String receiveQueueName = fisPropertyObject.getReceiveQueueName();
+            String threadName = fisSharedInstance.getClientName() + "-" + FisConstant.receiver.name();
+            String receiveQueueName = fisSharedInstance.getReceiveQueueName();
 
             this.receiver = new Receiver(session, threadName, receiveQueueName);
 

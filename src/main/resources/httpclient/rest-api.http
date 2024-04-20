@@ -60,6 +60,33 @@ GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileTy
 ### [H사] FIS_FILE_REPORT 발송
 GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AP-TG-09-01&fileType=INSPECTION&filePath=C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file&fileName=H_sampleFileSimple.csv
 
+### FIS_FILE_REPORT
+POST http://localhost:9010/fis/management/send/FIS_FILE_REPORT
+Content-Type: application/json
+
+{
+  "head": {
+    "tgt": "WFS",
+    "tgtEqp": [],
+    "osrc": "",
+    "srcEqp": "AP-PD-11-01",
+    "src": "EAP",
+    "otgt": "",
+    "tid": "AP-PD-11-01_00_20240305145553364",
+    "cid": "FIS_FILE_REPORT"
+  },
+  "body": {
+    "siteId": "SVM",
+    "eqpId": "AP-PD-11-01",
+    "lotId": "CAA0177",
+    "prodMtrlId": "PANEL_23022301_001",
+    "mtrlFace": "Top",
+    "filePath": "Y://inspection//PROD-DEF-ID-test//P-PD-11//PROC-SGMT-OD-test//lot-1//lot-1_P-PD-11_PROC-DEF-ID-test_Glass_1_TTT_20240415051958",
+    "fileName": "lot-1_P-PD-11_PROC-DEF-ID-test_Glass_1_TTT_20240415051958.csv",
+    "fileType": "INSPECTION",
+    "userId": "WFS"
+  }
+}
 
 
 

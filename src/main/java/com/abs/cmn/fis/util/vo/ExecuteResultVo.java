@@ -9,6 +9,11 @@ public class ExecuteResultVo {
     // TODO 정확한 의미 식별 필요...
     String status;
 
+    String executeStartTime;
+
+    String executeEndTime;
+
+
     long totalElapsedTime;
 
     long fileReadElapsedTime;
@@ -19,12 +24,13 @@ public class ExecuteResultVo {
 
     int rowCount;
 
-    String sendCid;
-
-    String sendPayload;
+    String requestFilePath;
+    String targetFilePath;
 
     String movedFilePath;
     String movedFileName;
+
+    MessageSendResultVo sendResultVo;
 
 
 

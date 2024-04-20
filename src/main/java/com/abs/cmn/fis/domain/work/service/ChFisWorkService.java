@@ -20,10 +20,10 @@ public class ChFisWorkService {
             ChFisWork entity = vo.toEntity();
             log.info(entity.toString());
             return this.chWorkRepository.save(entity);
+
         }catch (Exception e){
-            e.printStackTrace();
-            log.error(e.getMessage());
-            return null;
+            log.error("Error : {}, vo : {}", e, vo.toString());
+            throw e;
         }
 
     }

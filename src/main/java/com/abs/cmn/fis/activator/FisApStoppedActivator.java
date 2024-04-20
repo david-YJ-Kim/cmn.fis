@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.message.FisMessagePool;
 import com.solacesystems.jcsmp.JCSMPInterruptedException;
 
@@ -19,7 +19,7 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 
         boolean stopReceiving;
         try {
-            stopReceiving = FisPropertyObject.getInstance().getInterfaceSolaceSub().stopQueueReceiver();
+            stopReceiving = FisSharedInstance.getInstance().getInterfaceSolaceSub().stopQueueReceiver();
         } catch (JCSMPInterruptedException e) {
             e.printStackTrace();
             stopReceiving = false;
@@ -31,7 +31,7 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
 
 
         int cnt = 0;
-        int maxCount = FisPropertyObject.getInstance().getApShutdownForceTimeoutMs() / FisPropertyObject.getInstance().getApShutdownPollingIntervalMs();
+        int maxCount = FisSharedInstance.getInstance().getApShutdownForceTimeoutMs() / FisSharedInstance.getInstance().getApShutdownPollingIntervalMs();
         while (true){
             int remainedMessageSizeInStore = FisMessagePool.getMessageManageMap().size();
 
@@ -73,7 +73,7 @@ public class FisApStoppedActivator implements ApplicationListener<ContextClosedE
             }
 
             try {
-                Thread.sleep(FisPropertyObject.getInstance().getApShutdownPollingIntervalMs());
+                Thread.sleep(FisSharedInstance.getInstance().getApShutdownPollingIntervalMs());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

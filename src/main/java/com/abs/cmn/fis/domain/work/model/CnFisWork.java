@@ -24,6 +24,9 @@ public class CnFisWork {
     @Column(name = "OBJ_ID")
     private String objId;
 
+    @Column(name = "TRACKING_KEY")
+    private String trackingKey;
+
     @Column(name = "FILE_NM")
     private String fileName;
     @Column(name = "FILE_PATH")
@@ -55,8 +58,9 @@ public class CnFisWork {
 
 
     @Builder
-    public CnFisWork(String objId, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
+    public CnFisWork(String objId, String trackingKey, String fileName, String filePath, FisFileType fileType, String eqpId, String requestSystemName, ProcessStateCode processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
         this.objId = objId;
+        this.trackingKey = trackingKey;
         this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
@@ -73,6 +77,7 @@ public class CnFisWork {
     public String toString() {
         return "CnFisWork{" +
                 "objId='" + objId + '\'' +
+                "trackingKey='" + trackingKey + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +
                 ", fileType=" + fileType +

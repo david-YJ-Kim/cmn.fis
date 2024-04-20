@@ -19,8 +19,9 @@ logging:
 
 spring:
   datasource:
+    #oracle
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@localhost:1521:ORCL
+    url: jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=OFF)(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=10.184.50.188)(PORT=1521)(ADDRESS=(PROTOCOL=TCP)(HOST=10.184.50.189)(PORT=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=svmpdb.absolics.net)))
     username: mesadm
     password: absolics12#
 
@@ -54,7 +55,7 @@ ap:
   info:
     group: FIS
     site: SVM
-    env: DEV
+    env: PROD
     sequence: 1
   worker:
     pool-size:
@@ -65,13 +66,13 @@ ap:
       prefix: FIS-ASYNC-
   seq:
     rule:
-      path: C:\\Users\\DavidKim\\Downloads\\
-      name: SequenceRule (3).json
+      path: /home/abscapp/data/app/utils/
+      name: SequenceRule.json
   file:
     mode: local
     nas:
       path:
-        base: /SVM/INSPECTION
+        base: /SVM/INSPECTION/
       sftp:
         host: 192.168.0.193
         port: 22
@@ -81,7 +82,7 @@ ap:
     local-path: D:\\parsingfile.csv
   interface:
     solace:
-      host: localhost:55555
+      host: "10.184.50.81:55555,10.184.50.82:55555"
       vpn: MES
       client:
         username: default
@@ -93,11 +94,11 @@ ap:
         per-host: 5
     destination:
       send:
-        topic: SVM/DEV/EDC/CMN/00
+        topic: SVM/PROD/EDC/CMN/00
       receive:
-        queue: SVM_DEV_FIS_CMN_00
-        topic: SVM/DEV/FIS/CMN/00
-        init: SVM/DEV/FIS/CMN/INIT
+        queue: SVM_PROD_FIS_CMN_00
+        topic: SVM/PROD/FIS/CMN/00
+        init: SVM/PROD/FIS/CMN/INIT
   query:
     batchSize: 1000
     table-name:

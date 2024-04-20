@@ -1,13 +1,12 @@
 package com.abs.cmn.fis.intf.rest;
 
-import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.util.FisSampleMessageFormat;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.util.FisMessageList;
 import com.solacesystems.jcsmp.JCSMPException;
@@ -35,7 +34,7 @@ public class TestSendMngController {
         String payload = String.format(FisSampleMessageFormat.FIS_FILE_REPORT_FORMAT, FisMessageList.FIS_FILE_REPORT, tid, eqpId, fileType, filePath, fileName);
         log.info(payload);
 
-        InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_FILE_REPORT, payload, FisPropertyObject.getInstance().getReceiveQueueName());
+        InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_FILE_REPORT, payload, FisSharedInstance.getInstance().getReceiveQueueName());
         return null;
     }
 
@@ -59,7 +58,7 @@ public class TestSendMngController {
 
 
         log.debug(payload);
-        InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_TEST_MESSAGE, payload, FisPropertyObject.getInstance().getReceiveQueueName());
+        InterfaceSolacePub.getInstance().sendQueueMessage(FisMessageList.FIS_TEST_MESSAGE, payload, FisSharedInstance.getInstance().getReceiveQueueName());
         return null;
     }
 

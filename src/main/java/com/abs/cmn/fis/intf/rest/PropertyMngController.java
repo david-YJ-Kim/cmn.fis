@@ -2,13 +2,16 @@ package com.abs.cmn.fis.intf.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.intf.solace.InterfaceSolacePub;
 import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
 import com.abs.cmn.fis.util.FisMessageList;
@@ -25,17 +28,18 @@ public class PropertyMngController {
     @RequestMapping(value = "/test", method = RequestMethod.GET)
     public String testMethod(HttpServletRequest request) throws JCSMPException {
 
-        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, "HelloWord", FisPropertyObject.getInstance().getReceiveQueueName());
+        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, "HelloWord", FisSharedInstance.getInstance().getReceiveQueueName());
         log.info(request.toString());
         return null;
     }
 
 
-    @RequestMapping(value = "/send/FIS_FILE_REPORT", method = RequestMethod.GET)
-    public String testMethod(@RequestBody FisFileReportVo fisFileReportVo) throws JCSMPException {
-
+    @RequestMapping(value = "/send/FIS_FILE_REPORT", method = RequestMethod.POST)
+    public String testMethod(@RequestBody FisFileReportVo fisFileReportVo) throws JCSMPException, JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper().configure(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
         log.info(fisFileReportVo.toString());
-        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, fisFileReportVo.toString(), FisPropertyObject.getInstance().getReceiveQueueName());
+        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, mapper.writeValueAsString(fisFileReportVo), FisSharedInstance.getInstance().getReceiveTopicName());
         return null;
     }
 }

@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 public class CnFisWorkSaveRequestVo {
 
     private String workId;
+    private String trackingKey;
     private String fileName;
     private String filePath;
     private String fileType;
@@ -28,8 +29,9 @@ public class CnFisWorkSaveRequestVo {
     private Timestamp updateDate;
 
     @Builder
-    public CnFisWorkSaveRequestVo(String workId, String fileName, String filePath, String fileType, String eqpId, String requestSystemName, String processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
+    public CnFisWorkSaveRequestVo(String workId, String trackingKey, String fileName, String filePath, String fileType, String eqpId, String requestSystemName, String processState, String createUserId, Timestamp createDate, String updateUserId, Timestamp updateDate) {
         this.workId = workId;
+        this.trackingKey = trackingKey;
         this.fileName = fileName;
         this.filePath = filePath;
         this.fileType = fileType;
@@ -44,6 +46,7 @@ public class CnFisWorkSaveRequestVo {
 
     public CnFisWork toEntity(){
         return CnFisWork.builder()
+                .trackingKey(trackingKey)
                 .fileName(fileName)
                 .filePath(filePath)
                 .fileType(FisFileType.valueOf(fileType))
@@ -60,6 +63,7 @@ public class CnFisWorkSaveRequestVo {
     @Override
     public String toString() {
         return "CnFisWorkSaveRequestVo{" +
+                "trackingKey='" + trackingKey + '\'' +
                 "fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +
                 ", fileType='" + fileType + '\'' +

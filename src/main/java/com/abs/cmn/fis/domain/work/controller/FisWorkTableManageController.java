@@ -9,7 +9,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import com.abs.cmn.fis.config.FisPropertyObject;
+import com.abs.cmn.fis.config.FisSharedInstance;
 import com.abs.cmn.fis.domain.edm.repository.ParsingDataRepository;
 import com.abs.cmn.fis.domain.work.vo.ChFisWorkSaveRequestVo;
 import com.abs.cmn.fis.util.FisCommonUtil;
@@ -30,7 +30,7 @@ public class FisWorkTableManageController {
 
     private void moveToDatasWorkHistory() {
 
-        String sql = FisPropertyObject.getInstance().getGetDeleteListSql();
+        String sql = FisSharedInstance.getInstance().getGetDeleteListSql();
         List<Map<String,Object>> delList = parsingDataRepository.getDeleteEntities(sql);
 
 //		List<CnFisWork> rs = cnFisWorkService.getDeleteEntities();
@@ -66,7 +66,7 @@ public class FisWorkTableManageController {
 
             log.info("before deleteBatch FILE_TYPE : "+vo.get("FILE_TYPE").toString());
             log.info("before deleteBatch OBJ_ID : "+vo.get("OBJ_ID").toString());
-            log.info("before deleteBatch batchSize : "+FisPropertyObject.getInstance().getBatchSize());
+            log.info("before deleteBatch batchSize : "+ FisSharedInstance.getInstance().getBatchSize());
 
             if ( parsingDataRepository.deleteCnWork( vo.get("OBJ_ID").toString() ) )
                 log.info("-- Success Delete From CnWork - ObjId : "+ vo.get("OBJ_ID").toString());
@@ -77,9 +77,10 @@ public class FisWorkTableManageController {
             String delResult = null;
             try {
                 delResult = parsingDataRepository.deleteBatch(
+                        vo.get("WORK_ID").toString(),
                         vo.get("FILE_TYPE").toString(),
                         vo.get("OBJ_ID").toString(),
-                        FisPropertyObject.getInstance().getBatchSize(),
+                        FisSharedInstance.getInstance().getBatchSize(),
                         deletBatch );
 
                 if ( delResult.equals(FisConstant.DELETE_BATCH.name()) )

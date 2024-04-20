@@ -12,5 +12,6 @@ public class BrsMeasDataSaveReqVo extends FisMsgCommonVo {
     @Data
     public static class BrsMeasDataSaveReqBody extends FisMsgBody {
         String workId;
+        String lotId;
     }
 }
