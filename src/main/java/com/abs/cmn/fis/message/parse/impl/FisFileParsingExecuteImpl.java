@@ -99,39 +99,27 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
         // TODO Until 화
         long executeStartTime = System.currentTimeMillis();
 
-        /**
-         * Status `R`
-         */
         String workId = this.createWorkId(trackingKey, vo);
         resultVo.setWorkId(workId);
         log.info("{} Start execute and insert work status. it's workId: {}",
                 trackingKey, workId);
 
-        String targetFilePath;
-        if(!vo.getBody().getFilePath().startsWith("/")){
-            /* 메세지 내에  윈도우 경로 \\ 를 입력 할 경우 JsonParser 오류가 나서, 임시로 대체 하여, 파싱 진행. / 경로는 오류 없음 */
-            targetFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
-                    vo.getBody().getEqpId(), vo.getBody().getFilePath());
-            log.info("{} File path in message is not linux path. convert window path into linux.", trackingKey);
-        }else{
-            targetFilePath = vo.getBody().getFilePath();
-        }
-        log.info("{} Complete to set up target file path. Path: {}", trackingKey, targetFilePath);
-
-
-
+        /**
+         * Status `R`
+         */
+        String filePath;
         File file = null;
         try {
-            file = this.fileManager.getFile(trackingKey, targetFilePath,
-                    vo.getBody().getFileName());
+            file = this.fileManager.getFile(trackingKey, vo);
+            filePath = file.getAbsolutePath();
         } catch (Exception e) {
             this.generateWorkHistoryAndUpdateState(workId, ProcessStateCode.RE);
             log.error("{} Error occur :{} , stop reading and print ResultVo: {}", trackingKey, e, resultVo.toString());
             FisMessagePool.messageAck(trackingKey);
             return resultVo;
         }
-        log.info("{} Complete to get File object with target file path : {}", trackingKey, targetFilePath);
-        resultVo.setTargetFilePath(targetFilePath);
+        log.info("{} Complete to get File object with target file path : {}", trackingKey, filePath);
+        resultVo.setTargetFilePath(filePath);
 
 
         log.info("{} Success to access target file. Its' path: {}",
@@ -358,32 +346,6 @@ public class FisFileParsingExecuteImpl implements FisFileParsingExecute {
     }
 
 
-    /**
-     *
-     * @param trackingKey
-     * @param basePath
-     * @param eqpId
-     * @param windowFilePath Y:\\PROD_DEF_ID\\AP-TG-09\\PROC_DEF_ID
-     * @return
-     */
-    public String modifyFilePath(String trackingKey, String basePath, String eqpId, String windowFilePath){
-
-        String linuxDelimiter = "/";
-
-        String linuxPath = FisCommonUtil.convertWindowPathToLinux(windowFilePath);
-        switch (eqpId){
-            case ToolCodeList.AP_TG_09_01:
-            case ToolCodeList.AP_TG_10_01:
-            case ToolCodeList.AP_OL_13_01:
-            case ToolCodeList.AP_RD_11_01:
-                return basePath + FisCommonUtil.detachToolNumber(eqpId) + linuxPath;
-
-            default:
-                return basePath + eqpId + linuxDelimiter + linuxPath;
-        }
-
-
-    }
 
 
 }

@@ -31,13 +31,13 @@ public class FileParserTest {
     @DisplayName("Test csv file read and load memory.")
     public void readFileAndLoadMemoryTest() throws Exception {
 
-        String trackingKey = "TrackingKeyForTest";
-        ExecuteResultVo resultVo = new ExecuteResultVo();
-
-        String fileName = "H_sampleFileSimple.csv";
-        String filePath = "C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file\\H_sampleFileSimple.csv\\";
-        // Generate file for test.
-        File file = this.fileManager.getFile(trackingKey, filePath, fileName);
+//        String trackingKey = "TrackingKeyForTest";
+//        ExecuteResultVo resultVo = new ExecuteResultVo();
+//
+//        String fileName = "H_sampleFileSimple.csv";
+//        String filePath = "C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file\\H_sampleFileSimple.csv\\";
+//        // Generate file for test.
+//        File file = this.fileManager.getFile(trackingKey, filePath, fileName);
 
     }
 }

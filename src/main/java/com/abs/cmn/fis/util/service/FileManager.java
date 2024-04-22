@@ -7,6 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.abs.cmn.fis.message.vo.receive.FisFileReportVo;
+import com.abs.cmn.fis.util.FisCommonUtil;
+import com.abs.cmn.fis.util.ToolCodeList;
 import org.springframework.stereotype.Service;
 
 import com.abs.cmn.fis.config.FisSftpPropertyObject;
@@ -28,19 +31,35 @@ public class FileManager {
         return localMode;
     }
 
-
     /**
      * Access file object at local directory or remote
-     * @param path target file path
-     * @param fileName target file name
-     * @return file object
+     * @param trackingKey
+     * @param vo
+     * @return
+     * @throws Exception
      */
-    public File getFile(String trackingKey, String path, String fileName) throws Exception {
+    public File getFile(String trackingKey, FisFileReportVo vo) throws Exception {
 
         log.info("{} Try to achieve file object at local directory : {}", trackingKey, this.localMode);
-
+        String path = vo.getBody().getFilePath();
+        String fileName = vo.getBody().getFileName();
         if(this.isLocalMode()){
-            return this.getFileFromLocal(trackingKey, path, fileName);
+            try{
+                String targetFilePath = this.modifyFilePath(trackingKey, FisSftpPropertyObject.getInstance().getApFileNasPathBase(),
+                        vo.getBody().getEqpId(), vo.getBody().getFilePath());
+                log.info("{} File path in message is not linux path. convert window path into linux.", trackingKey);
+                return this.getFileFromLocal(trackingKey, targetFilePath, fileName);
+
+            }catch (Exception e){
+
+                try{
+                    return this.getFileFromLocal(trackingKey, path, fileName);
+
+                }catch (Exception fe){
+                    throw fe;
+                }
+            }
+
         }else{
             return this.getFileFromRemote(trackingKey, path,fileName);
         }
@@ -279,5 +298,32 @@ public class FileManager {
             log.error("## FileManager , insertFileToRemote : ", e);
             return false;
         }
+    }
+
+    /**
+     *
+     * @param trackingKey
+     * @param basePath
+     * @param eqpId
+     * @param windowFilePath Y:\\PROD_DEF_ID\\AP-TG-09\\PROC_DEF_ID
+     * @return
+     */
+    public String modifyFilePath(String trackingKey, String basePath, String eqpId, String windowFilePath){
+
+        String linuxDelimiter = "/";
+
+        String linuxPath = FisCommonUtil.convertWindowPathToLinux(windowFilePath);
+        switch (eqpId){
+            case ToolCodeList.AP_TG_09_01:
+            case ToolCodeList.AP_TG_10_01:
+            case ToolCodeList.AP_OL_13_01:
+            case ToolCodeList.AP_RD_11_01:
+                return basePath + FisCommonUtil.detachToolNumber(eqpId) + linuxPath;
+
+            default:
+                return basePath + eqpId + linuxDelimiter + linuxPath;
+        }
+
+
     }
 }
