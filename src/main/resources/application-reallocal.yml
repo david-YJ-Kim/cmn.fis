@@ -20,9 +20,10 @@ logging:
 spring:
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@localhost:1521:ORCL
+    url: jdbc:oracle:thin:@dev-mes-oracle.ctj5pd0b3rdj.us-east-1.rds.amazonaws.com:1522:ORCL
     username: mesadm
     password: absolics12#
+
   jpa:
     properties:
       hibernate:
@@ -55,7 +56,16 @@ ap:
     site: SVM
     env: DEV
     sequence: 1
+  worker:
+    pool-size:
+      core: 5
+      max: 50
+    capacity: 1000
+    name:
+      prefix: FIS-ASYNC-
   file:
+    type:
+      default: csv
     mode: local
     nas:
       sftp:
@@ -67,7 +77,7 @@ ap:
     local-path: D:\\parsingfile.csv
   interface:
     solace:
-      host: localhost:55555
+      host: solacedev.absolicsinc.com:55555
       vpn: MES
       client:
         username: default
@@ -88,7 +98,7 @@ ap:
     table-name:
       insp: CN_FIS_INSP_DATA
       meas: CN_FIS_MEAS_DATA
-    insert-template: INSERT INTO TABLE_NAME ( EQP_NM,FILE_FM_TPY,FILE_TPY,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL,COLUM ) VALUES ( ?,?,?,?,?,?,INPUT )
+    insert-template: INSERT INTO TABLE_NAME ( OBJ_ID,FILE_FM_TYP,FILE_POSN_VAL,FILE_NM,WORK_ID,ROW_SEQ,CRT_DT,COLUM) VALUES ( ?,?,?,?,?,?,SYSTIMESTAMP,INPUT )
     del-template: DELETE FROM TABLE_NAME WHERE WORK_ID = ?
     rule:
       parsing: SELECT OBJ_ID,EQP_NM,FILE_FM_TYP,FILE_TYP,FILE_TRGT_POSN_VAL,PARS_CLM_ID_VAL,PARS_ROW_VAL FROM CN_FIS_IF_PARSE_RULE
@@ -96,7 +106,7 @@ ap:
   shutdown:
     force:
       timeout:
-        ms: 100000
+        ms: 10000
     polling:
       interval:
         ms: 10

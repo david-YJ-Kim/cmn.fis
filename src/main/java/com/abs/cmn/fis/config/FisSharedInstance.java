@@ -92,6 +92,9 @@ public class FisSharedInstance {
     @Value("${ap.seq.rule.name}")
     private String seqRuleName; // 시퀀스 룰 파일 이름
 
+    @Value("${ap.file.type.default}")
+    private String fileTypeDefault;
+
     private String dateFormatPattern = "yyyy-MM-dd HH:mm:ss.SSS";
 
     private SimpleDateFormat dateFormatter;

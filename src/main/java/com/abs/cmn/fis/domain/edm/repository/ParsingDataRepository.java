@@ -71,19 +71,19 @@ public class ParsingDataRepository {
                             int addIdx = idx + 6;
                             if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
-                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
-                                ps.setDouble(addIdx, Double.parseDouble( map.getOrDefault(sqlColumList[idx], "0")) );
+                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+                                ps.setDouble(addIdx, Double.parseDouble( map.getOrDefault(sqlColumList[idx], null)) );
 
                             } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 
-                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 Date date = inputFormat.parse(map.get(sqlColumList[idx]));
                                 String formattedDate = outputFormat.format(date);
                                 ps.setTimestamp(addIdx, Timestamp.valueOf(formattedDate));
 
                             } else {
 
-                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
                             }
                         }catch (Exception e){

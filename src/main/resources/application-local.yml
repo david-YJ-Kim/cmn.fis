@@ -68,6 +68,8 @@ ap:
       path: C:\\Users\\DavidKim\\Downloads\\
       name: SequenceRule (3).json
   file:
+    type:
+      default: csv
     mode: local
     nas:
       path:

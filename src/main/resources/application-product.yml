@@ -69,6 +69,8 @@ ap:
       path: /home/abscapp/data/app/utils/
       name: SequenceRule.json
   file:
+    type:
+      default: csv
     mode: local
     nas:
       path:
