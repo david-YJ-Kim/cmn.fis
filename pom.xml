@@ -155,7 +155,7 @@
       <groupId>com.abs.cmn.seq</groupId>
       <artifactId>seqLibrary</artifactId>
       <version>${seqlib.version}</version>
-      <systemPath>C:\Users\DavidKim\.m2\repository\com\abs\cmn\seq\seqLibrary\1.1</systemPath>
+      <systemPath>C:\Users\DavidKim\.m2\repository\com\abs\cmn\seq\seqLibrary\1.1\seqLibrary-1.1.jar</systemPath>
     </dependency>
 
   </dependencies>
