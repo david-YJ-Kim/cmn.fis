@@ -3,6 +3,7 @@ package com.abs.cmn.fis.domain.edm.repository;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -69,21 +70,35 @@ public class ParsingDataRepository {
                     for(int idx = 0; idx < sqlColumList.length; idx++){
                         try{
                             int addIdx = idx + 6;
+
+                            // null 적용 컬럼
+//                            "STRIP_NO", "X_VAL","Y_VAL"
+
                             if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
-                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
-                                ps.setDouble(addIdx, Double.parseDouble( map.getOrDefault(sqlColumList[idx], null)) );
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+
+
+                                if(map.get(sqlColumList[idx]) == null || map.get(sqlColumList[idx]).equals("") || map.get(sqlColumList[idx]).isEmpty()){
+
+                                    ps.setNull(idx, Types.INTEGER);
+
+                                }else{
+                                    ps.setDouble(addIdx, Double.parseDouble( map.get(sqlColumList[idx])) );
+                                }
 
                             } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 
-                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 Date date = inputFormat.parse(map.get(sqlColumList[idx]));
                                 String formattedDate = outputFormat.format(date);
                                 ps.setTimestamp(addIdx, Timestamp.valueOf(formattedDate));
 
+
+
                             } else {
 
-                                log.debug("{} Column number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
+                                log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
                             }
                         }catch (Exception e){
