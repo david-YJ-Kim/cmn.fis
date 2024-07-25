@@ -1,0 +1,8 @@
+SELECT rel.*
+FROM CN_FIS_PARSE_RULE rule, CN_FIS_PARSE_RULE_REL rel
+WHERE 1=1
+  AND rule.EQP_ID = rel.EQP_ID
+  AND rule.FILE_TYP = rel.FILE_TYP
+  AND rule.EQP_ID = 'AM-RE-04-01'
+  AND rule.FILE_TYP = 'INSPECTION'
+;

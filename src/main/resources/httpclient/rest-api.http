@@ -77,13 +77,42 @@ Content-Type: application/json
   },
   "body": {
     "siteId": "SVM",
-    "eqpId": "AP-PD-11-01",
-    "lotId": "CAA0177",
+    "eqpId": "AP-BE-01-01",
+    "lotId": "D1250212",
     "prodMtrlId": "PANEL_23022301_001",
     "mtrlFace": "Top",
-    "filePath": "C://Users//DavidKim//Desktop//fis_test//request_folder",
-    "fileName": "MEAS_SAMPLE_A.csv",
+    "filePath": "C://codespace//abs//cmn//cmn.fis//src//main//resources//file//be01",
+    "fileName": "M__AP-BE-01-01_PROC_SGMT_ID_ET24401051_Top_240612130801.csv",
     "fileType": "MEASUREMENT",
+    "userId": "WFS"
+  }
+}
+
+
+### FIS_FILE_REPORT
+POST http://localhost:9010/fis/management/send/FIS_FILE_REPORT
+Content-Type: application/json
+
+{
+  "head": {
+    "tgt": "WFS",
+    "tgtEqp": [],
+    "osrc": "",
+    "srcEqp": "AP-PD-11-01",
+    "src": "EAP",
+    "otgt": "",
+    "tid": "AP-PD-11-01_00_20240305145553364",
+    "cid": "FIS_FILE_REPORT"
+  },
+  "body": {
+    "siteId": "SVM",
+    "eqpId": "AP-BE-01-01",
+    "lotId": "D1250212",
+    "prodMtrlId": "PANEL_23022301_001",
+    "mtrlFace": "Top",
+    "filePath": "C://codespace//abs//cmn//cmn.fis//src//main//resources//file//be01",
+    "fileName": "I__AP-BE-01-01_PROC_SGMT_ID_ET24401051_Top_240612130801.csv",
+    "fileType": "INSPECTION",
     "userId": "WFS"
   }
 }

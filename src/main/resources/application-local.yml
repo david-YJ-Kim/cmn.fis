@@ -22,7 +22,7 @@ spring:
     driver-class-name: oracle.jdbc.OracleDriver
     url: jdbc:oracle:thin:@localhost:1521:ORCL
     username: mesadm
-    password: absolics12#
+    password: 1234
 
   jpa:
     properties:
