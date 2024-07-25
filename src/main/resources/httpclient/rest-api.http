@@ -60,31 +60,104 @@ GET http://localhost:9010/fis/send/LOOP/FIS_FILE_REPORT?eqpId=AM-YG-09-01&fileTy
 ### [H사] FIS_FILE_REPORT 발송
 GET http://localhost:9010/fis/send/FIS_FILE_REPORT?eqpId=AP-TG-09-01&fileType=INSPECTION&filePath=C:\\workspace\\abs\\cmn.fis\\src\\main\\resources\\file&fileName=H_sampleFileSimple.csv
 
+
 ### FIS_FILE_REPORT
-POST http://localhost:9010/fis/management/send/FIS_FILE_REPORT
+POST http://10.184.50.135:9010/fis/management/send/FIS_FILE_REPORT
 Content-Type: application/json
 
 {
   "head": {
-    "tgt": "WFS",
+    "tgt": "FIS",
     "tgtEqp": [],
     "osrc": "",
-    "srcEqp": "AP-PD-11-01",
-    "src": "EAP",
+    "srcEqp": "AP-BE-01-01",
+    "src": "WFS",
     "otgt": "",
-    "tid": "AP-PD-11-01_00_20240305145553364",
+    "tid": "AP-BE-01-01_00_20240305145553364",
     "cid": "FIS_FILE_REPORT"
   },
   "body": {
     "siteId": "SVM",
-    "eqpId": "AP-PD-11-01",
+    "eqpId": "AP-BE-01-01",
     "lotId": "CAA0177",
     "prodMtrlId": "PANEL_23022301_001",
     "mtrlFace": "Top",
-    "filePath": "C://Users//DavidKim//Desktop//fis_test//request_folder",
-    "fileName": "MEAS_SAMPLE_A.csv",
+    "filePath": "/SVM/INSPECTION/AP-BE-01-01/PRODDEFID/AP-BE-01-01/PROCDEFID/PRNTLOTID",
+    "fileName": "M_PRNTLOTID_AP-BE-01-01_PROCSGMTID_GLASS15203_Top_240202140527.csv",
     "fileType": "MEASUREMENT",
     "userId": "WFS"
+  }
+}
+
+
+### FIS_FILE_REPORT
+POST http://10.184.50.135:9010/fis/management/send/FIS_FILE_REPORT
+Content-Type: application/json
+
+{
+  "head": {
+    "tgt": "FIS",
+    "tgtEqp": [],
+    "osrc": "",
+    "srcEqp": "AP-BE-01-01",
+    "src": "WFS",
+    "otgt": "",
+    "tid": "AP-BE-01-01_00_20240305145553364",
+    "cid": "FIS_FILE_REPORT"
+  },
+  "body": {
+    "siteId": "SVM",
+    "eqpId": "AP-BE-01-01",
+    "lotId": "CAA0177",
+    "prodMtrlId": "PANEL_23022301_001",
+    "mtrlFace": "Top",
+    "filePath": "/SVM/INSPECTION/AP-BE-01-01/PRODDEFID/AP-BE-01-01/PROCDEFID/PRNTLOTID",
+    "fileName": "M_PRNTLOTID_AP-BE-01-01_PROCSGMTID_GLASS15203_Top_240202140527.csv",
+    "fileType": "MEASUREMENT",
+    "userId": "WFS"
+  }
+}
+
+
+### I_PRNTLOTID_AP-BE-01-01_PROCSGMTID_GLASS15203_Top_240202140527.csv
+
+### FIS_FILE_REPORT
+POST http://10.184.50.135:9010/fis/management/send/FIS_FILE_REPORT
+Content-Type: application/json
+
+{
+  "head": {
+    "tgt": "MCS",
+    "tgtEqp": [],
+    "osrc": "",
+    "srcEqp": "ASTK01",
+    "src": "WFS",
+    "otgt": "",
+    "tid": "ASTK01_20240305145553364",
+    "cid": "MCS_INVT_DATA_REQ"
+  },
+  "body": {
+    "targetSystem": "WFS",
+    "eventName": "MCS_INVT_DATA_REQ",
+    "topic": "SVM/PRDO/MCS/CMN/00",
+    "payload": {
+      "head": {
+        "tgt": "MCS",
+        "tgtEqp": [
+
+        ],
+        "osrc": "",
+        "srcEqp": "ASTK01",
+        "src": "WFS",
+        "tid": "AP-SR-02-010020240603145528008",
+        "cid": "MCS_INVT_DATA_REQ"
+      },
+      "body": {
+        "siteId": "SVM",
+        "eqpId": "ASTK01",
+        "userId": "WFS"
+      }
+    }
   }
 }
 

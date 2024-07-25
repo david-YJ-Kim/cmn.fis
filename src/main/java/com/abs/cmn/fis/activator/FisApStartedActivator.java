@@ -42,11 +42,6 @@ public class FisApStartedActivator implements ApplicationRunner {
         }
 
 
-        try {
-            this.initializeSequenceManager();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         this.initializeSolaceResources();
         log.info("Complete initialize solace resources.");
