@@ -110,9 +110,9 @@ Content-Type: application/json
     "lotId": "D1250212",
     "prodMtrlId": "PANEL_23022301_001",
     "mtrlFace": "Top",
-    "filePath": "C://codespace//abs//cmn//cmn.fis//src//main//resources//file//be01",
-    "fileName": "I__AP-BE-01-01_PROC_SGMT_ID_ET24401051_Top_240612130801.csv",
-    "fileType": "INSPECTION",
+    "filePath": "C://workspace//abs//cmn//fis//src//main//resources//file//re02",
+    "fileName": "M_A24700020_AM-RE-02-01_R00032D006_FS24600098_TOP_20240719191128.csv",
+    "fileType": "MEASUREMENT",
     "userId": "WFS"
   }
 }

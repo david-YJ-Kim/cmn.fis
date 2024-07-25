@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.SneakyThrows;
+import oracle.jdbc.internal.OraclePreparedStatement;
+import org.apache.ibatis.logging.jdbc.PreparedStatementLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,12 +49,15 @@ public class ParsingDataRepository {
             int[] numberDataList = FisCommonUtil.convertToIntArray(fileRule.getNumberDataTypList());
             int[] timeStmpDataList = FisCommonUtil.convertToIntArray(fileRule.getTimeStampDataTypList());
 
-            if (numberDataList != null && timeStmpDataList != null )
+            if (numberDataList != null && timeStmpDataList != null ){
+
                 log.info("{} Insert For File type : {}", trackingKey,  fileRule.getFileTyp().name() +" , "+numberDataList.length + ","+timeStmpDataList.length);
+            }
 
             jdbcTemplate.setFetchSize(FisSharedInstance.getInstance().getBatchSize());
 
             jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
+
                 @SneakyThrows
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -66,27 +71,31 @@ public class ParsingDataRepository {
                     ps.setString(4, workId);
                     ps.setInt(5, i + startHeaderOffset);
 
-                    log.debug("{} Colum List : {} ", trackingKey, Arrays.toString(sqlColumList));
+                    log.info("{} Colum List : {} ", trackingKey, Arrays.toString(sqlColumList));
                     for(int idx = 0; idx < sqlColumList.length; idx++){
                         try{
                             int addIdx = idx + 6;
+                            log.debug("{} index: {},  total listSize: {}, columnNm: {}, value : {}", trackingKey, addIdx, sqlColumList.length, sqlColumList[idx], map.get(sqlColumList[idx]));
 
-                            // null 적용 컬럼
-//                            "STRIP_NO", "X_VAL","Y_VAL"
-
+                            /**
+                             *  넘버 타입 리스트
+                             */
                             if ( FisCommonUtil.checkDataInList(numberDataList, addIdx) ) {
 
                                 log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Number", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
 
 
-                                if(map.get(sqlColumList[idx]) == null || map.get(sqlColumList[idx]).equals("") || map.get(sqlColumList[idx]).isEmpty()){
-
-                                    ps.setNull(idx, Types.INTEGER);
+                                if(map.get(sqlColumList[idx]) == null || map.get(sqlColumList[idx]).isEmpty()){
+                                    ps.setNull(addIdx, Types.DOUBLE);
 
                                 }else{
                                     ps.setDouble(addIdx, Double.parseDouble( map.get(sqlColumList[idx])) );
                                 }
 
+
+                            /**
+                             * 날짜 타입 리스트
+                             */
                             } else if (FisCommonUtil.checkDataInList(timeStmpDataList, addIdx)){
 
                                 log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "Timestamp", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
@@ -95,17 +104,21 @@ public class ParsingDataRepository {
                                 ps.setTimestamp(addIdx, Timestamp.valueOf(formattedDate));
 
 
-
+                            /**
+                             * 기타, 문자열 기대
+                             */
                             } else {
 
                                 log.debug("{} Row number:{}, type: {}, key: {}, value: {}", trackingKey, addIdx, "String", sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null));
                                 ps.setString(addIdx, map.getOrDefault(sqlColumList[idx], null));
                             }
+
                         }catch (Exception e){
 
                             log.error("{} Error row number: {} , Colum Element : {}. Value: {}, Error :{} ", trackingKey,  idx, sqlColumList[idx], map.getOrDefault(sqlColumList[idx], null), e);
                             throw e;
                         }
+
                     }
 
                 }
@@ -115,11 +128,13 @@ public class ParsingDataRepository {
                     return listMap.size();
                 }
             });
+
+
+
             log.info("{} Batch Complete. maxRows: {}", trackingKey, jdbcTemplate.getMaxRows());
             return "Complete";
 
         } catch (Exception vo) {
-            vo.printStackTrace();
             log.error("{} Error: {}",trackingKey, vo);
             throw vo;
         }
