@@ -6,6 +6,20 @@ server:
   shutdown: graceful
 
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    restart:
+      enabled: true
+    shutdown:
+      enabled: true
+
+gracefulShutdown:
+  awaitTerminateTime: 60
+
 logging:
   level:
     org:

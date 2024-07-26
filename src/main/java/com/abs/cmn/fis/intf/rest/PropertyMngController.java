@@ -25,13 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(value = "/fis/management")
 public class PropertyMngController {
 
-    @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public String testMethod(HttpServletRequest request) throws JCSMPException {
-
-        InterfaceSolacePub.getInstance().sendBasicTextMessage(FisMessageList.FIS_FILE_REPORT, "HelloWord", FisSharedInstance.getInstance().getReceiveQueueName());
-        log.info(request.toString());
-        return null;
-    }
 
 
     @RequestMapping(value = "/send/FIS_FILE_REPORT", method = RequestMethod.POST)

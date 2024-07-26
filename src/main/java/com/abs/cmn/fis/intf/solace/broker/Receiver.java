@@ -144,7 +144,7 @@ public class Receiver implements Runnable {
                 switch (cid){
 
                     /**
-                     * Async 처리로 Message Ack는 execute 내부에서 처리
+                     * Async 처리로 Message Ack, execute 내부에서 처리
                      * File report message sequence.
                      * 1. Status `R` : Receive message and create work stats
                      * 2. Status `P` : Start read and parsing target file.
